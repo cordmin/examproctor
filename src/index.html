@@ -559,7 +559,7 @@
                         <input type="hidden" id="exam-name" value="">
 
                         <div class="max-w-[1070px] w-full mx-auto space-y-10">
-                            <!-- 1행: 고사 일정 및 교시 설정 (좌) & 학년 및 학급 설정 (우) -->
+                            <!-- 1행: 고사일정 (좌) & 시험 과목 (우) -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-10 items-start">
 
                                 <!-- 고사 일정 및 교시 설정 카드 -->
@@ -581,11 +581,35 @@
                                     </div>
                                 </div>
 
-                                <!-- 학년 및 구역 설정 카드 (카드 자체가 표) -->
+                                <!-- 시험 과목 카드 -->
                                 <div class="flex flex-col h-full">
                                     <div class="flex items-end justify-between -mb-[1px] relative z-10">
                                         <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px]">
-                                            학년 및 구역 설정
+                                            시험 과목
+                                        </div>
+                                        <span class="flex items-center gap-1.5 pr-2 pb-1.5 text-[11px] font-semibold text-stone">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></span>
+                                            과목명이 '수업'인 경우 자습 시간으로 자동 인식합니다
+                                        </span>
+                                    </div>
+                                    <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1 p-4">
+                                        <div class="flex gap-2 mb-3">
+                                            <input type="text" id="new-subject" class="fld flex-1 px-3 py-2 text-[13px] font-bold" placeholder="시험 과목명 입력">
+                                            <button id="btn-add-subject" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">+추가</button>
+                                        </div>
+                                        <div id="subject-list" class="flex flex-wrap gap-1.5 min-h-[32px]"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2행: 학년 및 시험장소 (좌) & 교실별 배정 인원 (우) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-10 items-start">
+
+                                <!-- 학년 및 시험장소 카드 (카드 자체가 표) -->
+                                <div class="flex flex-col h-full">
+                                    <div class="flex items-end justify-between -mb-[1px] relative z-10">
+                                        <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px]">
+                                            학년 및 시험장소
                                         </div>
                                         <span class="flex items-center gap-1.5 pr-2 pb-1.5 text-[11px] font-semibold text-stone">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></span>
@@ -628,10 +652,6 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- 2행: 교실별 배정 인원 (좌 50%) & 시험 과목 (우 50%) -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-10 items-start">
 
                                 <!-- 교실별 배정 인원 카드 -->
                                 <div class="flex flex-col">
@@ -653,26 +673,6 @@
                                             <tbody id="rules-invig-body" class="bg-surface-0"></tbody>
                                         </table>
                                         </div>
-                                    </div>
-                                </div>
-
-                                <!-- 시험 과목 카드 -->
-                                <div class="flex flex-col h-full">
-                                    <div class="flex items-end justify-between -mb-[1px] relative z-10">
-                                        <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px]">
-                                            시험 과목
-                                        </div>
-                                        <span class="flex items-center gap-1.5 pr-2 pb-1.5 text-[11px] font-semibold text-stone">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></span>
-                                            과목명이 '수업'인 경우 자습 시간으로 자동 인식합니다
-                                        </span>
-                                    </div>
-                                    <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1 p-4">
-                                        <div class="flex gap-2 mb-3">
-                                            <input type="text" id="new-subject" class="fld flex-1 px-3 py-2 text-[13px] font-bold" placeholder="시험 과목명 입력">
-                                            <button id="btn-add-subject" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">+추가</button>
-                                        </div>
-                                        <div id="subject-list" class="flex flex-wrap gap-1.5 min-h-[32px]"></div>
                                     </div>
                                 </div>
                             </div>
