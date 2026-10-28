@@ -12,10 +12,15 @@ import random
 import statistics
 import traceback
 
-from labels import period_num, role_key
+from labels import absence_targets, period_num, role_key
 from validator import summarize
 
 TRIES = 30   # 데이터 60명 x 12교시 기준 1회 약 0.05초
+
+# 배정이 막혔을 때 먼저 풀어 보라고 권하는 순서 (학교 운영에 부담이 적은 것부터).
+# 연속 감독 횟수 제한과 1일 편차는 배정 중에 이미 자동으로 완화하므로 여기 없다.
+RELAX_ORDER = ["수업감독 연속 배정 금지", "복도감독 연속 배정 금지", "동일 학급 연속 배정 금지",
+               "본인 담당교과 배정 금지", "본인 담임학급 배정 금지", "배정 제한 시간 도달"]
 
 
 class AssignmentFailure(Exception):
@@ -121,22 +126,84 @@ def run_algorithm(appData):
         if not total_required_slots:
             return {"success": False, "error_type": "INPUT", "failure": {
                 "summary": "배정할 학년과 과목이 선택되지 않았습니다.",
-                "reasons": [{"message": "현재 설정에서 감독이 필요한 시간이 없습니다.", "action": "기초 설정에서 시험 학년을 켜고, 학년별 교시에 시험 과목 또는 자습을 선택하세요.", "target": "tab-config"}]}}
-        if total_capacity < total_required_slots:
+                "reasons": [{"message": "현재 설정에서 감독이 필요한 시간이 없습니다.", "action": "기초 설정에서 시험 학년을 켜고, 학년별 교시에 시험 과목 또는 수업을 선택하세요.", "target": "tab-config"}]}}
+
+        # 인원 부족은 '선생님이 몇 명 더 있어야 하는지'로 알려 준다.
+        # 한 교시에 한 선생님은 한 자리만 맡으므로 (1) 교시마다 자리 수 > 그 교시에 감독할 수 있는 선생님 수,
+        # (2) 전체 자리 수 > 선생님들이 맡을 수 있는 시간의 합 이면 어떤 순서로도 배정할 수 없다.
+        n_periods = len(periods_sorted)
+        free_at = {p['id']: sum(1 for t in active_teachers
+                                if t.get('absences', {}).get(p['id'], {}).get('type') != 'ALL')
+                   for p in periods_sorted}
+
+        def need_for(capacity, skip=lambda s: False):
+            """(가장 모자란 교시, 그 교시 부족 인원, 필요한 선생님 수). skip 한 자리는 없는 셈 친다."""
+            gaps = {p['id']: sum(1 for s in slots_by_period[p['id']] if not skip(s)) - free_at[p['id']] for p in periods_sorted}
+            worst = max(periods_sorted, key=lambda p: gaps[p['id']])
+            total_gap = sum(1 for p in periods_sorted for s in slots_by_period[p['id']] if not skip(s)) - capacity
+            # 새 선생님 한 명은 교시마다 한 자리씩 맡을 수 있다
+            return worst, gaps[worst['id']], max(gaps[worst['id']], -(-total_gap // n_periods))
+
+        def when(p):
+            _, m, d = p['date'].split('-')
+            return f"{int(m)}월 {int(d)}일 {p['name']}"
+
+        def capacity_reasons(need, worst, worst_gap):
+            """부족할 때 '먼저 해 볼 것'을 순서대로: 배정 제한 → 교실별 배정 인원 → 결시 확인 → 선생님 추가."""
+            reasons = []
+            if worst_gap > 0:
+                reasons.append({"message": f"{when(worst)}에는 감독 자리가 {len(slots_by_period[worst['id']])}곳인데, 감독할 수 있는 선생님은 {free_at[worst['id']]}명뿐입니다.",
+                                "action": "한 선생님은 한 교시에 한 자리만 맡을 수 있습니다. 이 시간에 잘못 넣은 결시가 없는지 확인하세요.", "target": "tab-absences"})
+
+            limited = sorted(((t, max(0, n_periods - count_all_absent(t)) - calc_teacher_capacity(t)) for t in active_teachers),
+                             key=lambda x: -x[1])
+            limited = [(t, gain) for t, gain in limited if gain > 0]
+            after = need_for(total_capacity + sum(g for _, g in limited))[2] if limited else need
+            if after < need:   # 풀어도 소용없으면 안내하지 않는다
+                names = ', '.join(f"{t['name']}({t['maxPeriods']}시간)" for t, _ in limited[:5]) + (f" 외 {len(limited) - 5}명" if len(limited) > 5 else '')
+                effect = "이 제한만 풀어도 해결됩니다." if after <= 0 else f"모두 풀면 필요한 선생님이 {need - after}명 줄어듭니다."
+                reasons.append({"message": f"배정 제한(시간)이 걸린 선생님: {names}",
+                                "action": f"{effect} 결시 관리에서 배정 제한을 늘릴 수 있는지 확인하세요.", "target": "tab-absences"})
+
+            for g in config.get('grades', []):
+                g_str = str(g)
+                for role, place in [('부', '교실'), ('특수(부)', '특수 고사실'), ('분리(부)', '분리 고사실')]:
+                    if not any(s['grade'] == g_str and s['role'] == role for p in periods_sorted for s in slots_by_period[p['id']]):
+                        continue
+                    after = need_for(total_capacity, lambda s: s['grade'] == g_str and s['role'] == role)[2]
+                    if after >= need:
+                        continue
+                    effect = "이것만으로 해결됩니다." if after <= 0 else f"필요한 선생님이 {need - after}명 줄어듭니다."
+                    reasons.append({"message": f"{g}학년 {place} 감독을 2명에서 1명으로 줄이면 {effect}",
+                                    "action": "기초 설정의 교실별 배정 인원에서 정·부감독(2인)을 정감독(1인)으로 바꿀 수 있습니다.", "target": "tab-config"})
+
+            absent = sorted(((t, count_all_absent(t)) for t in active_teachers), key=lambda x: -x[1])
+            absent = [f"{t['name']}({n}시간)" for t, n in absent if n] + [f"{t['name']}(전체 제외)" for t in teachers if t.get('isAbsentAll')]
+            if absent:
+                reasons.append({"message": f"결시로 감독에서 빠진 선생님: {', '.join(absent[:5])}" + (f" 외 {len(absent) - 5}명" if len(absent) > 5 else ''),
+                                "action": "결시가 실제 계획과 맞는지 확인하세요. 잘못 넣은 결시를 지우면 그만큼 감독할 수 있습니다.", "target": "tab-absences"})
+
+            reasons.append({"message": f"가장 확실한 방법은 감독 선생님을 {need}명 이상 추가하는 것입니다.",
+                            "action": "감독 명단에 빠진 선생님이 없는지 확인하고 추가하세요.", "target": "tab-teachers"})
+            return reasons
+
+        worst, worst_gap, need = need_for(total_capacity)
+        if need > 0:
+            reasons = capacity_reasons(need, worst, worst_gap)
+            summary = f"감독 선생님이 최소 {need}명 더 있어야 지금 조건으로 감독 시간표를 짤 수 있습니다."
             return {"success": False, "error_type": "CAPACITY",
-                    "validation": {"shortage": True, "required": total_required_slots, "available": total_capacity, "logs": [], "stats": []},
-                    "failure": {"summary": f"필요한 감독 횟수는 {total_required_slots}회이며, 현재 가능한 횟수는 {total_capacity}회로 {total_required_slots - total_capacity}회 부족합니다.",
-                                "reasons": [
-                                    {"message": "감독 가능한 총 횟수가 부족합니다.", "action": "감독 명단에서 누락된 교사를 추가하세요. 결시 관리의 배정 제한(시간)이 실제보다 낮게 입력되어 있다면 수정하세요.", "target": "tab-teachers"},
-                                    {"message": "결시와 배정 인원 설정도 가용 횟수에 영향을 줍니다.", "action": "결시 관리에서 잘못 표시한 결시가 없는지 확인하고, 기초 설정의 학급·고사실 수와 교실별 배정 인원이 실제 계획과 일치하는지 확인하세요.", "target": "tab-config"}]}}
+                    "validation": {"shortage": True, "need": need, "summary": summary, "reasons": reasons,
+                                   "required": total_required_slots, "available": total_capacity, "logs": [], "stats": []},
+                    "failure": {"summary": summary, "reasons": reasons}}
 
         def is_absent(t_abs, p_id, g, c):
             if p_id not in t_abs:
                 return False
             av = t_abs[p_id]
+            targets = absence_targets(av)
             return (av.get('type') == 'ALL'
-                    or (av.get('type') == 'GRADE' and str(av.get('target')) == str(g))
-                    or (av.get('type') == 'CLASS' and str(av.get('target')) == str(c)))
+                    or (av.get('type') == 'GRADE' and str(g) in targets)
+                    or (av.get('type') == 'CLASS' and str(c) in targets))
 
         def has_role_permission(t, s_rl, s_gd):
             if "수업" in s_rl:
@@ -150,28 +217,31 @@ def run_algorithm(appData):
             elif "특수" in s_rl and not t.get('isSpecial'):  return False
             return True
 
-        def violates_absolute(t, state, p_id, date, p_num, s_nm, s_rl, s_gd, assigned_this_period):
+        def absolute_blocks(t, state, p_id, date, p_num, s_nm, s_rl, s_gd, assigned_this_period):
+            """이 교사를 이 자리에 못 넣는 절대 규칙을 모두 차례로 내놓는다."""
             if t['id'] in assigned_this_period:
-                return "동시간 중복 배정"
+                yield "동시간 중복 배정"
             if state['assigned_total'] >= max_of(t):
-                return "배정 제한 시간 도달"
+                yield "배정 제한 시간 도달"
             if rules.get('excludeHomeroom', True) and t.get('homeroom') == s_nm:
-                return "본인 담임학급 배정 금지"
+                yield "본인 담임학급 배정 금지"
 
             exam_subj = classSubjects.get(p_id, {}).get(str(s_gd), "")
             if rules.get('excludeSubject', True) and exam_subj and t.get('subject') == exam_subj:
-                return "본인 담당교과 배정 금지"
+                yield "본인 담당교과 배정 금지"
 
             if state['history']:
                 last = state['history'][-1]
                 if last['date'] == date and last['p_num'] == p_num - 1:
                     if rules.get('excludeSameClass', True) and last['class_name'] == s_nm:
-                        return "동일 학급 연속 배정 금지"
+                        yield "동일 학급 연속 배정 금지"
                     if rules.get('excludeClassConsecutive', True) and "수업" in s_rl and "수업" in last['role']:
-                        return "자습감독 연속 배정 금지"
+                        yield "수업감독 연속 배정 금지"
                     if rules.get('excludeHallwayConsecutive', True) and "복도" in s_rl and "복도" in last['role']:
-                        return "복도감독 연속 배정 금지"
-            return False
+                        yield "복도감독 연속 배정 금지"
+
+        def violates_absolute(*args):
+            return next(absolute_blocks(*args), False)
 
         def violates_fairness(state, date, p_num, relax_level, min_daily):
             if relax_level < 2 and int(rules.get('maxConsecutive', 99)) < 99:
@@ -281,14 +351,14 @@ def run_algorithm(appData):
                     if not best_teacher:
                         remedies = {
                             "전체 배정 제외": ("감독 명단과 결시 설정에서 배정 제외 상태가 실제 계획과 일치하는지 확인하세요.", "tab-teachers"),
-                            "감독 유형 권한 없음": (f"감독 명단에서 {s_gd}학년 {('자습' if s_rl == '수업' else s_rl)} 감독이 가능한 교사의 해당 체크를 켜세요.", "tab-teachers"),
+                            "감독 유형 권한 없음": (f"감독 명단에서 {s_gd}학년 {s_rl} 감독이 가능한 교사의 해당 체크를 켜세요.", "tab-teachers"),
                             "해당 시간 결시": ("결시 관리에서 해당 교시의 전체·학년·학급 결시를 확인하고 잘못 입력한 결시를 수정하세요.", "tab-absences"),
                             "동시간 중복 배정": ("같은 교시에 한 교사가 두 곳을 감독할 수 없습니다. 감독 가능한 교사를 추가하거나 기초 설정의 교실별 배정 인원이 실제 계획보다 많지 않은지 확인하세요.", "tab-config"),
                             "배정 제한 시간 도달": ("결시 관리에서 해당 교사의 배정 제한(시간)을 확인하고, 가능한 범위에서 늘리거나 감독 인원을 추가하세요.", "tab-absences"),
                             "본인 담임학급 배정 금지": ("다른 학급을 맡을 수 있는 감독 인원을 확보하세요. 학교 운영상 허용하는 경우에만 배정 규칙에서 담임학급 시간 배정 금지를 해제하세요.", "rules"),
                             "본인 담당교과 배정 금지": ("해당 과목을 담당하지 않는 감독 인원을 확보하세요. 학교 운영상 허용하는 경우에만 배정 규칙에서 담당교과 시간 배정 금지를 해제하세요.", "rules"),
                             "동일 학급 연속 배정 금지": ("해당 시간에 다른 교사를 배정할 수 있도록 인원을 확보하거나, 허용하는 경우 배정 규칙에서 동일 학급 연속 배정 금지를 해제하세요.", "rules"),
-                            "자습감독 연속 배정 금지": ("학년별 자습 감독이 가능한 교사를 더 확보하거나, 허용하는 경우 배정 규칙에서 수업감독(자습) 연속 배정 금지를 해제하세요.", "rules"),
+                            "수업감독 연속 배정 금지": ("학년별 수업 감독이 가능한 교사를 더 확보하거나, 허용하는 경우 배정 규칙에서 수업감독 연속 배정 금지를 해제하세요.", "rules"),
                             "복도감독 연속 배정 금지": ("복도감독이 가능한 교사를 더 확보하거나, 허용하는 경우 배정 규칙에서 복도감독 연속 배정 금지를 해제하세요.", "rules"),
                         }
                         counts = {}
@@ -300,7 +370,22 @@ def run_algorithm(appData):
                             if reason: counts[reason] = counts.get(reason, 0) + 1
                         reasons = [{"message": f"{reason}: {count}명", "action": remedies[reason][0], "target": remedies[reason][1]}
                                    for reason, count in counts.items()]
-                        raise AssignmentFailure(f"{date} {p['name']} · {s_nm} {('자습감독' if s_rl == '수업' else s_rl + '감독')}: 현재 설정으로 배정 가능한 조합을 찾지 못했습니다.", reasons)
+                        # 규칙을 하나만 풀었을 때 이 자리에 들어갈 수 있게 되는 교사 수를 세어,
+                        # 학교 운영에 부담이 적은 규칙부터 '먼저 풀어 볼 규칙'으로 앞에 보여 준다.
+                        unlock = {}
+                        for t in active_teachers:
+                            if not has_role_permission(t, s_rl, s_gd) or is_absent(t.get('absences', {}), p_id, s_gd, s_nm):
+                                continue
+                            blocks = set(absolute_blocks(t, t_states[t['id']], p_id, date, p_num, s_nm, s_rl, s_gd, assigned_this_period))
+                            if len(blocks) == 1:
+                                rule = blocks.pop()
+                                unlock[rule] = unlock.get(rule, 0) + 1
+                        tips = [{"message": f"{i}순위로 풀어 볼 규칙: {rule} (풀면 이 자리에 {unlock[rule]}명 배정 가능)",
+                                 "action": remedies[rule][0], "target": remedies[rule][1]}
+                                for i, rule in enumerate((r for r in RELAX_ORDER if unlock.get(r)), 1)]
+                        tipped = {r for r in RELAX_ORDER if unlock.get(r)}
+                        reasons = tips + [r for r, reason in zip(reasons, counts) if reason not in tipped]
+                        raise AssignmentFailure(f"{when(p)} {s_nm} {s_rl}감독 자리에 들어갈 수 있는 선생님이 없습니다.", reasons)
 
                     bt_id = best_teacher['t']['id']
                     best_teacher['assigned_total'] += 1

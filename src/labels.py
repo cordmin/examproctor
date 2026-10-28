@@ -66,6 +66,12 @@ def period_num(name):
     return int(m.group()) if m else 99
 
 
+def absence_targets(data):
+    """기존 단일 결시와 여러 학년을 저장한 결시를 같은 형태로 읽는다."""
+    target = data.get('target')
+    return [str(value) for value in (target if isinstance(target, list) else [target]) if value is not None]
+
+
 def check_label(t, p_id, label, classSubjects, rules):
     """한 교사가 특정 교시에 이 라벨을 받아도 되는지 검사한다.
 
@@ -91,9 +97,9 @@ def check_label(t, p_id, label, classSubjects, rules):
 
     abs_data = t.get('absences', {}).get(p_id)
     if abs_data:
-        a_type, a_tgt = abs_data.get('type'), str(abs_data.get('target'))
-        if a_type == 'ALL' or (a_type == 'GRADE' and a_tgt == grade) or (a_type == 'CLASS' and a_tgt == area):
-            abs_str = '전체 결시' if a_type == 'ALL' else (f'{a_tgt}학년 결시' if a_type == 'GRADE' else f'{a_tgt} 결시')
+        a_type, targets = abs_data.get('type'), absence_targets(abs_data)
+        if a_type == 'ALL' or (a_type == 'GRADE' and grade in targets) or (a_type == 'CLASS' and area in targets):
+            abs_str = '전체 결시' if a_type == 'ALL' else (f"{'·'.join(targets)}학년 결시" if a_type == 'GRADE' else f"{'·'.join(targets)} 결시")
             out.append(('결시', f"{abs_str} 시간대 '{area}' 배정 위반"))
 
     if rules.get('excludeHomeroom', True) and t.get('homeroom') == area:

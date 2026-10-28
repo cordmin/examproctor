@@ -10,10 +10,10 @@ from labels import CHECK_INDEX, ROLE_COL, check_label, parse_label, period_num, 
 
 def generate_verify_data(teachers, periods, assignments, classSubjects, rules):
     checks = [
-        {"name": "1. 모든 구역/학급 배정 완료 (누락 없음)", "desc": "요구된 모든 시험감독 자리에 누락 없이 교사가 배정되었는지 확인합니다.", "pass": True, "messages": []},
+        {"name": "1. 모든 구역/학급 배정 완료", "desc": "요구된 모든 시험감독 자리에 누락 없이 교사가 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "2. 동일 교시 중복 배정 방지", "desc": "한 교시 동안 2개 이상의 감독 자리에 중복 배정되었는지 확인합니다.", "pass": True, "messages": []},
-        {"name": "3. 교사별 감독 역할 권한 일치", "desc": "교사별로 허용된 감독 역할(정, 부, 복, 수 등)에 맞게 배정되었는지 확인합니다.", "pass": True, "messages": []},
-        {"name": "4. 결시 교사 배정 방지 (결시 위반)", "desc": "전체/학년/학급 결시로 설정된 시간대에 배정된 교사가 없는지 확인합니다.", "pass": True, "messages": []},
+        {"name": "3. 교사별 감독 역할 권한 일치", "desc": "교사별로 허용된 감독 역할(정, 부, 복, 자 등)에 맞게 배정되었는지 확인합니다.", "pass": True, "messages": []},
+        {"name": "4. 결시 교사 배정 방지", "desc": "전체/학년/학급 결시로 설정된 시간대에 배정된 교사가 없는지 확인합니다.", "pass": True, "messages": []},
         {"name": "5. 본인 담임학급 배정 금지", "desc": "본인이 담임을 맡고 있는 학급의 시험 감독으로 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "6. 본인 담당교과 배정 금지", "desc": "본인이 담당하는 교과목의 시험 시간대에 감독으로 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "7. 동일 학급 연속 배정 금지", "desc": "동일한 학급에 연속으로 시험 감독이 배정되었는지 확인합니다.", "pass": True, "messages": []},
@@ -22,6 +22,22 @@ def generate_verify_data(teachers, periods, assignments, classSubjects, rules):
         {"name": "10. 교사별 배정 제한(시간) 준수", "desc": "교사별 설정된 '배정 제한(시간)' 한도를 초과하여 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "11. 1일 감독 횟수 편차 제한", "desc": "1일 최대 감독 횟수 편차 한도를 초과하여 교사 간 불균형이 있는지 확인합니다.", "pass": True, "messages": []}
     ]
+
+    # 실패한 검사 카드에 보여 줄 해결 방법과 바로 가기 화면 (검사 순서와 같다).
+    swap = "배정 결과에서 해당 칸을 다른 선생님과 교체하세요."
+    rule_off = (swap + " 학교에서 허용한다면 배정 규칙에서 이 규칙을 해제할 수 있습니다.", "rules")
+    fixes = [
+        ("배정을 다시 실행하세요. 계속 비면 감독 명단에 선생님을 추가하세요.", "tab-teachers"),
+        (swap, "tab-result"),
+        ("감독 명단에서 해당 감독 권한을 켜거나, " + swap, "tab-teachers"),
+        ("결시 관리에서 결시가 맞는지 확인하고, 맞다면 " + swap, "tab-absences"),
+        rule_off, rule_off, rule_off, rule_off,
+        ("연속으로 맡은 시간 중 하나를 다른 선생님과 교체하거나, 배정 규칙에서 연속 감독 시간을 늘리세요.", "rules"),
+        ("결시 관리에서 배정 제한(시간)이 맞는지 확인하거나, " + swap, "tab-absences"),
+        ("가장 많이 맡은 선생님의 감독 하나를 가장 적게 맡은 선생님과 교체하거나, 배정 규칙에서 편차 허용을 늘리세요.", "rules"),
+    ]
+    for c, (fix, target) in zip(checks, fixes):
+        c['fix'], c['fix_target'] = fix, target
 
     periods_sorted = sorted(periods, key=lambda x: (x['date'], period_num(x['name'])))
 

@@ -80,6 +80,7 @@ document.querySelectorAll('.result-sub-btn').forEach(btn => {
         currentResultView = e.currentTarget.getAttribute('data-target');
         document.querySelectorAll('.result-view').forEach(view => view.classList.add('hidden'));
         document.getElementById(currentResultView).classList.remove('hidden');
+        requestAnimationFrame(syncResultHeaders);
     });
 });
 
@@ -120,12 +121,22 @@ window.addEventListener('resize', fitZoom);
 function syncTeacherHeader() {
     const scroll = document.getElementById('teacher-list-scroll');
     const header = document.getElementById('teacher-list-header');
-    if (scroll.clientWidth) header.style.paddingRight = `${scroll.offsetWidth - scroll.clientWidth}px`;
+    syncSplitTableHeader(scroll, header);
 }
 new ResizeObserver(syncTeacherHeader).observe(document.getElementById('teacher-list-scroll'));
 
+function syncAbsenceHeader() {
+    const scroll = document.getElementById('absence-table-scroll');
+    const header = document.getElementById('absence-table-header');
+    syncSplitTableHeader(scroll, header, document.getElementById('absence-header-viewport'));
+}
+new ResizeObserver(syncAbsenceHeader).observe(document.getElementById('absence-table-scroll'));
+document.getElementById('absence-table-scroll').addEventListener('scroll', syncAbsenceHeader);
+
 function syncScrollHeads() {
     syncTeacherHeader();
+    syncAbsenceHeader();
+    syncStatsHeader();
     document.querySelectorAll('thead').forEach(head => {
         const box = head.closest('.overflow-auto, .overflow-y-auto');
         if (!box) return;
@@ -194,15 +205,7 @@ function startResize(dir, e) {
 function sanitizeAppData(data) {
     if (!data) return;
     if (!data.config) data.config = {};
-    if (!data.config.rules) {
-        data.config.rules = { 
-            excludeHomeroom: true, excludeSubject: true, excludeSameClass: true, 
-            excludeClassConsecutive: true, excludeHallwayConsecutive: true, 
-            maxConsecutive: 99, maxDailyDiff: 99, 
-            fatigueMain: 5, fatigueSub: 3, fatigueClass: 1, fatigueHall: 2, fatigueSep: 4, fatigueSp: 4,
-            balanceStrategy: 'FATIGUE'
-        };
-    }
+    data.config.rules = {...DEFAULT_RULES, ...data.config.rules};
     if (!data.config.invigCounts) data.config.invigCounts = {};
     if (!data.config.grades) data.config.grades = [];
     if (!data.config.classes) data.config.classes = {};
@@ -260,7 +263,6 @@ document.getElementById('btn-global-load').addEventListener('click', () => {
         if(res.success && res.data) { 
             appData = res.data; 
             sanitizeAppData(appData);
-            undoStack.length = redoStack.length = 0;
             renderConfigTab(); renderSubjectsTab(); renderTeachers(); renderAbsencesTab(); renderResultTab(); renderRulesTab(); 
             showToast("데이터 불러오기 완료!", "success"); 
         } 
@@ -270,38 +272,7 @@ document.getElementById('btn-global-load').addEventListener('click', () => {
 
 
 
-// ── 되돌리기 / 다시 실행 (수동 교체, 결시 입력) ──────────────────────
-const undoSnapshot = () => JSON.stringify({ a: appData.assignments, abs: appData.teachers.map(t => [t.id, t.absences || {}]) });
-window.pushUndo = function() {
-    undoStack.push(undoSnapshot());
-    if (undoStack.length > 50) undoStack.shift();
-    redoStack.length = 0;
-};
-function restoreSnapshot(snap) {
-    const { a, abs } = JSON.parse(snap);
-    const assignChanged = JSON.stringify(a) !== JSON.stringify(appData.assignments);
-    appData.assignments = a;
-    const absById = Object.fromEntries(abs);
-    appData.teachers.forEach(t => { if (absById[t.id]) t.absences = absById[t.id]; });
-    renderAbsencesTab(); renderResultTab();
-    if (assignChanged) runRevalidation();
-}
-window.undo = function() {
-    if (!undoStack.length) return showToast("되돌릴 작업이 없습니다.", "error");
-    redoStack.push(undoSnapshot()); restoreSnapshot(undoStack.pop());
-};
-window.redo = function() {
-    if (!redoStack.length) return showToast("다시 실행할 작업이 없습니다.", "error");
-    undoStack.push(undoSnapshot()); restoreSnapshot(redoStack.pop());
-};
-
 document.addEventListener('keydown', (e) => {
-    // 입력칸에서는 브라우저 기본 되돌리기를 쓴다
-    if (e.ctrlKey && !e.target.closest('input, textarea, select')) {
-        const k = e.key.toLowerCase();
-        if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
-        if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); redo(); return; }
-    }
     const sm = document.getElementById('swap-modal');
     if(sm && !sm.classList.contains('hidden')) {
         if(e.key === 'Escape') closeSwapModal();
@@ -465,7 +436,6 @@ document.getElementById('btn-rules-run').addEventListener('click', async () => {
         if (res.success) {
             appData.assignments = res.assignments;
             appData.baseAssignments = JSON.parse(JSON.stringify(res.assignments));
-            undoStack.length = redoStack.length = 0;
             appData.validation = res.validation;
             showToast("배정 실행 완료!", "success");
             renderValidateTab(); showTab('tab-result');
@@ -479,7 +449,7 @@ document.getElementById('btn-rules-run').addEventListener('click', async () => {
         button.disabled = false;
     }
 });
-document.getElementById('btn-export-excel').addEventListener('click', () => { const d = new Date(), yy = String(d.getFullYear()).slice(-2), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0'); const filename = `${appData.config.examName || "미지정고사"}(${yy}.${mm}.${dd}).xlsx`; window.pywebview.api.export_excel(appData, filename).then(res => { if(res.success) showToast(`엑셀 저장 완료!\n${res.path}`, "success"); else showToast("저장 실패: " + res.error, "error"); }); });
+document.getElementById('btn-export-excel').addEventListener('click', () => { const d = new Date(), yy = String(d.getFullYear()).slice(-2), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0'); const filename = `${appData.config.examName || "미지정고사"}(${yy}.${mm}.${dd}).xlsx`; window.pywebview.api.export_excel(appData, filename).then(res => { if(res.success) showToast(`엑셀 저장 완료!\n${res.path}`, "success"); else if (!res.canceled) showToast("저장 실패: " + res.error, "error"); }); });
 window.toggleAllRoles = function(role, checked) { appData.teachers.forEach(t => { t[role] = checked; }); renderTeachers(); renderAbsencesTab(); };
 
 refreshDropdowns();

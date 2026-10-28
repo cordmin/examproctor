@@ -203,6 +203,25 @@
         #teacher-list-header { border-bottom: 1px solid rgb(var(--line)); }
         #teacher-list-header thead, #teacher-list-header th { position: static !important; background-image: none; }
         #teacher-list-scroll tbody > tr:first-child > td { border-top-width: 0 !important; }
+        #stats-header { border-bottom: 1px solid rgb(var(--line)); }
+        #stats-header thead, #stats-header th { position: static !important; background-image: none; }
+        #stats-header th.group { position: relative !important; }
+        #stats-scroll tbody > tr:first-child > td { border-top-width: 0 !important; }
+        #absence-table-header { background: #F1F5F9; border-bottom: 1px solid rgb(var(--line)); }
+        #absence-header-viewport { overflow: hidden; background: #F1F5F9; }
+        #absence-table-header table, #absence-list-head, #absence-list-head tr { background: #F1F5F9; }
+        #absence-list-head th { position: static !important; background-image: none; border-bottom-width: 1px !important; }
+        #absence-list-head tr:last-child th, #absence-list-head th[rowspan] { border-bottom-width: 0 !important; }
+        #absence-table-scroll tbody > tr:first-child > td { border-top-width: 0 !important; }
+        .result-table-header { background: #F1F5F9; border-bottom: 1px solid rgb(var(--line)); }
+        .result-header-viewport { overflow: hidden; background: #F1F5F9; }
+        .result-table-header table, .result-table-header thead, .result-table-header tr { background: #F1F5F9; }
+        .result-table-header th { position: static !important; background-image: none; border-bottom-width: 1px !important; }
+        .result-table-header tr:last-child th, .result-table-header th[rowspan] { border-bottom-width: 0 !important; }
+        .result-table-header .result-period-title { white-space: normal; overflow-wrap: anywhere; font-size: 12px; line-height: 1.35; }
+        .result-table-scroll tbody > tr:first-child > td { border-top-width: 0 !important; }
+
+
 
         .role-menu-btn { display: inline-flex; align-items: center; justify-content: center; margin-left: 3px; padding: 5px 2px; color: #6B7280; vertical-align: middle; cursor: pointer; }
         .role-menu-btn:focus-visible { outline: 2px solid #64748B; outline-offset: 2px; border-radius: 2px; }
@@ -210,11 +229,11 @@
         .role-menu button { display: block; width: 100%; padding: 7px 4px; border-radius: 3px; text-align: center; white-space: nowrap; font-size: 12px; color: rgb(var(--text-main)); cursor: pointer; }
         .role-menu button:hover, .role-menu button:focus-visible { background: #F1F5F9; outline: none; }
         .role-menu-btn:hover { color: #111827; }
-        #titlebar button { position: relative; }
-        #titlebar button::before { content: ''; position: absolute; inset: -3px; border-radius: inherit; transition: background-color .15s; }
+        #titlebar button, .modal-close { position: relative; }
+        #titlebar button::before, .modal-close::before { content: ''; position: absolute; inset: -3px; border-radius: inherit; transition: background-color .15s; }
         #titlebar button:hover::before { background-color: rgb(255 255 255 / .2); }
-        #titlebar #win-close:hover::before { background-color: rgb(var(--coral)); }
-        #titlebar button svg { position: relative; pointer-events: none; }
+        #titlebar #win-close:hover::before, .modal-close:hover::before { background-color: rgb(var(--coral)); }
+        #titlebar button svg, .modal-close svg { position: relative; pointer-events: none; }
 
 
         /* 카드 외곽 테두리와 표 외각 셀 테두리 이중 중첩 방지 */
@@ -241,11 +260,24 @@
         .app-select-btn:hover:not(:disabled):not([aria-expanded="true"]):not(:focus) { border-color: #94A3B8 !important; }
         .app-select-btn:focus, .app-select-btn[aria-expanded="true"] { outline: none; border-color: #2563EB !important; background: #FFFFFF !important; box-shadow: 0 0 0 2px #2563EB40 !important; }
         .app-select-btn:disabled { opacity: .45; cursor: default; }
+        /* 교실별 배정 인원: 가장 긴 '정·부감독 (2인)' 너비로 고정 */
+        .app-select-btn.iv-select { width: 124px; }
         #grade-subject-menu { min-width: max-content; position: fixed; z-index: 20000; padding: 3px 0; border: 1px solid #CBD5E1; border-radius: 8px; background: #FFFFFF; box-shadow: 0 4px 12px #0F172A26; overflow-y: auto; }
         #grade-subject-menu button { white-space: nowrap; display: block; width: 100%; padding: 5px 8px; color: #0F172A; font-size: 12.5px; text-align: center; cursor: pointer; }
         #grade-subject-menu button:hover, #grade-subject-menu button:focus { background: #F1F5F9; outline: none; }
         #grade-subject-menu button[aria-selected="true"] { background: #767676; color: #FFFFFF; }
         #grade-subject-menu button:disabled { opacity: .45; cursor: default; }
+        /* grid-select: optgroup 별 제목 + 3칸 바둑판 (감독 교체 대상 선택) */
+        #grade-subject-menu.grid-menu { padding: 8px; }
+        .grid-menu-head { display: flex; align-items: center; gap: 6px; margin: 10px 2px 6px; color: #475569; font-size: 12px; font-weight: 700; }
+        .grid-menu-head:first-child { margin-top: 0; }
+        .grid-menu-head span { padding: 1px 7px; border-radius: 9999px; background: #F1F5F9; font-size: 11px; }
+        .grid-menu-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+        #grade-subject-menu .grid-menu-grid button { padding: 7px 6px; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 13.5px; font-weight: 700; white-space: normal; }
+        #grade-subject-menu .grid-menu-grid button:hover:not(:disabled), #grade-subject-menu .grid-menu-grid button:focus { background: #EFF6FF; border-color: #93C5FD; }
+        #grade-subject-menu .grid-menu-grid button:disabled { background: #F8FAFC; }
+        .grid-menu-grid button small { display: block; margin-top: 1px; color: #64748B; font-size: 11.5px; font-weight: 500; }
+        #grade-subject-menu .grid-menu-grid button[aria-selected="true"] small { color: #FFFFFF; }
         table td select:hover, table td input.fld:hover {
             border-color: #94A3B8 !important;
             background-color: #FFFFFF !important;
@@ -258,6 +290,21 @@
 
         .border-thick { border-right: 2px solid rgb(var(--surface-300)) !important; }
         .border-edge  { border-left: 2px solid rgb(var(--surface-300)) !important; }
+        /* 분리된 두 표는 선을 한쪽에서만 그려 공유 테두리의 소수점 반올림을 피한다. */
+        .aligned-table { border-collapse: separate !important; border-spacing: 0; border: 0 !important; }
+        .aligned-table th, .aligned-table td { border: 0 !important; border-right: 1px solid rgb(var(--line)) !important; border-bottom: 1px solid rgb(var(--line)) !important; }
+        .aligned-table .border-thick { border-right: 2px solid rgb(var(--surface-300)) !important; }
+        .grid-table-header { display: block; }
+        .grid-table-header colgroup { display: none; }
+        .grid-table-header thead { display: grid; }
+        .grid-table-header tr { display: contents; }
+        .grid-table-header th { display: flex; align-items: center; justify-content: center; min-width: 0 !important; width: auto !important; }
+        .grid-table-header th.hidden { display: none; }
+        /* 머리글 아래 선은 바깥 프레임의 1px 선 하나만 사용한다. */
+        .grid-table-header tr:last-child th, .grid-table-header th[rowspan] { border-bottom-width: 0 !important; }
+
+
+
 
         /* ── 검은색 V 체크 무늬 맑은 커스텀 체크박스 ── */
         .chk-custom {
@@ -312,6 +359,13 @@
         }
 
         /* ── 학년 토글 스위치 ─────────────────────── */
+        #brush-toolbar .abs-brush { height: 28px; border: 1px solid rgb(255 255 255 / .25); opacity: .45; filter: saturate(.5) brightness(.8); transition: opacity .15s, filter .15s, box-shadow .15s; }
+        #brush-toolbar .abs-brush:hover:not(.is-active) { opacity: .6; }
+        #brush-toolbar .abs-brush.is-active { opacity: 1; filter: none; box-shadow: 0 0 0 2px #FFFFFF; }
+        #brush-class-wrapper .app-select-btn { height: 22px; min-width: 64px; padding-top: 0 !important; padding-bottom: 0 !important; font-size: 11px !important; }
+        .absence-hint { position: relative; display: flex; align-items: center; padding: 6px 8px; border: 1px solid rgb(255 255 255 / .3); border-radius: 7px; background: #334155; color: #F1F5F9; font-size: 11px; line-height: 14px; white-space: nowrap; }
+        .absence-hint::before { content: ''; position: absolute; left: 50%; bottom: -5px; width: 8px; height: 8px; border-right: 1px solid rgb(255 255 255 / .3); border-bottom: 1px solid rgb(255 255 255 / .3); background: #334155; transform: translateX(-50%) rotate(45deg); }
+
         .grade-toggle {
             position: relative;
             width: 44px; height: 24px;
@@ -412,7 +466,14 @@
         }
         .fld:disabled { background-color: rgb(var(--surface-100)); color: rgb(var(--pebble)); border-color: #E2E8F0; }
         /* 감독 형평성 조절 카드: 입력폼 내부 배경 흰색 */
-        #equity-card .fld { background-color: #FFFFFF; }
+        #equity-card label { width: 72px; white-space: nowrap; }
+        #equity-card .fatigue-slider { height: 22px; appearance: none; background: transparent; cursor: pointer; }
+        #equity-card .fatigue-slider::-webkit-slider-runnable-track { height: 5px; border-radius: 999px; background: linear-gradient(to right, #16A34A, #84CC16, #EAB308, #F97316, #DC2626); }
+        #equity-card .fatigue-slider::-webkit-slider-thumb { appearance: none; width: 15px; height: 15px; margin-top: -5px; border: 0; border-radius: 50%; background: var(--fatigue-level, #1E293B); box-shadow: 0 0 0 2px #FFFFFF; }
+        #equity-card .fatigue-slider::-moz-range-track { height: 5px; border-radius: 999px; background: linear-gradient(to right, #16A34A, #84CC16, #EAB308, #F97316, #DC2626); }
+        #equity-card .fatigue-slider::-moz-range-progress { background: transparent; }
+        #equity-card .fatigue-slider::-moz-range-thumb { width: 15px; height: 15px; border: 0; border-radius: 50%; background: var(--fatigue-level, #1E293B); box-shadow: 0 0 0 2px #FFFFFF; }
+        #equity-card .fatigue-slider:focus-visible { outline: 2px solid #2563EB; outline-offset: 3px; border-radius: 4px; }
         /* 기초 설정 페이지 모든 카드: 입력폼 내부 배경 흰색 (비활성 제외) */
         #tab-config .fld:not(:disabled),
         #grade-cards-frame .fld:not(:disabled) { background-color: #FFFFFF; }
@@ -556,8 +617,6 @@
         <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
         <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
         <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M12 3v18"/></symbol>
-        <symbol id="i-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
-        <symbol id="i-redo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
         <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
         <symbol id="i-rocket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol>
         <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
@@ -611,7 +670,7 @@
                         <!-- 위쪽 말풍선 툴팁 -->
                         <div class="tooltip-bubble flex flex-col items-center">
                             <div class="bg-[#1E293B] text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-2xl border border-white/20">
-                                설정 및 배정결과 열기
+                                배정 데이터 열기
                             </div>
                             <div class="w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-[#1E293B] -mt-[0.5px]"></div>
                         </div>
@@ -626,7 +685,7 @@
                         <!-- 위쪽 말풍선 툴팁 -->
                         <div class="tooltip-bubble flex flex-col items-center">
                             <div class="bg-[#1E293B] text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-2xl border border-white/20">
-                                설정 및 배정결과 저장
+                                배정 데이터 저장
                             </div>
                             <div class="w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-[#1E293B] -mt-[0.5px]"></div>
                         </div>
@@ -687,7 +746,7 @@
                                         </div>
                                         <span class="flex items-center gap-1.5 pr-2 pb-1.5 text-[11px] font-semibold text-stone">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></span>
-                                            자습은 1인 감독으로 자동 배정됩니다.
+                                            수업(자습)은 1인 감독으로 자동 배정됩니다.
                                         </span>
 
                                     </div>
@@ -776,81 +835,7 @@
                     </div>
                 </section>
 
-            <!-- 배정 규칙 설정 모달 -->
-            <div id="rules-modal" tabindex="0" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
-              <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-xl w-[860px] max-w-[calc(var(--vw)*94)] max-h-[calc(var(--vh)*88)] flex flex-col overflow-hidden animate-fade-in">
-                <div class="px-5 py-3 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
-                    <h2 class="font-semibold text-[15px] flex items-center gap-2 text-white">
-                        <svg class="w-4 h-4 text-white"><use href="#i-sliders"/></svg> 배정 규칙 설정
-                    </h2>
-                </div>
-                <div class="flex-1 overflow-auto p-5">
-                    <div class="grid grid-cols-2 gap-5 w-full">
 
-                        <div class="bg-surface-0 rounded-xl border border-coral/30 overflow-hidden">
-                            <div class="px-4 py-2.5 bg-coral/10 border-b border-coral/25 flex items-center gap-2">
-                                <svg class="w-4 h-4 text-coral"><use href="#i-alert"/></svg>
-                                <h3 class="font-semibold text-[13.5px] text-text-main">배정 금지 규칙</h3>
-                            </div>
-                            <div class="p-4 space-y-3">
-                                <div class="flex items-center justify-between"><label class="font-bold text-[13px]">담당교과 시간 배정 금지</label><input type="checkbox" id="rule-subject" class="w-4 h-4 accent-coral cursor-pointer"></div>
-                                <div class="flex items-center justify-between"><label class="font-bold text-[13px]">담임학급 시간 배정 금지</label><input type="checkbox" id="rule-homeroom" class="w-4 h-4 accent-coral cursor-pointer"></div>
-                                <div class="flex items-center justify-between"><label class="font-bold text-[13px]">복도감독 연속 배정 금지</label><input type="checkbox" id="rule-hallconsec" class="w-4 h-4 accent-coral cursor-pointer"></div>
-                                <div class="flex items-center justify-between"><label class="font-bold text-[13px]">동일학급 연속 배정 금지</label><input type="checkbox" id="rule-sameclass" class="w-4 h-4 accent-coral cursor-pointer"></div>
-                                <div class="flex items-center justify-between"><label class="font-bold text-[13px]">수업감독(자습) 연속 배정 금지</label><input type="checkbox" id="rule-classconsec" class="w-4 h-4 accent-coral cursor-pointer"></div>
-                            </div>
-                        </div>
-
-                        <div id="equity-card" class="bg-surface-0 rounded-xl border border-brand-200 overflow-hidden">
-                            <div class="px-4 py-2.5 bg-brand-50 border-b border-brand-200 flex items-center gap-2">
-                                <svg class="w-4 h-4 text-brand-600"><use href="#i-sliders"/></svg>
-                                <h3 class="font-semibold text-[13.5px] text-text-main">감독 형평성 조절</h3>
-                            </div>
-                            <div class="p-4">
-                                <div class="mb-4 pb-4 border-b border-surface-200">
-                                    <label class="block font-bold text-[13px] mb-2.5">감독별 피로도 설정 (가장 어려움:5, 가장 쉬움:1)</label>
-                                    <div class="grid grid-cols-3 gap-2">
-                                        <div class="flex items-center justify-between bg-surface-50 px-2 py-1.5 rounded-lg border border-surface-200"><span class="text-[12px] font-bold">정감독</span><input type="number" id="rule-f-main" class="fld w-11 text-center text-[12px] py-0.5 hide-spin" min="1" max="5" oninput="this.value=this.value.replace(/[^1-5]/g,'').slice(0,1)" value="5"></div>
-                                        <div class="flex items-center justify-between bg-surface-50 px-2 py-1.5 rounded-lg border border-surface-200"><span class="text-[12px] font-bold">부감독</span><input type="number" id="rule-f-sub" class="fld w-11 text-center text-[12px] py-0.5 hide-spin" min="1" max="5" oninput="this.value=this.value.replace(/[^1-5]/g,'').slice(0,1)" value="3"></div>
-                                        <div class="flex items-center justify-between bg-surface-50 px-2 py-1.5 rounded-lg border border-surface-200"><span class="text-[12px] font-bold">수업감독</span><input type="number" id="rule-f-class" class="fld w-11 text-center text-[12px] py-0.5 hide-spin" min="1" max="5" oninput="this.value=this.value.replace(/[^1-5]/g,'').slice(0,1)" value="1"></div>
-                                        <div class="flex items-center justify-between bg-surface-50 px-2 py-1.5 rounded-lg border border-surface-200"><span class="text-[12px] font-bold">복도감독</span><input type="number" id="rule-f-hall" class="fld w-11 text-center text-[12px] py-0.5 hide-spin" min="1" max="5" oninput="this.value=this.value.replace(/[^1-5]/g,'').slice(0,1)" value="2"></div>
-                                        <div class="flex items-center justify-between bg-surface-50 px-2 py-1.5 rounded-lg border border-surface-200"><span class="text-[12px] font-bold">분리감독</span><input type="number" id="rule-f-sep" class="fld w-11 text-center text-[12px] py-0.5 hide-spin" min="1" max="5" oninput="this.value=this.value.replace(/[^1-5]/g,'').slice(0,1)" value="4"></div>
-                                        <div class="flex items-center justify-between bg-surface-50 px-2 py-1.5 rounded-lg border border-surface-200"><span class="text-[12px] font-bold">특수감독</span><input type="number" id="rule-f-sp" class="fld w-11 text-center text-[12px] py-0.5 hide-spin" min="1" max="5" oninput="this.value=this.value.replace(/[^1-5]/g,'').slice(0,1)" value="4"></div>
-                                    </div>
-                                </div>
-                                <div class="space-y-3">
-                                    <div class="flex items-center justify-between gap-2"><label class="font-bold text-[13px]">일일 최대 연속감독 시간</label>
-                                        <select id="rule-maxconsec" class="fld px-2 py-1.5 text-[12.5px] font-bold cursor-pointer">
-                                            <option value="2">2시간</option>
-                                            <option value="3">3시간</option>
-                                            <option value="99" selected>제한없음</option>
-                                        </select>
-                                    </div>
-                                    <div class="flex items-center justify-between gap-2"><label class="font-bold text-[13px]">일일 최대 감독시간 편차</label>
-                                        <select id="rule-maxdiff" class="fld px-2 py-1.5 text-[12.5px] font-bold cursor-pointer">
-                                            <option value="1">1시간</option>
-                                            <option value="2">2시간</option>
-                                            <option value="3">3시간</option>
-                                            <option value="99" selected>제한없음</option>
-                                        </select>
-                                    </div>
-                                    <div class="flex items-center justify-between gap-2"><label class="font-bold text-[13px]">우선 배정 기준</label>
-                                        <select id="rule-bal-strategy" class="fld px-2 py-1.5 text-[12.5px] font-bold cursor-pointer">
-                                            <option value="FATIGUE" selected>누적 피로도 공평하게 우선 (권장)</option>
-                                            <option value="COUNT">총 감독 횟수 공평하게 우선</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="px-5 py-3 bg-surface-50 border-t border-surface-100 flex justify-end gap-2 flex-shrink-0">
-                    <button onclick="closeRulesModal()" class="px-4 py-1.5 border border-surface-300 bg-surface-0 hover:bg-surface-50 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">취소 (Esc)</button>
-                    <button id="btn-rules-run" class="px-5 py-1.5 bg-brand-600 hover:bg-brand-700 text-brand-text font-semibold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors inline-flex items-center gap-1.5"><svg class="w-4 h-4"><use href="#i-play"/></svg> 배정 실행</button>
-                </div>
-              </div>
-            </div>
 
             <!-- 감독 명단 -->
             <section id="tab-teachers" class="tab-content hidden h-full flex flex-col">
@@ -897,9 +882,9 @@
                                 <th>담임학급</th>
                                 <th>정감독<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isMain')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
                                 <th>부감독<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isSub')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
-                                <th data-role="isClass1">1학년 자습<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isClass1')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
-                                <th data-role="isClass2">2학년 자습<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isClass2')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
-                                <th data-role="isClass3">3학년 자습<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isClass3')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
+                                <th data-role="isClass1">1학년 수업<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isClass1')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
+                                <th data-role="isClass2">2학년 수업<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isClass2')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
+                                <th data-role="isClass3">3학년 수업<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isClass3')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
                                 <th data-role="isHallway">복도감독<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isHallway')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
                                 <th data-role="isSeparated">분리감독<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isSeparated')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
                                 <th data-role="isSpecial">특수감독<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isSpecial')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
@@ -935,16 +920,27 @@
 
             <!-- 결시 관리 -->
             <section id="tab-absences" class="tab-content hidden h-full flex flex-col">
-                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-end flex-shrink-0">
-                    <button onclick="clearAllAbsences()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F04A4A] hover:bg-[#D93838] text-white font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors border-0">
+                <div id="absence-toolbar-header" class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-start gap-2 flex-wrap flex-shrink-0">
+                    <div id="brush-toolbar" class="flex items-center gap-2 flex-wrap"></div>
+                    <div class="absence-hint" aria-label="결시 입력 방법">
+                        <span>좌클릭 드래그: 연속 추가 · 우클릭 드래그: 연속 삭제</span>
+                    </div>
+                    <button onclick="clearAllAbsences()" class="ml-auto inline-flex items-center justify-center gap-1.5 px-3 h-9 bg-[#F04A4A] hover:bg-[#D93838] text-white font-bold rounded-lg text-[12px] shadow-sm cursor-pointer transition-colors border-0 flex-shrink-0">
                         <svg class="w-3.5 h-3.5 text-white"><use href="#i-trash"/></svg> 결시 초기화
                     </button>
                 </div>
-                <div class="bg-surface-50 px-5 py-3.5 border-b border-surface-200 flex-shrink-0 flex items-center gap-4 flex-wrap" id="brush-toolbar"></div>
-                <div class="flex-1 overflow-auto pb-4 min-h-0">
-                    <div class="w-full min-w-full">
-                        <table class="w-full min-w-full text-center whitespace-nowrap text-[14px] border-collapse" id="absence-table">
-                            <thead id="absence-list-head" class="bg-[#F1F5F9] text-text-main font-bold text-[14px] sticky top-0 z-20"></thead>
+                <div class="flex-1 min-h-0 flex flex-col">
+                    <div id="absence-table-header" class="flex-shrink-0">
+                        <div id="absence-header-viewport">
+                            <table class="w-full table-fixed text-center whitespace-nowrap text-[14px] border-collapse">
+                                <colgroup id="absence-header-columns"></colgroup>
+                                <thead id="absence-list-head" class="text-text-main font-bold text-[13px]"></thead>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="absence-table-scroll" class="flex-1 min-h-0 overflow-auto pb-4">
+                        <table class="w-full table-fixed text-center whitespace-nowrap text-[14px] border-collapse" id="absence-table">
+                            <colgroup id="absence-body-columns"></colgroup>
                             <tbody id="absence-list-body" class="bg-surface-0" onmouseleave="isDragging=false;isRightDragging=false;"></tbody>
                         </table>
                     </div>
@@ -959,28 +955,19 @@
                             <button class="result-sub-btn bg-brand-600 text-brand-text shadow-sm px-3 py-1 rounded-md font-bold text-[13px] transition-all cursor-pointer" data-target="result-teacher">교사별</button>
                             <button class="result-sub-btn bg-transparent text-stone hover:text-text-main px-3 py-1 rounded-md font-bold text-[13px] transition-all cursor-pointer" data-target="result-class">학급별</button>
                         </div>
-                        <span class="text-[15px] font-bold text-white flex items-center gap-1.5 min-w-0 ml-4">
-                            <svg class="w-4 h-4 flex-shrink-0 text-white"><use href="#i-swap"/></svg>
-                            <span class="truncate">셀 우클릭 또는 드래그로 동일 교시 내 교체</span>
-                        </span>
+                        <div class="absence-hint" aria-label="감독 교체 방법">
+                            <span>셀 우클릭 또는 드래그로 동일 교시 내 교체</span>
+                        </div>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
-                    <button onclick="undo()" title="되돌리기 (Ctrl+Z)" class="inline-flex items-center justify-center w-9 h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 rounded-lg cursor-pointer transition-colors flex-shrink-0">
-                        <svg class="w-4 h-4"><use href="#i-undo"/></svg>
-                    </button>
-                    <button onclick="redo()" title="다시 실행 (Ctrl+Y)" class="inline-flex items-center justify-center w-9 h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 rounded-lg cursor-pointer transition-colors flex-shrink-0">
-                        <svg class="w-4 h-4"><use href="#i-redo"/></svg>
-                    </button>
-                    <button id="btn-export-excel" class="hidden inline-flex items-center justify-center gap-1.5 w-[125px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors flex-shrink-0">
-                        <svg class="w-3.5 h-3.5"><use href="#i-download"/></svg> 결과 내려받기
+                    <button id="btn-export-excel" class="hidden inline-flex items-center justify-center gap-1.5 px-3 h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors flex-shrink-0">
+                        <svg class="w-3.5 h-3.5"><use href="#i-download"/></svg> 배정 결과 내려받기
                     </button>
                     </div>
                 </div>
-                <div class="flex-1 overflow-auto pb-4 min-h-0">
-                    <div class="w-full min-w-full h-full">
-                        <div id="result-teacher" class="result-view w-full"></div>
-                        <div id="result-class" class="result-view hidden w-full"></div>
-                    </div>
+                <div class="flex-1 min-h-0 overflow-hidden">
+                    <div id="result-teacher" class="result-view w-full h-full min-h-0 flex flex-col"></div>
+                    <div id="result-class" class="result-view hidden w-full h-full min-h-0 flex flex-col"></div>
                 </div>
             </section>
 
@@ -1017,10 +1004,103 @@
     <!-- ── 토스트 ─────────────────────────────────────────────────────── -->
     <div id="toast-notification"
          role="status" aria-live="polite" aria-atomic="true"
-         class="fixed top-14 left-1/2 -translate-x-1/2 max-w-[calc(var(--vw)*92)] px-6 py-3 bg-text-main text-white rounded-full shadow-xl z-[9999] text-[13.5px] font-bold flex items-center justify-center text-center space-x-2 transition-all duration-300 -translate-y-10 opacity-0 pointer-events-none">
+         class="fixed top-14 left-1/2 -translate-x-1/2 max-w-[calc(var(--vw)*92)] px-6 py-3 bg-surface-0 text-text-main border border-line rounded-full shadow-xl z-[9999] text-[13.5px] font-bold flex items-center justify-center text-center space-x-2 transition-all duration-300 -translate-y-10 opacity-0 pointer-events-none">
     </div>
 
     <!-- ── 모달 ──────────────────────────────────────────────────────── -->
+            <!-- 배정 규칙 설정 모달 -->
+            <div id="rules-modal" tabindex="0" class="hidden fixed inset-0 bg-[#0F172A]/60 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
+              <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-xl w-[860px] max-w-[calc(var(--vw)*94)] max-h-[calc(var(--vh)*88)] flex flex-col overflow-hidden animate-fade-in">
+                <div class="px-5 py-3 bg-[#1E293B] text-white flex items-center justify-between gap-2 flex-shrink-0">
+                    <h2 class="font-semibold text-[15px] flex items-center gap-2 text-white">
+                        <svg class="w-4 h-4 text-white"><use href="#i-sliders"/></svg> 규칙설정 및 배정실행
+                    </h2>
+                    <button type="button" onclick="closeRulesModal()" title="닫기 (Esc)" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors">
+                        <svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-auto p-5">
+                    <div class="grid grid-cols-2 gap-5 w-full">
+
+                        <div id="rules-constraint-card" class="flex flex-col gap-3">
+                            <div id="rules-prohibition-card" class="p-4 pl-8 grid grid-rows-3 grid-flow-col gap-x-6 gap-y-3 bg-surface-0 rounded-xl border border-line">
+                                <label class="h-9 flex items-center gap-2 font-bold text-[13px] cursor-pointer">담당교과 시간 배정 금지<input type="checkbox" id="rule-subject" class="w-4 h-4 accent-coral cursor-pointer"></label>
+                                <label class="h-9 flex items-center gap-2 font-bold text-[13px] cursor-pointer">담임학급 시간 배정 금지<input type="checkbox" id="rule-homeroom" class="w-4 h-4 accent-coral cursor-pointer"></label>
+                                <label class="h-9 flex items-center gap-2 font-bold text-[13px] cursor-pointer">수업감독 연속 배정 금지<input type="checkbox" id="rule-classconsec" class="w-4 h-4 accent-coral cursor-pointer"></label>
+                                <label class="h-9 flex items-center gap-2 font-bold text-[13px] cursor-pointer">복도감독 연속 배정 금지<input type="checkbox" id="rule-hallconsec" class="w-4 h-4 accent-coral cursor-pointer"></label>
+                                <label class="h-9 flex items-center gap-2 font-bold text-[13px] cursor-pointer">동일학급 연속 배정 금지<input type="checkbox" id="rule-sameclass" class="w-4 h-4 accent-coral cursor-pointer"></label>
+                            </div>
+                            <div id="rules-balance-card" class="flex-1 p-4 pl-8 pr-[1.85rem] bg-surface-0 rounded-xl border border-line">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between gap-2"><label class="font-bold text-[13px]">일일 최대 연속감독 시간</label>
+                                        <select id="rule-maxconsec" class="fld px-2 py-1.5 text-[12.5px] font-bold cursor-pointer">
+                                            <option value="2">2시간</option>
+                                            <option value="3">3시간</option>
+                                            <option value="99" selected>제한없음</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2"><label class="font-bold text-[13px]">일일 최대 감독시간 편차</label>
+                                        <select id="rule-maxdiff" class="fld px-2 py-1.5 text-[12.5px] font-bold cursor-pointer">
+                                            <option value="1">1시간</option>
+                                            <option value="2">2시간</option>
+                                            <option value="3">3시간</option>
+                                            <option value="99" selected>제한없음</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2"><label class="font-bold text-[13px]">우선 배정 기준</label>
+                                        <select id="rule-bal-strategy" class="fld px-2 py-1.5 text-[12.5px] font-bold cursor-pointer">
+                                            <option value="FATIGUE" selected>누적 피로도 공평하게 (권장)</option>
+                                            <option value="COUNT">총 감독 횟수 공평하게</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="equity-card" class="bg-surface-0 rounded-xl border border-line overflow-hidden">
+                            <div class="p-4 h-full flex flex-col">
+                                <p class="font-bold text-[13px] mb-1 text-center">감독별 피로도 설정</p>
+                                <div class="flex-1 flex items-center gap-3 py-2">
+                                    <label for="rule-f-main" class="w-16 flex-shrink-0 font-bold text-[13px]">정감독</label>
+                                    <input type="range" id="rule-f-main" class="fatigue-slider min-w-0 flex-1" min="1" max="5" step="1" value="5" oninput="updateFatigueSlider(this)">
+                                    <output id="rule-f-main-score" for="rule-f-main" class="w-9 flex-shrink-0 text-center text-[13px] font-bold text-text-main">5점</output>
+                                </div>
+                                <div class="flex-1 flex items-center gap-3 py-2">
+                                    <label for="rule-f-sub" class="w-16 flex-shrink-0 font-bold text-[13px]">부감독</label>
+                                    <input type="range" id="rule-f-sub" class="fatigue-slider min-w-0 flex-1" min="1" max="5" step="1" value="3" oninput="updateFatigueSlider(this)">
+                                    <output id="rule-f-sub-score" for="rule-f-sub" class="w-9 flex-shrink-0 text-center text-[13px] font-bold text-text-main">3점</output>
+                                </div>
+                                <div class="flex-1 flex items-center gap-3 py-2">
+                                    <label for="rule-f-sp" class="w-16 flex-shrink-0 font-bold text-[13px]">특수감독</label>
+                                    <input type="range" id="rule-f-sp" class="fatigue-slider min-w-0 flex-1" min="1" max="5" step="1" value="3" oninput="updateFatigueSlider(this)">
+                                    <output id="rule-f-sp-score" for="rule-f-sp" class="w-9 flex-shrink-0 text-center text-[13px] font-bold text-text-main">3점</output>
+                                </div>
+                                <div class="flex-1 flex items-center gap-3 py-2">
+                                    <label for="rule-f-sep" class="w-16 flex-shrink-0 font-bold text-[13px]">분리감독</label>
+                                    <input type="range" id="rule-f-sep" class="fatigue-slider min-w-0 flex-1" min="1" max="5" step="1" value="3" oninput="updateFatigueSlider(this)">
+                                    <output id="rule-f-sep-score" for="rule-f-sep" class="w-9 flex-shrink-0 text-center text-[13px] font-bold text-text-main">3점</output>
+                                </div>
+                                <div class="flex-1 flex items-center gap-3 py-2">
+                                    <label for="rule-f-hall" class="w-16 flex-shrink-0 font-bold text-[13px]">복도감독</label>
+                                    <input type="range" id="rule-f-hall" class="fatigue-slider min-w-0 flex-1" min="1" max="5" step="1" value="2" oninput="updateFatigueSlider(this)">
+                                    <output id="rule-f-hall-score" for="rule-f-hall" class="w-9 flex-shrink-0 text-center text-[13px] font-bold text-text-main">2점</output>
+                                </div>
+                                <div class="flex-1 flex items-center gap-3 py-2">
+                                    <label for="rule-f-class" class="w-16 flex-shrink-0 font-bold text-[13px]">수업감독</label>
+                                    <input type="range" id="rule-f-class" class="fatigue-slider min-w-0 flex-1" min="1" max="5" step="1" value="1" oninput="updateFatigueSlider(this)">
+                                    <output id="rule-f-class-score" for="rule-f-class" class="w-9 flex-shrink-0 text-center text-[13px] font-bold text-text-main">1점</output>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-5 py-3 bg-surface-50 border-t border-surface-100 flex justify-end gap-2 flex-shrink-0">
+                    <button id="btn-rules-default" type="button" onclick="resetRulesToDefaults()" class="px-4 py-1.5 border border-surface-300 bg-surface-0 hover:bg-surface-50 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">기본값</button>
+                    <button id="btn-rules-run" class="px-5 py-1.5 bg-brand-600 hover:bg-brand-700 text-brand-text font-semibold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors inline-flex items-center gap-1.5"><svg class="w-4 h-4"><use href="#i-play"/></svg> 배정 실행</button>
+                </div>
+              </div>
+            </div>
+
     <div id="assignment-failure-modal" role="dialog" aria-modal="true" aria-labelledby="assignment-failure-title" tabindex="-1" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[20001] outline-none p-4">
         <div class="bg-surface-0 rounded-2xl border border-line shadow-xl w-[660px] max-w-[calc(var(--vw)*92)] max-h-[calc(var(--vh)*86)] flex flex-col overflow-hidden animate-fade-in">
             <div class="px-5 py-3 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
@@ -1037,15 +1117,19 @@
         </div>
     </div>
 
-    <div id="event-modal" tabindex="0" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
+    <div id="event-modal" tabindex="0" class="hidden fixed inset-0 bg-[#0F172A]/60 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
         <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-xl w-[720px] max-w-[calc(var(--vw)*92)] max-h-[calc(var(--vh)*80)] flex flex-col overflow-hidden animate-fade-in">
-            <div class="px-5 py-3 border-b border-surface-200 flex items-center gap-2 flex-shrink-0">
-                <svg class="w-4 h-4 text-brand-500"><use href="#i-clipboard-list"/></svg>
-                <h3 class="font-semibold text-[14px]">배정 작업 중 발생한 이벤트</h3>
+            <div class="px-5 py-3 bg-[#1E293B] text-white flex items-center justify-between gap-2 flex-shrink-0">
+                <h3 class="font-semibold text-[15px] flex items-center gap-2 text-white">
+                    <svg class="w-4 h-4 text-white"><use href="#i-clipboard-list"/></svg> 배정 작업 중 발생한 이벤트
+                </h3>
+                <button type="button" onclick="closeEventModal()" title="닫기" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors">
+                    <svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg>
+                </button>
             </div>
             <div id="event-modal-content" class="flex-1 overflow-auto text-[13px] leading-relaxed p-5"></div>
             <div class="px-5 py-3 bg-surface-50 border-t border-surface-100 flex justify-end flex-shrink-0">
-                <button onclick="closeEventModal()" class="px-5 py-1.5 bg-brand-600 hover:bg-brand-700 text-brand-text font-semibold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">확인 (Esc)</button>
+                <button onclick="closeEventModal()" class="px-5 py-1.5 bg-brand-600 hover:bg-brand-700 text-brand-text font-semibold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">확인</button>
             </div>
         </div>
     </div>
@@ -1076,7 +1160,7 @@
                 <div id="rc-swap-info" class="text-[14.5px] font-bold text-text-main leading-[1.8] text-center p-4 bg-surface-50 rounded-xl border border-surface-200"></div>
                 <div>
                     <label class="block text-[12.5px] font-bold text-stone mb-2">교체할 대상 교사 선택 (현재 동일 교시만 선택 가능)</label>
-                    <select id="rc-swap-target" class="fld w-full px-3 py-2.5 font-bold text-[13.5px] cursor-pointer rounded-lg border border-line bg-surface-0 focus:bg-white"></select>
+                    <select id="rc-swap-target" class="fld grid-select w-full px-3 py-2.5 font-bold text-[13.5px] cursor-pointer rounded-lg border border-line bg-surface-0 focus:bg-white"></select>
                 </div>
             </div>
             <div class="px-5 py-3.5 bg-surface-50 border-t border-surface-100 flex justify-end gap-2.5 flex-shrink-0">

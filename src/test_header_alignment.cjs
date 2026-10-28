@@ -21,7 +21,7 @@ try {
      headTop:header.getBoundingClientRect().top};
    });
    assert.ok(check.seam<.1,JSON.stringify({width,height,deviceScaleFactor,check}));
-   assert.ok(check.offsets.every(offset=>offset<1),JSON.stringify({width,height,deviceScaleFactor,check}));
+   assert.ok(check.offsets.every(offset=>offset<.05),JSON.stringify({width,height,deviceScaleFactor,check}));
    assert.equal(check.paintedSeparately,false);assert.equal(check.line,'solid');
    await page.locator('#teacher-list-scroll').evaluate(el=>el.scrollTop=300);
    assert.equal(await page.locator('#teacher-list-header').evaluate(el=>el.getBoundingClientRect().top),check.headTop);

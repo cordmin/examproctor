@@ -38,7 +38,6 @@ window.closeSwapModal = function() { pendingSwapData = null; document.getElement
 window.executePendingSwap = function() {
     if(!pendingSwapData) return;
     const { t1, t2, targetPId, a1, a2 } = pendingSwapData;
-    pushUndo();
     if(!appData.assignments[t1.id]) appData.assignments[t1.id] = {};
     if(!appData.assignments[t2.id]) appData.assignments[t2.id] = {};
     if(a2) appData.assignments[t1.id][targetPId] = a2; else delete appData.assignments[t1.id][targetPId];
@@ -58,20 +57,21 @@ window.handleRightClickSwap = function(e, tId, pId) {
     const infoStr = `<div class="text-[15px] font-bold text-text-main leading-relaxed">${formatBeautifulDate(p.date)} ${p.name} <span class="text-brand-600 font-bold">${t1.name}</span> 교사의 <span class="inline-block bg-surface-100 px-2 py-0.5 rounded border border-surface-300 font-bold text-[14px] text-slate-800 mx-0.5">'${a1}'</span>을 교체합니다.</div>`;
     document.getElementById('rc-swap-info').innerHTML = infoStr;
 
-    let options = `<option value="">-- 교체할 교사 선택 --</option>`;
+    // 공강 → 배정 중 → 결시 순으로 묶어 3칸 바둑판 메뉴로 보여 준다 (ui.js 의 grid-select).
+    const groups = { free: [], busy: [], absent: [] };
     appData.teachers.forEach(t2 => {
         if (t2.id === tId) return;
-        const a2 = (appData.assignments[t2.id] || {})[pId] || "공강";
-
-        let absText = "";
-        if(t2.absences && t2.absences[pId]) {
-            const absType = t2.absences[pId].type;
-            absText = absType === 'ALL' ? '[결시]' : (absType === 'GRADE' ? `[${t2.absences[pId].target}학년 결시]` : `[${t2.absences[pId].target} 결시]`);
-        }
-
-        options += `<option value="${t2.id}" ${absText ? 'disabled' : ''}>${t2.name} (현재: ${a2}) ${absText}</option>`;
+        const a2 = (appData.assignments[t2.id] || {})[pId];
+        const abs = t2.absences && t2.absences[pId];
+        if (abs) {
+            const sub = abs.type === 'ALL' ? '' : (abs.type === 'GRADE' ? `${abs.target}학년 결시` : `${abs.target} 결시`);
+            groups.absent.push(`<option value="${t2.id}" data-sub="${sub}" disabled>${t2.name}</option>`);
+        } else if (a2) groups.busy.push(`<option value="${t2.id}" data-sub="${a2}">${t2.name}</option>`);
+        else groups.free.push(`<option value="${t2.id}">${t2.name}</option>`);
     });
-    document.getElementById('rc-swap-target').innerHTML = options;
+    const group = (label, items) => items.length ? `<optgroup label="${label}" data-count="${items.length}명">${items.join('')}</optgroup>` : '';
+    document.getElementById('rc-swap-target').innerHTML = `<option value="">-- 교체할 교사 선택 --</option>`
+        + group('공강', groups.free) + group('배정 중', groups.busy) + group('결시 · 선택 불가', groups.absent);
     refreshDropdowns();
 
     const m = document.getElementById('rightclick-swap-modal');
@@ -105,7 +105,6 @@ window.executeRcSwap = function() {
     checkSwapPair(t1, t2, targetPId, a2, a1).then(res => {
         if(reportSwapBlocked(t1, t2, res)) return;
 
-        pushUndo();
         if(!appData.assignments[t1.id]) appData.assignments[t1.id] = {};
         if(!appData.assignments[t2.id]) appData.assignments[t2.id] = {};
         if(a2) appData.assignments[t1.id][targetPId] = a2; else delete appData.assignments[t1.id][targetPId];
@@ -135,7 +134,87 @@ function reportSwapBlocked(t1, t2, [v1, v2]) {
     return false;
 }
 
+// 머리글은 세로 스크롤 밖에 두고, 본문과 같은 열 너비/가로 스크롤을 쓴다.
+function syncResultHeader(scroll) {
+    const header = scroll.previousElementSibling;
+    if (!header?.classList.contains('result-table-header')) return;
+    syncSplitTableHeader(scroll, header, header.firstElementChild);
+}
+const resultHeaderObserver = new ResizeObserver(entries => entries.forEach(entry => syncResultHeader(entry.target)));
+function syncResultHeaders() {
+    document.querySelectorAll('.result-table-scroll').forEach(syncResultHeader);
+}
+
+// 교시 머리글에 마우스를 올리면 그 교시의 학년별 시험 과목을 말풍선으로 보여 준다.
+// 머리글 상자가 넘치는 부분을 숨기므로 칸 안이 아니라 body 에 띄운다.
+const periodSubjectTip = document.createElement('div');
+periodSubjectTip.className = 'fixed z-[9999] pointer-events-none hidden flex-col items-center';
+periodSubjectTip.innerHTML = `<div class="w-0 h-0 border-x-4 border-x-transparent border-b-4 border-b-[#1E293B]"></div>
+    <div class="bg-[#1E293B] text-white text-[11.5px] font-bold px-3 py-1.5 rounded-md shadow-2xl border border-white/20 whitespace-nowrap"></div>`;
+document.body.append(periodSubjectTip);
+
+function showPeriodSubjects(event) {
+    const cell = event.target.closest('[data-pid]');
+    const subjects = cell && (appData.classSubjects[cell.dataset.pid] || {});
+    const text = cell && [...appData.config.grades].sort().filter(g => subjects[g])
+        .map(g => `${g}학년: ${subjectLabel(subjects[g])}`).join('  /  ');
+    if (!text) return hidePeriodSubjects();
+    periodSubjectTip.lastElementChild.textContent = text;
+    periodSubjectTip.classList.replace('hidden', 'flex');
+    const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+    const r = cell.getBoundingClientRect();
+    periodSubjectTip.style.left = `${(r.left + r.width / 2) / zoom - periodSubjectTip.offsetWidth / 2}px`;
+    periodSubjectTip.style.top = `${r.bottom / zoom + 2}px`;
+}
+function hidePeriodSubjects() { periodSubjectTip.classList.replace('flex', 'hidden'); }
+
+function mountResultTable(container, html, periodsByDate, dates) {
+    container.innerHTML = html;
+    const table = container.querySelector('table');
+    const head = table.tHead;
+    const periods = dates.flatMap(date => periodsByDate[date]);
+    const fixedWidth = [...table.querySelector('colgroup').children].reduce((sum, col) => sum + (parseFloat(col.style.width) || 0), 0);
+    table.style.minWidth = `${fixedWidth + periods.length * 56}px`;
+    const headerTable = table.cloneNode(false);
+    headerTable.append(table.querySelector('colgroup').cloneNode(true), head);
+    head.className = 'text-text-main font-bold text-[13px]';
+    head.querySelectorAll('.border-r-2').forEach(cell => cell.classList.add('border-thick'));
+    if (periods.length) {
+        const periodHeaders = [...head.rows[1].cells].slice(-periods.length);
+        periodHeaders.forEach((cell, index) => {
+            cell.classList.add('result-period-title');
+            cell.textContent = periods[index].name;
+            cell.dataset.pid = periods[index].id;
+        });
+        headerTable.addEventListener('mouseover', showPeriodSubjects);
+        headerTable.addEventListener('mouseleave', hidePeriodSubjects);
+        const dateHeaders = [...head.rows[0].cells].slice(-dates.length);
+        dateHeaders[0].classList.add('border-edge');
+        periodHeaders[0].classList.add('border-edge');
+        let column = 0;
+        dates.forEach((date, index) => {
+            column += periodsByDate[date].length;
+            dateHeaders[index].classList.add('border-thick');
+            periodHeaders[column - 1].classList.add('border-thick');
+        });
+    }
+    const header = document.createElement('div');
+    header.className = 'result-table-header flex-shrink-0';
+    const viewport = document.createElement('div');
+    viewport.className = 'result-header-viewport';
+    viewport.append(headerTable);
+    header.append(viewport);
+    const scroll = document.createElement('div');
+    scroll.className = 'result-table-scroll flex-1 min-h-0 overflow-auto pb-4';
+    scroll.append(table);
+    container.replaceChildren(header, scroll);
+    scroll.addEventListener('scroll', () => syncResultHeader(scroll));
+    resultHeaderObserver.observe(scroll);
+    requestAnimationFrame(() => syncResultHeader(scroll));
+}
+
 window.renderResultTab = function() {
+    resultHeaderObserver.disconnect();
     const tContainer = document.getElementById('result-teacher'), cContainer = document.getElementById('result-class'), btnExport = document.getElementById('btn-export-excel');
     if(!appData.assignments || Object.keys(appData.assignments).length === 0) {
         tContainer.innerHTML = cContainer.innerHTML = `<div class="p-12 text-center text-pebble font-bold bg-surface-50 rounded-xl border border-dashed border-surface-300 flex flex-col items-center justify-center gap-3 min-h-[240px]">${icon('play', 'w-7 h-7 text-pebble')}<span>사이드바의 '배정 실행' 버튼을 눌러주세요.</span></div>`;
@@ -144,7 +223,7 @@ window.renderResultTab = function() {
     btnExport.classList.remove('hidden');
     const { periodsByDate, dates } = groupPeriodsByDate();
     const showMain = appData.teachers.some(t => t.isMain), showSub = appData.teachers.some(t => t.isSub), showHall = appData.teachers.some(t => t.isHallway), showSep = appData.teachers.some(t => t.isSeparated), showSp = appData.teachers.some(t => t.isSpecial), showCls = appData.teachers.some(t => t.isClass1 !== false || t.isClass2 !== false || t.isClass3 !== false);
-    const countCols = (showMain?1:0) + (showSub?1:0) + (showHall?1:0) + (showSep?1:0) + (showCls?1:0) + (showSp?1:0); 
+    const countCols = (showMain?1:0) + (showSub?1:0) + (showHall?1:0) + (showSep?1:0) + (showCls?1:0) + (showSp?1:0) + 1; // +1: 합
     
     const parts = build2RowDatePeriodHeaderParts(periodsByDate, dates, 'text-[13px] min-w-[72px] w-[72px]');
     
@@ -157,17 +236,15 @@ window.renderResultTab = function() {
     if(showSp) activeSubCols.push({ key: 'sp', lbl: '특' });
 
     let countSubThs = '';
-    activeSubCols.forEach((item, idx) => {
-        const isLast = idx === activeSubCols.length - 1;
-        const bClass = isLast ? 'border-r-2 border-slate-300' : 'border-r border-line';
-        countSubThs += `<th class="py-2 px-0.5 font-bold text-text-main text-[12.5px] border-b border-line ${bClass} bg-[#F1F5F9]">${item.lbl}</th>`;
+    activeSubCols.forEach(item => {
+        countSubThs += `<th class="py-2 px-0.5 font-bold text-text-main text-[12.5px] border-b border-line border-r bg-[#F1F5F9]">${item.lbl}</th>`;
     });
+    countSubThs += `<th class="py-2 px-0.5 font-bold text-text-main text-[12.5px] border-b border-line border-r-2 border-slate-300 bg-[#F1F5F9]">합</th>`;
 
     const row1Html = `<tr>
         <th rowspan="2" class="py-2 px-1 whitespace-nowrap align-middle border-b border-r border-line text-text-main bg-[#F1F5F9]">순</th>
         <th rowspan="2" class="py-2 px-1 whitespace-nowrap align-middle border-b border-r border-line text-[14.5px] text-text-main bg-[#F1F5F9]">성명</th>
-        <th rowspan="2" class="py-2 px-0.5 whitespace-nowrap text-text-main leading-tight font-bold align-middle border-b border-r border-line bg-[#F1F5F9]">총</th>
-        <th colspan="${countCols}" class="py-1.5 px-1 font-bold text-center border-b border-line border-r-2 border-slate-300 text-text-main text-[13.5px] bg-[#F1F5F9]">횟수</th>
+        <th colspan="${countCols}" class="py-1.5 px-1 font-bold text-center border-b border-line border-r-2 border-slate-300 text-text-main text-[13.5px] bg-[#F1F5F9]">배정 횟수</th>
         ${parts.row1}
     </tr>`;
 
@@ -178,11 +255,11 @@ window.renderResultTab = function() {
 
     let colgroupHtml = `<colgroup>
         <col style="width: 36px;">
-        <col style="width: 80px;">
-        <col style="width: 26px;">`;
+        <col style="width: 80px;">`;
     activeSubCols.forEach(() => {
         colgroupHtml += `<col style="width: 24px;">`;
     });
+    colgroupHtml += `<col style="width: 26px;">`;
     appData.periods.forEach(() => {
         colgroupHtml += `<col>`;
     });
@@ -201,14 +278,12 @@ window.renderResultTab = function() {
         
         tHtml += `<tr data-row="${t.id}" class="hover:bg-surface-50 bg-surface-0">
             <td class="py-2.5 px-1 border border-line bg-surface-50 font-bold text-[13px]">${idx+1}</td>
-            <td class="py-2.5 px-1 border border-line font-bold text-[14.5px]">${t.name}</td>
-            <td class="py-2.5 px-0.5 border border-line font-semibold text-coral bg-coral/10 text-sm">${cnt.total||''}</td>`;
+            <td class="py-2.5 px-1 border border-line font-bold text-[14.5px]">${t.name}</td>`;
             
-            activeSubCols.forEach((item, cIdx) => {
-                const isLast = cIdx === activeSubCols.length - 1;
-                const bClass = isLast ? 'border-thick' : 'border-r border-line';
-                tHtml += `<td class="py-2.5 px-0.5 border-b ${bClass} font-semibold text-stone bg-surface-50 text-sm">${cnt[item.key]||''}</td>`;
+            activeSubCols.forEach(item => {
+                tHtml += `<td class="py-2.5 px-0.5 border-b border-r border-line font-semibold text-stone bg-surface-50 text-sm">${cnt[item.key]||''}</td>`;
             });
+            tHtml += `<td class="py-2.5 px-0.5 border-b border-thick font-semibold text-coral bg-coral/10 text-sm">${cnt.total||''}</td>`;
             
         dates.forEach((d, dIdx) => {
             periodsByDate[d].forEach((p, pIdx) => {
@@ -231,7 +306,7 @@ window.renderResultTab = function() {
         });
         tHtml += `</tr>`;
     });
-    tContainer.innerHTML = tHtml + `</tbody></table>`;
+    mountResultTable(tContainer, tHtml + `</tbody></table>`, periodsByDate, dates);
 
     const cAssign = {}; 
     Object.keys(appData.assignments).forEach(tid => {
@@ -295,7 +370,7 @@ window.renderResultTab = function() {
         });
         cHtml += `</tr>`;
     });
-    cContainer.innerHTML = cHtml + `</tbody></table>`;
+    mountResultTable(cContainer, cHtml + `</tbody></table>`, periodsByDate, dates);
 };
 
 window.runRevalidation = function() {

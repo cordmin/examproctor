@@ -1,0 +1,44 @@
+const assert=require('node:assert/strict');const path=require('node:path');const {pathToFileURL}=require('node:url');const {chromium}=require('playwright');
+(async()=>{const browser=await chromium.launch({channel:'msedge',headless:true});try{
+ const page=await browser.newPage({viewport:{width:1280,height:800}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(pathToFileURL(path.join(__dirname,'index.html')).href);
+ await page.evaluate(()=>{sanitizeAppData(appData);appData.config.grades=[1,2,3];appData.config.classes={1:3,2:3,3:3};appData.periods=[{id:'p1',date:'2026-10-28',name:'1교시'}];appData.teachers=[{id:'T1',name:'김교사',absences:{}}];showTab('tab-absences');});
+ assert.equal(await page.locator('#absence-toolbar-header #brush-toolbar').count(),1);
+ assert.equal(await page.locator('#brush-toolbar').textContent().then(text=>text.includes('TIP')),false);
+ assert.equal(await page.locator('#tab-absences .absence-hint').textContent().then(text=>text.includes('TIP')),false);
+ const hint=page.locator('#tab-absences .absence-hint');
+ assert.equal(await hint.locator('span').count(),1);
+ assert.equal(await hint.textContent().then(text=>text.includes('좌클릭 드래그: 연속 추가 · 우클릭 드래그: 연속 삭제')),true);
+ assert.equal(await hint.evaluate(el=>getComputedStyle(el,'::before').bottom),'-5px');
+ const spacing=await page.locator('#brush-class-wrapper').evaluate(button=>{
+  const box=button.getBoundingClientRect();const hint=document.querySelector('#tab-absences .absence-hint').getBoundingClientRect();
+  const previous=button.previousElementSibling.getBoundingClientRect();
+  return {buttonGap:box.left-previous.right,hintGap:hint.left-box.right};
+ });
+ assert.ok(Math.abs(spacing.buttonGap-spacing.hintGap)<1,JSON.stringify(spacing));
+ const header=await page.locator('#absence-toolbar-header').boundingBox();
+ const controls=await page.locator('#brush-toolbar').boundingBox();
+ assert.ok(header.height<=60,'Header should remain compact with three grades');
+ assert.ok(controls.y>=header.y && controls.y+controls.height<=header.y+header.height);
+ await page.locator('#brush-toolbar [data-type="GRADE"][data-target="2"]').click();
+ assert.equal(await page.evaluate(()=>activeBrush.target),'2');
+ assert.equal(await page.locator('#brush-toolbar .is-active').count(),1);
+ await page.waitForFunction(()=>getComputedStyle(document.querySelector('#brush-toolbar .is-active')).opacity==='1' && parseFloat(getComputedStyle(document.querySelector('#brush-toolbar .abs-brush:not(.is-active)')).opacity)<=.45);
+ await page.waitForFunction(()=>getComputedStyle(document.querySelector('#brush-toolbar .is-active')).filter==='none');
+
+ const cell=page.locator('#absence-list-body tr').first().locator('td').nth(3).locator('button');
+ await cell.click();
+ assert.deepEqual(await page.evaluate(()=>appData.teachers[0].absences.p1),{type:'GRADE',target:'2'});
+ await cell.click({button:'right'});
+ assert.equal(await page.evaluate(()=>appData.teachers[0].absences.p1),undefined);
+ await page.locator('#brush-class-select-dropdown').click();
+ await page.locator('#grade-subject-menu').getByRole('option',{name:'2-2',exact:true}).click();
+ await cell.click();
+ assert.deepEqual(await page.evaluate(()=>appData.teachers[0].absences.p1),{type:'CLASS',target:'2-2'});
+ await page.evaluate(()=>renderAbsencesTab());
+ assert.equal(await page.locator('#brush-class-wrapper').evaluate(el=>el.classList.contains('is-active')),true);
+ assert.equal(await page.locator('#brush-class-select').inputValue(),'2-2');
+ await page.screenshot({path:path.join(require('node:os').tmpdir(),'exam-absence-header.png')});
+ assert.deepEqual(errors,[]);
+ console.log('PASS: compact header, speech bubble, grade/class brush, add/remove absence, selection persistence');
+}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

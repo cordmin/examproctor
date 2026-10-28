@@ -1,0 +1,61 @@
+const assert=require('node:assert/strict');const path=require('node:path');const {pathToFileURL}=require('node:url');const {chromium}=require('playwright');
+(async()=>{const browser=await chromium.launch({channel:'msedge',headless:true});try{
+ const page=await browser.newPage({viewport:{width:1280,height:800}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(pathToFileURL(path.join(__dirname,'index.html')).href);
+ await page.evaluate(()=>{sanitizeAppData(appData);appData.config.rules={fatigueMain:2,fatigueSub:4,fatigueSp:5,fatigueSep:3,fatigueHall:1,fatigueClass:2,maxConsecutive:3,maxDailyDiff:2,balanceStrategy:'COUNT'};openRulesModal();});
+ assert.equal(await page.locator('#rules-constraint-card #rule-maxconsec').count(),1);
+ assert.equal(await page.locator('#rules-constraint-card #rule-maxdiff').count(),1);
+ assert.equal(await page.locator('#rules-constraint-card #rule-bal-strategy').count(),1);
+ assert.equal(await page.locator('#rules-constraint-card input[type=checkbox]').count(),5);
+ assert.equal(await page.locator('#rules-modal h3').count(),0);
+ assert.equal(await page.locator('#equity-card').textContent().then(text=>text.includes('가장 쉬움')||text.includes('가장 어려움')),false);
+ assert.equal(await page.locator('#equity-card output').count(),6);
+ const order=['main','sub','sp','sep','hall','class'];
+ assert.deepEqual(await page.locator('#equity-card label').allTextContents(),['정감독','부감독','특수감독','분리감독','복도감독','수업감독']);
+ const initial=[2,4,5,3,1,2];
+ for(let i=0;i<order.length;i++){
+  const id=`rule-f-${order[i]}`,slider=page.locator(`#${id}`),score=page.locator(`#${id}-score`);
+  assert.equal(await slider.getAttribute('type'),'range');assert.equal(await slider.inputValue(),String(initial[i]));
+  assert.equal(await score.textContent(),`${initial[i]}점`);
+  await slider.focus();await page.keyboard.press('Home');assert.equal(await slider.inputValue(),'1');assert.equal(await score.textContent(),'1점');assert.equal(await slider.evaluate(el=>el.style.getPropertyValue('--fatigue-level')),'#16A34A');
+  await page.keyboard.press('End');assert.equal(await slider.inputValue(),'5');assert.equal(await score.textContent(),'5점');assert.equal(await slider.evaluate(el=>el.style.getPropertyValue('--fatigue-level')),'#DC2626');
+  await page.keyboard.press('ArrowLeft');assert.equal(await slider.inputValue(),'4');assert.equal(await score.textContent(),'4점');
+ }
+ await page.evaluate(()=>{saveRules();closeRulesModal();openRulesModal();});
+ const rules=await page.evaluate(()=>appData.config.rules);
+ for(const key of ['fatigueMain','fatigueSub','fatigueSp','fatigueSep','fatigueHall','fatigueClass'])assert.equal(rules[key],4);
+ assert.equal(rules.maxConsecutive,3);assert.equal(rules.maxDailyDiff,2);assert.equal(rules.balanceStrategy,'COUNT');
+ for(const [width,height] of [[1024,640],[1280,800],[1600,1000]]){
+  await page.setViewportSize({width,height});
+  const layout=await page.locator('#equity-card .fatigue-slider').evaluateAll(sliders=>sliders.map(slider=>{const r=slider.getBoundingClientRect(),card=slider.closest('#equity-card').getBoundingClientRect();return{left:r.left,right:r.right,cardLeft:card.left,cardRight:card.right}}));
+  assert.ok(layout.every(r=>r.left>=r.cardLeft && r.right<=r.cardRight));
+  assert.ok(layout.every(r=>Math.abs(r.left-layout[0].left)<1),'Sliders must form one column');
+  const leftOverflow=await page.locator('#rules-constraint-card').evaluate(el=>el.scrollWidth-el.clientWidth);assert.ok(leftOverflow<=1);
+ }
+ assert.equal(await page.locator('#rules-prohibition-card input[type=checkbox]').count(),5);
+ assert.equal(await page.locator('#rules-balance-card select').count(),3);
+ assert.equal(await page.locator('#rules-modal').evaluate(el=>el.parentElement===document.body),true);
+ assert.equal(await page.locator('#rules-modal').evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(15, 23, 42, 0.6)');
+ const loadCovered=await page.locator('#btn-global-load').evaluate(el=>{const r=el.getBoundingClientRect();return document.elementFromPoint(r.x+r.width/2,r.y+r.height/2).id==='rules-modal'});
+ assert.equal(loadCovered,true,'Backdrop must cover the top-left data card');
+ const saved=await page.evaluate(()=>JSON.stringify(appData.config.rules));
+ await page.locator('#btn-rules-default').click();
+ assert.equal(await page.locator('#rule-subject').isChecked(),true);
+ assert.equal(await page.locator('#rule-homeroom').isChecked(),true);
+ assert.equal(await page.locator('#rule-hallconsec').isChecked(),false);
+ assert.equal(await page.locator('#rule-sameclass').isChecked(),false);
+ assert.equal(await page.locator('#rule-classconsec').isChecked(),true);
+ assert.deepEqual(await page.locator('#equity-card input').evaluateAll(inputs=>inputs.map(input=>Number(input.value))),[5,3,3,3,2,1]);
+ assert.deepEqual(await page.locator('#equity-card output').allTextContents(),['5점','3점','3점','3점','2점','1점']);
+ assert.equal(await page.locator('#rule-maxconsec').inputValue(),'99');assert.equal(await page.locator('#rule-maxdiff').inputValue(),'99');
+ assert.equal(await page.locator('#rule-bal-strategy').inputValue(),'FATIGUE');
+ assert.equal(await page.locator('#rule-bal-strategy option').allTextContents().then(labels=>labels.some(label=>label.includes('우선'))),false);
+ assert.equal(await page.evaluate(()=>JSON.stringify(appData.config.rules)),saved,'Defaults must not save until execution');
+ await page.evaluate(()=>{closeRulesModal();openRulesModal();});assert.equal(await page.locator('#rule-f-main').inputValue(),'4');
+ await page.locator('#btn-rules-default').click();await page.evaluate(()=>saveRules());
+ assert.equal(await page.evaluate(()=>Object.entries(DEFAULT_RULES).every(([key,value])=>appData.config.rules[key]===value)),true);
+ assert.equal(await page.locator('#equity-card label').evaluateAll(labels=>labels.every(label=>label.scrollWidth<=label.clientWidth)),true);
+ await page.evaluate(()=>{const fresh={};sanitizeAppData(fresh);if(JSON.stringify(fresh.config.rules)!==JSON.stringify(DEFAULT_RULES))throw Error('Fresh data defaults differ');});
+ await page.setViewportSize({width:1280,height:800});await page.screenshot({path:path.join(require('node:os').tmpdir(),'exam-rules-sliders.png')});
+ assert.deepEqual(errors,[]);console.log('PASS: settings moved, card headers removed, slider order, live scores, 1-5 limits, keyboard adjustment, saved values, responsive layout');
+}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

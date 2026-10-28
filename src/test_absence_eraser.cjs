@@ -1,0 +1,27 @@
+const assert=require('node:assert/strict');const path=require('node:path');const {pathToFileURL}=require('node:url');const {chromium}=require('playwright');
+(async()=>{const browser=await chromium.launch({channel:'msedge',headless:true});try{
+ const page=await browser.newPage({viewport:{width:1280,height:800}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(pathToFileURL(path.join(__dirname,'index.html')).href);
+ await page.evaluate(()=>{sanitizeAppData(appData);appData.config.grades=[1,2,3];appData.config.classes={1:3,2:3,3:3};appData.periods=[{id:'p1',date:'2026-10-28',name:'1교시'}];appData.teachers=Array.from({length:3},(_,i)=>({id:`T${i}`,name:`교사${i}`,absences:{p1:{type:'GRADE',target:['2','3']}}}));showTab('tab-absences');});
+ const cell=row=>page.locator('#absence-list-body tr').nth(row).locator('td').nth(3).locator('button');
+ const values=()=>page.evaluate(()=>appData.teachers.map(t=>t.absences.p1));
+ await page.locator('#brush-toolbar [data-type="GRADE"][data-target="1"]').click();
+ const boxes=await Promise.all([0,1,2].map(row=>cell(row).boundingBox()));
+ await page.mouse.move(boxes[0].x+boxes[0].width*.25,boxes[0].y+boxes[0].height/2);await page.mouse.down({button:'right'});
+ for(const box of boxes)await page.mouse.move(box.x+box.width*.25,box.y+box.height/2,{steps:8});
+ assert.deepEqual(await values(),Array.from({length:3},()=>({type:'GRADE',target:'3'})));
+ assert.equal(await cell(0).evaluate(el=>el.style.backgroundImage),'');
+ await page.mouse.move(boxes[2].x+boxes[2].width*.35,boxes[2].y+boxes[2].height/2,{steps:5});
+ assert.equal((await values())[2].target,'3','Remaining color must survive expansion under the pointer');
+ await page.mouse.move(boxes[2].x+boxes[2].width*.75,boxes[2].y+boxes[2].height/2,{steps:6});
+ assert.equal((await values())[2],undefined,'Crossing the original right half removes its grade too');
+ await page.mouse.up({button:'right'});
+ await cell(0).click({button:'right'});assert.equal((await values())[0],undefined,'A new gesture can erase the expanded single grade');
+ await page.evaluate(()=>{appData.teachers[0].absences.p1={type:'GRADE',target:['1','2','3']};renderAbsencesTab();});
+ let box=await cell(0).boundingBox();await cell(0).click({button:'right',position:{x:box.width*.5,y:box.height/2}});
+ assert.deepEqual((await values())[0],{type:'GRADE',target:['1','3']});
+ await page.locator('#brush-toolbar [data-type="ALL"]').click();
+ box=await cell(0).boundingBox();await cell(0).click({button:'right',position:{x:box.width*.75,y:box.height/2}});
+ assert.deepEqual((await values())[0],{type:'GRADE',target:'1'},'Toolbar choice must not affect erasing');
+ assert.deepEqual(errors,[]);console.log('PASS: pointer-based split erasing, vertical/horizontal drag, expansion guard, toolbar independence, thirds, single-cell erase');
+}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

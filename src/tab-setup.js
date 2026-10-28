@@ -17,6 +17,9 @@ window.renderConfigTab = function() {
     if (window.renderRulesTab) renderRulesTab();
 };
 
+// 저장 값은 '자습', 화면 이름만 '수업'
+window.subjectLabel = subject => subject === '자습' ? '수업' : subject;
+
 window.renderSubjects = function() {
     appData.config.subjects = ['자습', ...appData.config.subjects.filter(subject => subject !== '자습')];
     const container = document.getElementById('subject-list'); container.innerHTML = ""; 
@@ -26,7 +29,7 @@ window.renderSubjects = function() {
             b.classList.replace('bg-surface-0', 'bg-surface-200');
             b.style.paddingLeft = b.style.paddingRight = 'calc(1rem + 7.25px)';
             b.classList.add('justify-center');
-            b.textContent = subject;
+            b.textContent = subjectLabel(subject);
             container.appendChild(b);
             return;
         }
@@ -76,7 +79,7 @@ window.renderSubjectsTab = function() {
                         const saved = (appData.classSubjects[p.id] || {})[grade] || "";
                         let opts = '<option value="">선택</option>';
                         const subjects = [...new Set(['자습', ...appData.config.subjects, ...(saved ? [saved] : [])])];
-                        subjects.forEach(subject => { opts += `<option value="${subject}" ${saved === subject ? 'selected' : ''}>${subject}</option>`; });
+                        subjects.forEach(subject => { opts += `<option value="${subject}" ${saved === subject ? 'selected' : ''}>${subjectLabel(subject)}</option>`; });
                         html += `<td class="${borderTdClass}"><select id="grade-subject-${p.id}-${grade}" class="w-full grade-subject-source" aria-label="${grade}학년 ${formatBeautifulDate(date)} ${i+1}교시 과목" onchange="updateGradeSubject('${p.id}', '${grade}', this.value)">${opts}</select></td>`;
                     } else html += `<td class="${borderEmptyTdClass}">-</td>`;
                 });
@@ -103,8 +106,46 @@ window.handleNotesPaste = function(e, idx, tabName) {
     }
 };
 
+// 피로도 1~5점 색 (배정 검증 화면 툴팁도 함께 쓴다)
+window.FATIGUE_COLORS = ['#16A34A', '#65A30D', '#A16207', '#EA580C', '#DC2626'];
+
+window.updateFatigueSlider = function(slider) {
+    const color = FATIGUE_COLORS[Number(slider.value) - 1];
+    slider.style.setProperty('--fatigue-level', color);
+    slider.setAttribute('aria-valuetext', `${slider.value}점`);
+    const score = document.getElementById(`${slider.id}-score`);
+    score.value = `${slider.value}점`;
+    score.style.color = color;
+};
+
+function fillRuleControls(values) {
+    const rules = {...DEFAULT_RULES, ...values};
+    if (document.getElementById('rule-homeroom')) {
+        document.getElementById('rule-homeroom').checked = rules.excludeHomeroom !== false;
+        document.getElementById('rule-subject').checked = rules.excludeSubject !== false;
+        document.getElementById('rule-sameclass').checked = rules.excludeSameClass !== false;
+        document.getElementById('rule-classconsec').checked = rules.excludeClassConsecutive !== false;
+        document.getElementById('rule-hallconsec').checked = rules.excludeHallwayConsecutive !== false;
+        document.getElementById('rule-maxconsec').value = rules.maxConsecutive || 99;
+
+        let maxDiffVal = rules.maxDailyDiff;
+        if (maxDiffVal === 0) maxDiffVal = 1;
+        document.getElementById('rule-maxdiff').value = maxDiffVal || 99;
+
+        document.getElementById('rule-f-main').value = rules.fatigueMain || DEFAULT_RULES.fatigueMain;
+        document.getElementById('rule-f-sub').value = rules.fatigueSub || DEFAULT_RULES.fatigueSub;
+        document.getElementById('rule-f-class').value = rules.fatigueClass || DEFAULT_RULES.fatigueClass;
+        document.getElementById('rule-f-hall').value = rules.fatigueHall || DEFAULT_RULES.fatigueHall;
+        document.getElementById('rule-f-sep').value = rules.fatigueSep || DEFAULT_RULES.fatigueSep;
+        document.getElementById('rule-f-sp').value = rules.fatigueSp || DEFAULT_RULES.fatigueSp;
+        document.querySelectorAll('#equity-card .fatigue-slider').forEach(updateFatigueSlider);
+        document.getElementById('rule-bal-strategy').value = rules.balanceStrategy || 'FATIGUE';
+    }
+    refreshDropdowns();
+}
+window.resetRulesToDefaults = function() { fillRuleControls(DEFAULT_RULES); };
+
 window.renderRulesTab = function() {
-    const rules = appData.config.rules || {};
     const invigs = appData.config.invigCounts || {};
     const tb = document.getElementById('rules-invig-body');
     let rows = "";
@@ -139,39 +180,19 @@ window.renderRulesTab = function() {
         let trHtml = `<tr class="bg-surface-0 hover:bg-surface-50 ${disabledClass}"><td class="${tdFirstBorderClass}">${g}학년</td>
                 <td class="${tdBorderClass}">
                     <div class="flex flex-col items-center justify-center">
-                        <select class="fld p-1 text-[12px] font-bold cursor-pointer" id="iv-style-${g}" ${disabledAttr}>
+                        <select class="fld iv-select p-1 text-[12px] font-bold cursor-pointer" id="iv-style-${g}" ${disabledAttr}>
                             <option value="none" ${currentStyle==='none'?'selected':''}>없음</option>
                             <option value="single" ${currentStyle==='single'?'selected':''}>정감독 (1인)</option>
                             <option value="double" ${currentStyle==='double'?'selected':''}>정·부감독 (2인)</option>
                         </select>
                     </div>
                 </td>
-                <td class="${tdBorderClass}"><select class="fld p-1 text-[12px] font-bold cursor-pointer" id="iv-sp-${g}" ${spDisabledAttr}><option value="0" ${spVal==0?'selected':''}>없음</option><option value="1" ${spVal==1?'selected':''}>정감독 (1인)</option><option value="2" ${spVal==2?'selected':''}>정·부감독 (2인)</option></select></td>
-                <td class="${tdBorderClass}"><select class="fld p-1 text-[12px] font-bold cursor-pointer" id="iv-sep-${g}" ${sepDisabledAttr}><option value="0" ${sepVal==0?'selected':''}>없음</option><option value="1" ${sepVal==1?'selected':''}>정감독 (1인)</option><option value="2" ${sepVal==2?'selected':''}>정·부감독 (2인)</option></select></td>`;
+                <td class="${tdBorderClass}"><select class="fld iv-select p-1 text-[12px] font-bold cursor-pointer" id="iv-sp-${g}" ${spDisabledAttr}><option value="0" ${spVal==0?'selected':''}>없음</option><option value="1" ${spVal==1?'selected':''}>정감독 (1인)</option><option value="2" ${spVal==2?'selected':''}>정·부감독 (2인)</option></select></td>
+                <td class="${tdBorderClass}"><select class="fld iv-select p-1 text-[12px] font-bold cursor-pointer" id="iv-sep-${g}" ${sepDisabledAttr}><option value="0" ${sepVal==0?'selected':''}>없음</option><option value="1" ${sepVal==1?'selected':''}>정감독 (1인)</option><option value="2" ${sepVal==2?'selected':''}>정·부감독 (2인)</option></select></td>`;
         rows += trHtml + `</tr>`;
     });
     tb.innerHTML = rows;
-    if (document.getElementById('rule-homeroom')) {
-        document.getElementById('rule-homeroom').checked = rules.excludeHomeroom !== false;
-        document.getElementById('rule-subject').checked = rules.excludeSubject !== false;
-        document.getElementById('rule-sameclass').checked = rules.excludeSameClass !== false;
-        document.getElementById('rule-classconsec').checked = rules.excludeClassConsecutive !== false;
-        document.getElementById('rule-hallconsec').checked = rules.excludeHallwayConsecutive !== false;
-        document.getElementById('rule-maxconsec').value = rules.maxConsecutive || 99;
-        
-        let maxDiffVal = rules.maxDailyDiff;
-        if (maxDiffVal === 0) maxDiffVal = 1;
-        document.getElementById('rule-maxdiff').value = maxDiffVal || 99;
-
-        document.getElementById('rule-f-main').value = rules.fatigueMain || 5;
-        document.getElementById('rule-f-sub').value = rules.fatigueSub || 3;
-        document.getElementById('rule-f-class').value = rules.fatigueClass || 1;
-        document.getElementById('rule-f-hall').value = rules.fatigueHall || 2;
-        document.getElementById('rule-f-sep').value = rules.fatigueSep || 4;
-        document.getElementById('rule-f-sp').value = rules.fatigueSp || 4;
-        document.getElementById('rule-bal-strategy').value = rules.balanceStrategy || 'FATIGUE';
-    }
-    refreshDropdowns();
+    fillRuleControls(appData.config.rules);
 };
 
 window.onStyleChange = function(g) {};
@@ -203,12 +224,12 @@ function saveRules() {
         appData.config.rules.excludeHallwayConsecutive = document.getElementById('rule-hallconsec').checked;
         appData.config.rules.maxConsecutive = parseInt(document.getElementById('rule-maxconsec').value) || 99;
         appData.config.rules.maxDailyDiff = parseInt(document.getElementById('rule-maxdiff').value) || 99;
-        appData.config.rules.fatigueMain = parseInt(document.getElementById('rule-f-main').value) || 5;
-        appData.config.rules.fatigueSub = parseInt(document.getElementById('rule-f-sub').value) || 3;
-        appData.config.rules.fatigueClass = parseInt(document.getElementById('rule-f-class').value) || 1;
-        appData.config.rules.fatigueHall = parseInt(document.getElementById('rule-f-hall').value) || 2;
-        appData.config.rules.fatigueSep = parseInt(document.getElementById('rule-f-sep').value) || 4;
-        appData.config.rules.fatigueSp = parseInt(document.getElementById('rule-f-sp').value) || 4;
+        appData.config.rules.fatigueMain = parseInt(document.getElementById('rule-f-main').value) || DEFAULT_RULES.fatigueMain;
+        appData.config.rules.fatigueSub = parseInt(document.getElementById('rule-f-sub').value) || DEFAULT_RULES.fatigueSub;
+        appData.config.rules.fatigueClass = parseInt(document.getElementById('rule-f-class').value) || DEFAULT_RULES.fatigueClass;
+        appData.config.rules.fatigueHall = parseInt(document.getElementById('rule-f-hall').value) || DEFAULT_RULES.fatigueHall;
+        appData.config.rules.fatigueSep = parseInt(document.getElementById('rule-f-sep').value) || DEFAULT_RULES.fatigueSep;
+        appData.config.rules.fatigueSp = parseInt(document.getElementById('rule-f-sp').value) || DEFAULT_RULES.fatigueSp;
         appData.config.rules.balanceStrategy = document.getElementById('rule-bal-strategy').value || 'FATIGUE';
     }
 }
