@@ -303,7 +303,7 @@ class Api:
                 tag = r.geturl().rstrip('/').rsplit('/', 1)[-1]
             if version_tuple(tag) <= version_tuple(APP_VERSION):
                 return {"available": False}
-            return {"available": True, "version": tag}
+            return {"available": True, "version": tag, "current": f"v{APP_VERSION}"}
         except Exception as e:   # 오프라인이거나 릴리스가 없으면 조용히 넘어간다
             print(f"업데이트 확인 실패: {e}")
             return {"available": False}

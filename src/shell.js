@@ -236,19 +236,32 @@ window.addEventListener('pywebviewready', function() {
     });
     window.pywebview.api.get_version().then(v => { document.getElementById('app-version').textContent = `v${v}`; });
     // 켜자마자(작업 전) 확인하고, 새 버전이 있으면 받을지 묻는다. 설치하면 창이 닫혔다가 다시 켜진다.
+    // [나중에]를 눌러도 제목 줄의 [업데이트] 버튼으로 언제든 다시 물을 수 있다.
     window.pywebview.api.check_update().then(res => {
         if (!res.available) return;
+        const btn = document.getElementById('btn-update');
+        btn.title = `새 버전(${res.version}) 설치`;
+        btn.onclick = () => askUpdate(res);
+        btn.classList.remove('hidden');
         document.getElementById('tour').classList.add('hidden');   // 가이드 투어보다 업데이트 질문을 먼저 보인다
-        openConfirmModal('새 버전 업데이트',
-            `새 버전(<b>${res.version}</b>)이 나왔습니다.<br>지금 업데이트하시겠습니까?<br><span class="text-[12.5px] font-semibold text-pebble">업데이트하면 프로그램이 잠시 닫혔다가 다시 켜집니다.</span>`,
-            '업데이트', () => {
-                showToast(`새 버전(${res.version})을 설치합니다.\n잠시 후 프로그램이 다시 켜집니다.`, "success");
-                window.pywebview.api.install_update(res.version).then(r => {
-                    if (!r.success) showToast("업데이트 실패: " + r.error, "error");
-                });
-            }, '나중에');
+        askUpdate(res);
     });
 });
+
+function askUpdate(res) {
+    const m = document.getElementById('update-modal');
+    document.getElementById('update-from').textContent = res.current;
+    document.getElementById('update-to').textContent = res.version;
+    document.getElementById('update-modal-ok').onclick = () => {
+        m.classList.add('hidden');
+        showToast(`새 버전(${res.version})을 설치합니다.\n잠시 후 프로그램이 다시 켜집니다.`, "success");
+        window.pywebview.api.install_update(res.version).then(r => {
+            if (!r.success) showToast("업데이트 실패: " + r.error, "error");
+        });
+    };
+    m.classList.remove('hidden');
+    m.focus();
+}
 
 document.getElementById('btn-global-save').addEventListener('click', () => {
     appData.config.examName = document.getElementById('exam-name').value;
