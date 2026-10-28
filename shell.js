@@ -11,7 +11,7 @@ const NAV_ITEMS = [
     { target: 'tab-config',   label: '기초 설정', icon: 'settings' },
     { target: 'tab-teachers', label: '감독 명단', icon: 'clipboard-check' },
     { target: 'tab-absences', label: '결시 관리', icon: 'clipboard-list' },
-    { action: 'run',          label: '자동 배정', icon: 'zap' },   // 탭이 아니라 규칙 창을 연다
+    { action: 'run',          label: '배정 실행', icon: 'zap' },   // 탭이 아니라 규칙 창을 연다
     { target: 'tab-result',   label: '배정 결과', icon: 'check-circle' },
     { target: 'tab-validate', label: '배정 검증', icon: 'search' },
 ];
@@ -33,7 +33,7 @@ window.renderSidebar = function() {
             <button data-action="${item.action}"
                     class="w-full flex items-center justify-center px-3 py-3.5 rounded-xl transition-colors font-semibold text-[13.5px] cursor-pointer text-text-main hover:bg-surface-100">
                 <div class="inline-flex items-center space-x-2 -translate-x-[8px]">
-                    ${icon(item.icon, 'w-4 h-4 flex-shrink-0 text-[#FCD34D]')}
+                    ${icon(item.icon, 'w-4 h-4 flex-shrink-0 text-stone')}
                     <span>${item.label}</span>
                 </div>
             </button>`;
