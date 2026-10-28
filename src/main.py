@@ -190,12 +190,12 @@ class Api:
 
     # ── 엑셀 ─────────────────────────────────────────────────────────
 
-    def download_template(self):
+    def download_template(self, teachers=None):
         result = self._ask_save('감독명단_일괄등록양식.xlsx', XLSX_TYPES)
         if not result:
             return {"success": False, "canceled": True}
         try:
-            excel.write_template(result[0])
+            excel.write_template(result[0], teachers)
             return {"success": True, "path": result[0]}
         except Exception as e:
             return {"success": False, "error": str(e)}

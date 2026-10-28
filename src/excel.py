@@ -3,8 +3,6 @@
 파일 대화상자는 호출부(Api)가 처리하고 여기서는 경로만 받는다.
 webview 에 의존하지 않으므로 단독으로 실행·검증할 수 있다.
 """
-import json
-import os
 import re
 from datetime import datetime
 
@@ -14,28 +12,7 @@ from openpyxl.utils import get_column_letter
 
 from labels import parse_label, period_num, role_key
 
-_DUMMY_GIVEN_NAMES = [
-    "민수", "영희", "철수", "지훈", "서연", "도윤", "하은", "준호", "예은", "현우",
-    "지우", "서준", "유진", "성민", "수빈", "동현", "채원", "정우", "지민", "건우",
-    "다은", "승현", "지현", "태양", "윤서", "민재", "소율", "우진", "시은", "재현",
-    "예린", "지성", "하윤", "주원", "나은", "성현", "은지", "태민", "아린", "진우",
-    "서현", "연우", "가은", "민성", "수아", "준영", "지아", "현준", "유나", "도현",
-    "서윤", "상현", "혜원", "동건", "시아", "재민", "소현", "선우", "민지", "태현"
-]
-
-def _load_sample_teachers():
-    json_path = os.path.join(os.path.dirname(__file__), "timetable_data.json")
-    if not os.path.exists(json_path):
-        return []
-    try:
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            return data.get('teachers', [])
-    except Exception:
-        return []
-
-
-def write_template(path):
+def write_template(path, teachers=None):
 
     wb = Workbook()
     ws = wb.active
@@ -47,22 +24,10 @@ def write_template(path):
 
     ws.append(["성명", "담당교과", "담임", "참고사항"])
 
-    sample_teachers = _load_sample_teachers()
-    if sample_teachers:
-        for idx, t in enumerate(sample_teachers):
-            surname = t.get('name', '')[0] if t.get('name') else '김'
-            given_name = _DUMMY_GIVEN_NAMES[idx % len(_DUMMY_GIVEN_NAMES)]
-            anon_name = f"{surname}{given_name}"
-
-            subject = t.get('subject', '')
-            homeroom = t.get('homeroom', '')
-            notes = t.get('notes', '')
-
-            # 2행(첫번째 샘플 데이터)의 참고사항 셀에 담임 입력 가이드 안내문 배치
-            if idx == 0:
-                notes = "※ 담임은 '1-1' 과 같은 형태로 입력"
-
-            ws.append([anon_name, subject, homeroom, notes])
+    # 지금 화면의 감독 명단을 그대로 담는다. 명단이 비어 있으면 입력 예시 한 줄을 둔다.
+    if teachers:
+        for t in teachers:
+            ws.append([t.get('name', ''), t.get('subject', ''), t.get('homeroom', ''), t.get('notes', '')])
     else:
         ws.append(["김민수", "국어", "1-1", "※ 담임은 '1-1' 과 같은 형태로 입력"])
 

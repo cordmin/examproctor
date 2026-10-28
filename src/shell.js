@@ -338,7 +338,7 @@ window.removeDate = function(d) {
 };
 window.updateGradeSubject = function(pid, g, s) { if(!appData.classSubjects[pid]) appData.classSubjects[pid]={}; appData.classSubjects[pid][g]=s; renderSubjectsTab(); };
 document.getElementById('btn-upload-csv').addEventListener('click', () => { window.pywebview.api.upload_excel().then(res => { if (res.success) { res.teachers.forEach((t, i) => appData.teachers.push({ id:'T'+Date.now()+i, absences:{}, ...t })); renderTeachers(); renderAbsencesTab(); showToast(`${res.teachers.length}명 추가 완료!`, "success"); } else if (!res.canceled) showToast("업로드 오류: \n" + res.error, "error"); }); });
-document.getElementById('btn-download-template').addEventListener('click', () => { window.pywebview.api.download_template().then(res => { if(res.success) showToast(`양식 저장 완료!\n${res.path}`, "success"); }); });
+document.getElementById('btn-download-template').addEventListener('click', () => { window.pywebview.api.download_template(appData.teachers).then(res => { if(res.success) showToast(`양식 저장 완료!\n${res.path}`, "success"); }); });
 document.getElementById('btn-clear-teachers').addEventListener('click', () => { openConfirmModal("명단 전체 초기화", "등록된 모든 교사 명단을 삭제하시겠습니까?", "전체 삭제", () => { appData.teachers = []; renderTeachers(); renderAbsencesTab(); showToast("명단이 삭제되었습니다.", "success"); }); });
 document.querySelectorAll('.grade-toggle').forEach(toggle => { toggle.addEventListener('click', () => {
     const g = parseInt(toggle.dataset.grade), row = document.getElementById(`grade-row-${g}`);
