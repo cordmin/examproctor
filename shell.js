@@ -31,7 +31,7 @@ window.renderSidebar = function() {
     document.getElementById('sidebar-nav').innerHTML = NAV_ITEMS.map(item => {
         if (item.action) return `
             <button data-action="${item.action}"
-                    class="w-full flex items-center justify-center px-3 py-3.5 rounded-xl transition-all font-bold text-[13.5px] cursor-pointer bg-brand-600 hover:bg-brand-500 text-brand-text">
+                    class="w-full flex items-center justify-center px-3 py-3.5 rounded-xl transition-colors font-semibold text-[13.5px] cursor-pointer text-text-main hover:bg-surface-100">
                 <div class="inline-flex items-center space-x-2 -translate-x-[8px]">
                     ${icon(item.icon, 'w-4 h-4 flex-shrink-0 text-[#FCD34D]')}
                     <span>${item.label}</span>
