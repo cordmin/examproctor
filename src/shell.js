@@ -119,7 +119,9 @@ window.addEventListener('resize', fitZoom);
 function syncScrollHeads() {
     document.querySelectorAll('thead').forEach(head => {
         const box = head.closest('.overflow-auto, .overflow-y-auto');
-        if (box) box.style.setProperty('--thead-h', head.offsetHeight + 'px');
+        if (!box) return;
+        box.style.setProperty('--thead-h', head.offsetHeight + 'px');
+        box.classList.add('has-head');
     });
 }
 let scrollHeadTimer;
