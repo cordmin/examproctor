@@ -334,6 +334,13 @@
         }
         /* 표 머리글(고정 행) 높이만큼 세로 스크롤 막대를 아래에서 시작한다. --thead-h 는 shell.js 가 채운다. */
         ::-webkit-scrollbar-track:vertical { margin-top: var(--thead-h, 0px); }
+        /* 머리글 옆 스크롤바 자리도 머리글 배경색과 아래 구분선으로 이어 칠한다 */
+        ::-webkit-scrollbar:vertical {
+            background: linear-gradient(to bottom,
+                #F1F5F9 0 calc(var(--thead-h, 0px) - 1px),
+                rgb(var(--line)) calc(var(--thead-h, 0px) - 1px) var(--thead-h, 0px),
+                transparent var(--thead-h, 0px));
+        }
         ::-webkit-scrollbar-thumb:hover { background-color: rgba(100, 116, 139, 0.8); }
 
         /* ── 애니메이션 ──────────────────────────────────────────── */
