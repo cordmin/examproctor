@@ -423,23 +423,22 @@
         /* static 모드: 입력칸 바로 아래에 띄우고 다른 카드 위로 올라오게 한다 */
         .flatpickr-wrapper { position: relative; }
         .flatpickr-calendar.static { top: calc(100% + 6px); left: 0; z-index: 60; }
-        .flatpickr-months { padding-top: 0; }
         /* 머리글: '2026년 10월' 순서, 위로 붙이고 달 넘김 버튼은 안쪽으로 */
-        .flatpickr-current-month { padding-top: 4px !important; display: flex !important; justify-content: center; align-items: center; gap: 6px; }
+        .flatpickr-current-month { padding: 0 !important; height: auto !important; display: flex !important; justify-content: center; align-items: center; gap: 6px; }
         .flatpickr-current-month .numInputWrapper { order: 0; width: auto !important; }
         .flatpickr-current-month .numInputWrapper::after { content: '년'; font-weight: 800; }
         .flatpickr-current-month .numInputWrapper span.arrowUp,
         .flatpickr-current-month .numInputWrapper span.arrowDown { display: none; }
         .flatpickr-current-month .cur-month { order: 1; margin: 0 !important; font-weight: 800; }
-        .flatpickr-current-month input.cur-year { width: 4.2ch !important; padding: 0 !important; text-align: right; cursor: pointer; }
-        .flatpickr-current-month .cur-month, .flatpickr-current-month .numInputWrapper { border-radius: 6px; padding: 0 4px; cursor: pointer; }
+        .flatpickr-current-month input.cur-year { field-sizing: content; width: auto !important; min-width: 0; padding: 0 !important; cursor: pointer; }
+        .flatpickr-current-month .cur-month, .flatpickr-current-month .numInputWrapper { border-radius: 6px; padding: 0 4px !important; cursor: pointer; }
         .flatpickr-current-month .cur-month:hover, .flatpickr-current-month .numInputWrapper:hover { background: rgb(var(--brand-50)); }
         /* 달 넘김 버튼을 머리글 바로 옆에: 세 요소를 한 줄 가운데 정렬로 흐르게 한다 */
-        .flatpickr-months { justify-content: center; align-items: center; gap: 10px; }
-        .flatpickr-months .flatpickr-month { flex: 0 0 auto; overflow: visible; }
+        .flatpickr-months { justify-content: center; align-items: center; gap: 2px; padding: 4px 0 2px; }
+        .flatpickr-months .flatpickr-month { flex: 0 0 auto; overflow: visible; height: auto !important; }
         .flatpickr-current-month { position: static !important; width: auto !important; left: auto !important; }
         .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month {
-            position: static !important; display: flex; align-items: center; justify-content: center; padding: 8px !important; height: auto !important; color: rgb(var(--stone)); }
+            position: static !important; display: flex; align-items: center; justify-content: center; padding: 6px !important; height: auto !important; color: rgb(var(--stone)); }
         /* 꺾쇠 대신 속이 찬 삼각형 */
         .flatpickr-months .flatpickr-prev-month svg, .flatpickr-months .flatpickr-next-month svg { display: none; }
         .flatpickr-months .flatpickr-prev-month::before, .flatpickr-months .flatpickr-next-month::before {
@@ -449,8 +448,8 @@
         .flatpickr-months .flatpickr-prev-month:hover, .flatpickr-months .flatpickr-next-month:hover { color: rgb(var(--brand-600)); }
         /* 요일·날짜 칸 폭을 줄여 일·토가 양끝에 붙지 않게, 달력 가운데에 둔다 */
         .flatpickr-innerContainer { justify-content: center; }
-        .flatpickr-days { width: 266px !important; }
-        .dayContainer { width: 266px !important; min-width: 266px !important; max-width: 266px !important; }
+        .flatpickr-days { width: 290px !important; }
+        .dayContainer { width: 290px !important; min-width: 290px !important; max-width: 290px !important; }
         /* 연·월 고르는 판: 머리글을 누르면 날짜 칸 위로 펼쳐진다 */
         .ym-panel { position: absolute; left: 4px; right: 4px; top: 38px; bottom: 4px; background: rgb(var(--surface-0));
                     border-radius: 10px; display: flex; flex-direction: column; gap: 8px; padding: 6px 16px 10px;
