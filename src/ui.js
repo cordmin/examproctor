@@ -16,12 +16,13 @@ window.showToast = function(message, type = 'success') {
     }, type === 'error' ? 5000 : 3000);
 };
 
-window.openConfirmModal = function(title, msg, confirmText, callback) {
+window.openConfirmModal = function(title, msg, confirmText, callback, cancelText = '취소') {
     // 제목 옆 경고 아이콘은 그대로 두고 <span> 안의 글자만 바꾼다.
     document.querySelector('#confirm-modal-title span').innerText = title;
     document.getElementById('confirm-modal-msg').innerHTML = msg;
     const btn = document.getElementById('confirm-modal-btn');
     btn.innerText = confirmText;
+    document.getElementById('confirm-modal-cancel').innerText = cancelText;
     confirmCallback = callback;
     const m = document.getElementById('confirm-modal');
     m.classList.remove('hidden');

@@ -234,13 +234,19 @@ window.addEventListener('pywebviewready', function() {
         tourHidden = !!settings.hideTour;
         if (!tourHidden) startTour();
     });
-    // 켜자마자(작업 전) 확인하므로 설치하느라 창이 닫혀도 잃을 작업이 없다.
+    window.pywebview.api.get_version().then(v => { document.getElementById('app-version').textContent = `v${v}`; });
+    // 켜자마자(작업 전) 확인하고, 새 버전이 있으면 받을지 묻는다. 설치하면 창이 닫혔다가 다시 켜진다.
     window.pywebview.api.check_update().then(res => {
         if (!res.available) return;
-        showToast(`새 버전(${res.version})을 설치합니다.\n잠시 후 프로그램이 다시 켜집니다.`, "success");
-        window.pywebview.api.install_update(res.version).then(r => {
-            if (!r.success) showToast("업데이트 실패: " + r.error, "error");
-        });
+        document.getElementById('tour').classList.add('hidden');   // 가이드 투어보다 업데이트 질문을 먼저 보인다
+        openConfirmModal('새 버전 업데이트',
+            `새 버전(<b>${res.version}</b>)이 나왔습니다.<br>지금 업데이트하시겠습니까?<br><span class="text-[12.5px] font-semibold text-pebble">업데이트하면 프로그램이 잠시 닫혔다가 다시 켜집니다.</span>`,
+            '업데이트', () => {
+                showToast(`새 버전(${res.version})을 설치합니다.\n잠시 후 프로그램이 다시 켜집니다.`, "success");
+                window.pywebview.api.install_update(res.version).then(r => {
+                    if (!r.success) showToast("업데이트 실패: " + r.error, "error");
+                });
+            }, '나중에');
     });
 });
 

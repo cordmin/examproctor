@@ -36,7 +36,7 @@ EMPTY_DATA = {
 XLSX_TYPES = ('Excel 파일 (*.xlsx)', '모든 파일 (*.*)')
 JSON_TYPES = ('JSON 파일 (*.json)', '모든 파일 (*.*)')
 
-# 릴리스 태그(vX.Y.Z)와 반드시 같아야 한다. 다르면 GitHub Actions 빌드가 멈춘다.
+# 앞 두 자리(1.0)만 손으로 고친다. 마지막 자리는 GitHub Actions(release.yml)가 빌드할 때 실행 번호로 채운다.
 APP_VERSION = '1.0.0'
 # 업데이트를 받을 GitHub 공개 저장소 'owner/repo'. 비어 있으면 업데이트 확인을 건너뛴다.
 UPDATE_REPO = 'cordmin/examproctor'
@@ -289,6 +289,9 @@ class Api:
     # ── 자동 업데이트 ────────────────────────────────────────────────
     # releases/latest 는 최신 태그 페이지로 넘어간다. API 를 쓰지 않으므로
     # 학교처럼 여러 PC 가 한 IP 를 쓰는 곳에서도 호출 제한에 걸리지 않는다.
+
+    def get_version(self):
+        return APP_VERSION
 
     def check_update(self):
         if not UPDATE_REPO or not getattr(sys, 'frozen', False):

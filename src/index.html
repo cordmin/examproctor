@@ -632,7 +632,7 @@
     <div id="titlebar"
          class="pywebview-drag-region sky text-chrome-text px-4 py-[8px] flex justify-between items-center text-[13px] flex-shrink-0 z-30">
         <span class="font-bold tracking-tight flex items-center gap-2">
-            시험감독 배정 프로그램 (중학교용)
+            시험감독 배정 프로그램 <span id="app-version" class="font-semibold opacity-70"></span>
         </span>
         <div class="flex items-center space-x-4">
             <button id="btn-tour" title="사용 안내 다시 보기" onclick="startTour()" class="w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-chrome-text rounded-md cursor-pointer transition-colors font-bold text-[14px]">?</button>
@@ -1195,7 +1195,7 @@
             <p id="confirm-modal-msg" class="text-[14px] font-bold text-text-main/80 leading-relaxed text-center py-2"></p>
             <div class="flex justify-center gap-2 pt-2">
                 <button id="confirm-modal-btn" onclick="executeConfirm()" class="px-4 py-1.5 bg-coral hover:brightness-95 text-white font-semibold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">확인</button>
-                <button onclick="closeConfirmModal()" class="px-4 py-1.5 border border-surface-300 bg-surface-0 hover:bg-surface-50 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">취소</button>
+                <button id="confirm-modal-cancel" onclick="closeConfirmModal()" class="px-4 py-1.5 border border-surface-300 bg-surface-0 hover:bg-surface-50 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">취소</button>
             </div>
         </div>
     </div>

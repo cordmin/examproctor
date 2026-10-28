@@ -1,13 +1,20 @@
-# vX.Y.Z 태그를 올리면 exe 와 설치 파일을 만들어 GitHub 릴리스에 올린다.
-# 설치된 프로그램은 켤 때 이 릴리스를 보고 스스로 업데이트한다.
+# main 에 프로그램(src) 변경을 푸시하면 버전을 자동으로 올려 exe 와 설치 파일을 만들고 GitHub 릴리스에 올린다.
+# 설치된 프로그램은 켤 때 최신 릴리스를 보고, 새 버전이면 업데이트할지 묻는다 (main.py check_update).
 name: release
 
 on:
   push:
-    tags: ['v*']
+    branches: [main]
+    paths: ['src/**', '.github/workflows/release.yml']
+  workflow_dispatch:
 
 permissions:
   contents: write
+
+# 연달아 푸시해도 릴리스가 겹쳐 만들어지지 않게 하나씩 돌린다.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -15,14 +22,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 태그와 APP_VERSION 이 다르면 설치 후에도 옛 버전으로 보여 업데이트가 무한 반복된다.
-      - name: Check version
+      # 버전 = main.py APP_VERSION 의 앞 두 자리 + 이 작업의 실행 번호 (예: 1.0.0 → 1.0.7).
+      # 앞 두 자리를 올리고 싶으면 main.py 의 APP_VERSION 만 고치면 된다.
+      - name: Set version
         shell: pwsh
         run: |
-          $tag = "${{ github.ref_name }}".TrimStart('v')
-          if (-not (Select-String -Path src/main.py -SimpleMatch "APP_VERSION = '$tag'")) {
-            throw "main.py 의 APP_VERSION 이 태그($tag)와 다릅니다."
-          }
+          $m = Select-String -Path src/main.py -Pattern "APP_VERSION = '(\d+)\.(\d+)\.\d+'"
+          if (-not $m) { throw "main.py 에서 APP_VERSION 을 찾지 못했습니다." }
+          $g = $m.Matches[0].Groups
+          $ver = "$($g[1].Value).$($g[2].Value).${{ github.run_number }}"
+          $src = Get-Content src/main.py -Raw -Encoding utf8
+          ($src -replace "APP_VERSION = '[^']*'", "APP_VERSION = '$ver'") | Set-Content src/main.py -Encoding utf8 -NoNewline
+          "VERSION=$ver" >> $env:GITHUB_ENV
 
       - uses: actions/setup-python@v5
         with:
@@ -39,9 +50,11 @@ jobs:
         shell: pwsh
         run: |
           if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
-          $tag = "${{ github.ref_name }}".TrimStart('v')
-          iscc "/DMyAppVersion=$tag" installer.iss
+          iscc "/DMyAppVersion=$env:VERSION" installer.iss
 
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ env.VERSION }}
+          name: v${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
           files: src/Output/ExamProctorSetup.exe
