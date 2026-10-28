@@ -11,6 +11,7 @@
 파일 대화상자만 여기서 처리하고 경로를 모듈에 넘긴다.
 그래서 도메인 모듈은 webview 없이도 단독 실행·검증이 가능하다.
 """
+import ctypes
 import json
 import os
 import subprocess
@@ -58,7 +59,8 @@ class Api:
             self.data_file = 'timetable_data.json'
         self.data = self.load_data()
         self._win = None        # webview.create_window() 결과. 창 제어에 쓴다.
-        self._maximized = True  # create_window(maximized=True) 로 연다
+        self._maximized = False
+        self._normal_bounds = None   # 최대화 직전 위치·크기. 복원할 때 쓴다.
 
     # ── 프레임리스 창 제어 ────────────────────────────────────────────
     # frameless=True 라 OS 타이틀바가 없다. index.html 의 커스텀 타이틀바와
@@ -72,10 +74,30 @@ class Api:
         if not self._win:
             return
         if self._maximized:
-            self._win.restore()
+            self._apply_bounds(*self._normal_bounds)
+            self._maximized = False
         else:
-            self._win.maximize()
-        self._maximized = not self._maximized
+            self._normal_bounds = (self._win.x, self._win.y, self._win.width, self._win.height)
+            self._apply_bounds(*self._work_area())
+            self._maximized = True
+
+    # 테두리 없는 창은 OS 최대화(WindowState)를 쓰면 창이 화면 모서리에서 밀려 열리고
+    # 작업 표시줄까지 덮는다. 그래서 작업 영역(작업 표시줄 뺀 화면) 크기로 직접 맞춘다.
+    def _work_area(self):
+        class MONITORINFO(ctypes.Structure):
+            _fields_ = [('cbSize', ctypes.c_ulong), ('rcMonitor', ctypes.c_long * 4),
+                        ('rcWork', ctypes.c_long * 4), ('dwFlags', ctypes.c_ulong)]
+        user32 = ctypes.windll.user32
+        hwnd = self._win.native.Handle.ToInt32()
+        mi = MONITORINFO(cbSize=ctypes.sizeof(MONITORINFO))
+        user32.GetMonitorInfoW(user32.MonitorFromWindow(hwnd, 2), ctypes.byref(mi))
+        scale = user32.GetDpiForWindow(hwnd) / 96   # 물리 픽셀 -> pywebview 논리 픽셀
+        left, top, right, bottom = mi.rcWork
+        return left / scale, top / scale, (right - left) / scale, (bottom - top) / scale
+
+    def _apply_bounds(self, x, y, w, h):
+        self._win.move(int(x), int(y))
+        self._win.resize(int(w), int(h))
 
     def close_window(self):
         if self._win:
@@ -292,8 +314,11 @@ if __name__ == '__main__':
         width=win_w, height=win_h,
         x=win_x, y=win_y,
         min_size=(min_w, min_h),
-        maximized=True,
         frameless=True,
         easy_drag=False,
     )
-    webview.start()
+    def open_maximized():
+        api._win.events.shown.wait()
+        api.toggle_maximize()
+
+    webview.start(open_maximized)
