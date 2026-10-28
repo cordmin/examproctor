@@ -354,6 +354,7 @@ const fpDate = flatpickr('#new-date', { static: true, locale: 'ko', dateFormat: 
     onDayCreate: (dObj, dStr, fp, dayElem) => { const wd = dayElem.dateObj.getDay(); if (dayElem.classList.contains('selected')) return; if (wd === 0) dayElem.style.color = '#E11D48'; else if (wd === 6) dayElem.style.color = '#2563EB'; } });
 
 // 달력 머리글의 연·월을 누르면 고르는 판이 펼쳐진다. 연을 고르면 이어서 월을 고른다.
+// 연도 판은 마우스 휠로 한 줄(3년)씩 위아래로 넘긴다.
 function mountYearMonthPanel(fp) {
     const cal = fp.calendarContainer;
     const yearInput = cal.querySelector('.cur-year');
@@ -365,10 +366,8 @@ function mountYearMonthPanel(fp) {
 
     const render = () => {
         const items = Array.from({ length: 12 }, (_, i) => mode === 'year' ? firstYear + i : i);
-        const nav = mode === 'year'
-            ? `<button data-step="-12">‹</button><span>${firstYear} – ${firstYear + 11}</span><button data-step="12">›</button>`
-            : `<span>${fp.currentYear}년</span>`;
-        panel.innerHTML = `<div class="ym-nav">${nav}</div><div class="ym-grid">${items.map(v => {
+        const nav = mode === 'year' ? '' : `<div class="ym-nav"><span>${fp.currentYear}년</span></div>`;
+        panel.innerHTML = `${nav}<div class="ym-grid">${items.map(v => {
             const on = mode === 'year' ? v === fp.currentYear : v === fp.currentMonth;
             return `<button data-v="${v}" class="${on ? 'on' : ''}">${mode === 'year' ? v + '년' : (v + 1) + '월'}</button>`;
         }).join('')}</div>`;
@@ -383,10 +382,19 @@ function mountYearMonthPanel(fp) {
         e.stopPropagation();
         const b = e.target.closest('button');
         if (!b) return;
-        if (b.dataset.step) { firstYear += Number(b.dataset.step); return render(); }
         if (mode === 'year') { fp.changeYear(Number(b.dataset.v)); mode = 'month'; render(); }
         else { fp.changeMonth(Number(b.dataset.v), false); hide(); }
     });
+    panel.addEventListener('wheel', (e) => {
+        if (mode !== 'year') return;
+        e.preventDefault();
+        const dir = Math.sign(e.deltaY);
+        firstYear += dir * 3;
+        render();
+        panel.querySelector('.ym-grid').animate(
+            [{ transform: `translateY(${dir * 14}px)`, opacity: 0.4 }, { transform: 'none', opacity: 1 }],
+            { duration: 160, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    }, { passive: false });
     fp.config.onClose.push(hide);
 }
 
