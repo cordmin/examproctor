@@ -18,6 +18,12 @@ from validator import summarize
 TRIES = 30   # 데이터 60명 x 12교시 기준 1회 약 0.05초
 
 
+class AssignmentFailure(Exception):
+    def __init__(self, summary, reasons):
+        super().__init__(summary)
+        self.failure = {"summary": summary, "reasons": reasons}
+
+
 def run_algorithm(appData):
     try:
         config = appData.get('config', {})
@@ -42,6 +48,11 @@ def run_algorithm(appData):
             return rc['정']*f_main + rc['특수']*f_sp + rc['분리']*f_sep + rc['부']*f_sub + rc['복도']*f_hall + rc['수업']*f_class
 
         periods_sorted = sorted(periods, key=lambda x: (x['date'], period_num(x['name'])))
+        if not periods_sorted:
+            return {"success": False, "error_type": "INPUT", "failure": {
+                "summary": "시험 일정과 교시가 설정되지 않았습니다.",
+                "reasons": [{"message": "배정할 시험 시간이 없습니다.", "action": "기초 설정에서 시험 날짜와 교시를 추가한 뒤 다시 실행하세요.", "target": "tab-config"}]}}
+
 
         def count_all_absent(t):
             return sum(1 for p in periods_sorted
@@ -61,7 +72,7 @@ def run_algorithm(appData):
                     c_count = config.get('classes', {}).get(g_str, 0)
                     c_invig = int(invigCounts.get(g_str, {}).get('class', 2))
                     for c in range(1, c_count + 1):
-                        if subj == '수업':
+                        if subj == '자습':
                             slots.append({"name": f"{grade}-{c}", "type": "class", "role": "수업", "subject": subj, "grade": g_str})
                         else:
                             slots.append({"name": f"{grade}-{c}", "type": "class", "role": "정", "subject": subj, "grade": g_str})
@@ -77,7 +88,7 @@ def run_algorithm(appData):
                             if inv >= 2:
                                 slots.append({"name": nm, "type": k, "role": f"{r}(부)", "subject": "", "grade": g_str})
 
-                    if subj != '수업':  
+                    if subj != '자습':
                         hw_count = config.get('hallways', {}).get(g_str, 0)
                         for hw in range(1, hw_count + 1):
                             hw_nm = f"{grade}학년(복)" if hw_count == 1 else f"{grade}학년(복{hw})"
@@ -107,8 +118,17 @@ def run_algorithm(appData):
 
         total_capacity = sum(calc_teacher_capacity(t) for t in active_teachers)
 
+        if not total_required_slots:
+            return {"success": False, "error_type": "INPUT", "failure": {
+                "summary": "배정할 학년과 과목이 선택되지 않았습니다.",
+                "reasons": [{"message": "현재 설정에서 감독이 필요한 시간이 없습니다.", "action": "기초 설정에서 시험 학년을 켜고, 학년별 교시에 시험 과목 또는 자습을 선택하세요.", "target": "tab-config"}]}}
         if total_capacity < total_required_slots:
-            return {"success": False, "error_type": "CAPACITY", "validation": {"shortage": True, "required": total_required_slots, "available": total_capacity, "logs": [], "stats": []}}
+            return {"success": False, "error_type": "CAPACITY",
+                    "validation": {"shortage": True, "required": total_required_slots, "available": total_capacity, "logs": [], "stats": []},
+                    "failure": {"summary": f"필요한 감독 횟수는 {total_required_slots}회이며, 현재 가능한 횟수는 {total_capacity}회로 {total_required_slots - total_capacity}회 부족합니다.",
+                                "reasons": [
+                                    {"message": "감독 가능한 총 횟수가 부족합니다.", "action": "감독 명단에서 누락된 교사를 추가하세요. 결시 관리의 배정 제한(시간)이 실제보다 낮게 입력되어 있다면 수정하세요.", "target": "tab-teachers"},
+                                    {"message": "결시와 배정 인원 설정도 가용 횟수에 영향을 줍니다.", "action": "결시 관리에서 잘못 표시한 결시가 없는지 확인하고, 기초 설정의 학급·고사실 수와 교실별 배정 인원이 실제 계획과 일치하는지 확인하세요.", "target": "tab-config"}]}}
 
         def is_absent(t_abs, p_id, g, c):
             if p_id not in t_abs:
@@ -132,25 +152,25 @@ def run_algorithm(appData):
 
         def violates_absolute(t, state, p_id, date, p_num, s_nm, s_rl, s_gd, assigned_this_period):
             if t['id'] in assigned_this_period:
-                return True
+                return "동시간 중복 배정"
             if state['assigned_total'] >= max_of(t):
-                return True
+                return "배정 제한 시간 도달"
             if rules.get('excludeHomeroom', True) and t.get('homeroom') == s_nm:
-                return True
+                return "본인 담임학급 배정 금지"
 
             exam_subj = classSubjects.get(p_id, {}).get(str(s_gd), "")
             if rules.get('excludeSubject', True) and exam_subj and t.get('subject') == exam_subj:
-                return True
+                return "본인 담당교과 배정 금지"
 
             if state['history']:
                 last = state['history'][-1]
                 if last['date'] == date and last['p_num'] == p_num - 1:
                     if rules.get('excludeSameClass', True) and last['class_name'] == s_nm:
-                        return True
+                        return "동일 학급 연속 배정 금지"
                     if rules.get('excludeClassConsecutive', True) and "수업" in s_rl and "수업" in last['role']:
-                        return True
+                        return "자습감독 연속 배정 금지"
                     if rules.get('excludeHallwayConsecutive', True) and "복도" in s_rl and "복도" in last['role']:
-                        return True
+                        return "복도감독 연속 배정 금지"
             return False
 
         def violates_fairness(state, date, p_num, relax_level, min_daily):
@@ -259,7 +279,28 @@ def run_algorithm(appData):
                             break
 
                     if not best_teacher:
-                        raise Exception(f"[{date} {p['name']}] '{s_nm}' 배정 실패: 절대 규칙 충돌로 배정 가능한 교사 없음")
+                        remedies = {
+                            "전체 배정 제외": ("감독 명단과 결시 설정에서 배정 제외 상태가 실제 계획과 일치하는지 확인하세요.", "tab-teachers"),
+                            "감독 유형 권한 없음": (f"감독 명단에서 {s_gd}학년 {('자습' if s_rl == '수업' else s_rl)} 감독이 가능한 교사의 해당 체크를 켜세요.", "tab-teachers"),
+                            "해당 시간 결시": ("결시 관리에서 해당 교시의 전체·학년·학급 결시를 확인하고 잘못 입력한 결시를 수정하세요.", "tab-absences"),
+                            "동시간 중복 배정": ("같은 교시에 한 교사가 두 곳을 감독할 수 없습니다. 감독 가능한 교사를 추가하거나 기초 설정의 교실별 배정 인원이 실제 계획보다 많지 않은지 확인하세요.", "tab-config"),
+                            "배정 제한 시간 도달": ("결시 관리에서 해당 교사의 배정 제한(시간)을 확인하고, 가능한 범위에서 늘리거나 감독 인원을 추가하세요.", "tab-absences"),
+                            "본인 담임학급 배정 금지": ("다른 학급을 맡을 수 있는 감독 인원을 확보하세요. 학교 운영상 허용하는 경우에만 배정 규칙에서 담임학급 시간 배정 금지를 해제하세요.", "rules"),
+                            "본인 담당교과 배정 금지": ("해당 과목을 담당하지 않는 감독 인원을 확보하세요. 학교 운영상 허용하는 경우에만 배정 규칙에서 담당교과 시간 배정 금지를 해제하세요.", "rules"),
+                            "동일 학급 연속 배정 금지": ("해당 시간에 다른 교사를 배정할 수 있도록 인원을 확보하거나, 허용하는 경우 배정 규칙에서 동일 학급 연속 배정 금지를 해제하세요.", "rules"),
+                            "자습감독 연속 배정 금지": ("학년별 자습 감독이 가능한 교사를 더 확보하거나, 허용하는 경우 배정 규칙에서 수업감독(자습) 연속 배정 금지를 해제하세요.", "rules"),
+                            "복도감독 연속 배정 금지": ("복도감독이 가능한 교사를 더 확보하거나, 허용하는 경우 배정 규칙에서 복도감독 연속 배정 금지를 해제하세요.", "rules"),
+                        }
+                        counts = {}
+                        for t in teachers:
+                            if t.get('isAbsentAll', False): reason = "전체 배정 제외"
+                            elif not has_role_permission(t, s_rl, s_gd): reason = "감독 유형 권한 없음"
+                            elif is_absent(t.get('absences', {}), p_id, s_gd, s_nm): reason = "해당 시간 결시"
+                            else: reason = violates_absolute(t, t_states[t['id']], p_id, date, p_num, s_nm, s_rl, s_gd, assigned_this_period)
+                            if reason: counts[reason] = counts.get(reason, 0) + 1
+                        reasons = [{"message": f"{reason}: {count}명", "action": remedies[reason][0], "target": remedies[reason][1]}
+                                   for reason, count in counts.items()]
+                        raise AssignmentFailure(f"{date} {p['name']} · {s_nm} {('자습감독' if s_rl == '수업' else s_rl + '감독')}: 현재 설정으로 배정 가능한 조합을 찾지 못했습니다.", reasons)
 
                     bt_id = best_teacher['t']['id']
                     best_teacher['assigned_total'] += 1
@@ -269,7 +310,7 @@ def run_algorithm(appData):
                         'date': date, 'p_num': p_num, 'role': s_rl, 'class_name': s_nm
                     })
 
-                    if s_sj == '수업' or best_teacher['t'].get('subject') == s_sj:
+                    if s_sj == '자습' or best_teacher['t'].get('subject') == s_sj:
                         label = f"{s_nm}(수업)"
                     elif slot['type'] == 'class':
                         label = f"{s_nm}({s_rl})"
@@ -309,6 +350,8 @@ def run_algorithm(appData):
         validation = summarize(teachers, periods, assignments,
                                classSubjects, rules, validation_logs)
         return {"success": True, "assignments": assignments, "validation": validation}
+    except AssignmentFailure as e:
+        return {"success": False, "error_type": "CONSTRAINT", "error": str(e), "failure": e.failure}
     except Exception as e:
         print(traceback.format_exc())
         return {"success": False, "error_type": "UNKNOWN", "error": str(e)}

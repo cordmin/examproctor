@@ -72,6 +72,7 @@ window.handleRightClickSwap = function(e, tId, pId) {
         options += `<option value="${t2.id}" ${absText ? 'disabled' : ''}>${t2.name} (현재: ${a2}) ${absText}</option>`;
     });
     document.getElementById('rc-swap-target').innerHTML = options;
+    refreshDropdowns();
 
     const m = document.getElementById('rightclick-swap-modal');
     m.classList.remove('hidden');

@@ -51,6 +51,7 @@ window.renderSidebar = function() {
 };
 
 window.showTab = function(target) {
+    closeAppSelect();
     activeTarget = target;
     document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
     document.getElementById(target).classList.remove('hidden');
@@ -116,7 +117,15 @@ window.addEventListener('resize', fitZoom);
 // 고정 머리글이 있는 표의 스크롤 영역에 머리글 높이(--thead-h)를 알려 준다.
 // 세로 스크롤 막대가 머리글 옆이 아니라 첫 데이터 행부터 시작하게 하려는 것.
 // 표는 화면마다 수시로 다시 그려지므로 DOM 변화와 창 크기 변화 때마다 다시 잰다.
+function syncTeacherHeader() {
+    const scroll = document.getElementById('teacher-list-scroll');
+    const header = document.getElementById('teacher-list-header');
+    if (scroll.clientWidth) header.style.paddingRight = `${scroll.offsetWidth - scroll.clientWidth}px`;
+}
+new ResizeObserver(syncTeacherHeader).observe(document.getElementById('teacher-list-scroll'));
+
 function syncScrollHeads() {
+    syncTeacherHeader();
     document.querySelectorAll('thead').forEach(head => {
         const box = head.closest('.overflow-auto, .overflow-y-auto');
         if (!box) return;
@@ -201,8 +210,9 @@ function sanitizeAppData(data) {
     if (!data.config.separated) data.config.separated = {};
     if (!data.config.hallways) data.config.hallways = {};
     if (!data.config.subjects || data.config.subjects.length === 0) {
-        data.config.subjects = ["수업", "국어", "영어", "수학", "사회", "역사", "과학"];
+        data.config.subjects = ["자습", "국어", "영어", "수학", "사회", "역사", "과학"];
     }
+    data.config.subjects = ['자습', ...data.config.subjects.filter(subject => subject !== '자습')];
     if (!data.teachers) data.teachers = [];
     if (!data.periods) data.periods = [];
     if (!data.classSubjects) data.classSubjects = {};
@@ -317,8 +327,8 @@ document.addEventListener('keydown', (e) => {
 window.openEventModal = function() { const m = document.getElementById('event-modal'); if(m) { m.classList.remove('hidden'); m.focus(); } };
 window.closeEventModal = function() { const m = document.getElementById('event-modal'); if(m) m.classList.add('hidden'); };
 window.deleteTeacher = function(id) { openConfirmModal("명단 삭제 확인", "선택한 교사를 명단에서 삭제하시겠습니까?", "삭제", () => { appData.teachers = appData.teachers.filter(t=>t.id!==id); renderTeachers(); renderAbsencesTab(); }); };
-window.updateTeacher = function(id, f, v, doRender=true) { const t = appData.teachers.find(x=>x.id===id); if(t) { t[f] = (f==='maxPeriods')?parseInt(v)||0:v; if(f.startsWith('is')) syncMasterCheckboxes(); if(doRender && f!=='notes') { renderTeachers(); renderAbsencesTab(); } } };
-window.removeSubject = function(s) { appData.config.subjects = appData.config.subjects.filter(x=>x!==s); renderSubjects(); renderSubjectsTab(); renderTeachers(); };
+window.updateTeacher = function(id, f, v, doRender=true) { const t = appData.teachers.find(x=>x.id===id); if(t) { t[f] = (f==='maxPeriods')?parseInt(v)||0:v; if(doRender && f!=='notes') { renderTeachers(); renderAbsencesTab(); } } };
+window.removeSubject = function(s) { if (s === '자습') return; appData.config.subjects = appData.config.subjects.filter(x=>x!==s); renderSubjects(); renderSubjectsTab(); renderTeachers(); };
 window.autoSyncPeriods = function() {
     appData.periods = [];
     appData.config.examDates.forEach(d => {
@@ -338,7 +348,7 @@ window.removeDate = function(d) {
 };
 window.updateGradeSubject = function(pid, g, s) { if(!appData.classSubjects[pid]) appData.classSubjects[pid]={}; appData.classSubjects[pid][g]=s; renderSubjectsTab(); };
 document.getElementById('btn-upload-csv').addEventListener('click', () => { window.pywebview.api.upload_excel().then(res => { if (res.success) { res.teachers.forEach((t, i) => appData.teachers.push({ id:'T'+Date.now()+i, absences:{}, ...t })); renderTeachers(); renderAbsencesTab(); showToast(`${res.teachers.length}명 추가 완료!`, "success"); } else if (!res.canceled) showToast("업로드 오류: \n" + res.error, "error"); }); });
-document.getElementById('btn-download-template').addEventListener('click', () => { window.pywebview.api.download_template(appData.teachers).then(res => { if(res.success) showToast(`양식 저장 완료!\n${res.path}`, "success"); }); });
+document.getElementById('btn-download-template').addEventListener('click', () => { window.pywebview.api.download_template(appData.teachers).then(res => { if(res.success) showToast("양식 저장 완료!", "success"); }); });
 document.getElementById('btn-clear-teachers').addEventListener('click', () => { openConfirmModal("명단 전체 초기화", "등록된 모든 교사 명단을 삭제하시겠습니까?", "전체 삭제", () => { appData.teachers = []; renderTeachers(); renderAbsencesTab(); showToast("명단이 삭제되었습니다.", "success"); }); });
 document.querySelectorAll('.grade-toggle').forEach(toggle => { toggle.addEventListener('click', () => {
     const g = parseInt(toggle.dataset.grade), row = document.getElementById(`grade-row-${g}`);
@@ -444,13 +454,32 @@ document.getElementById('btn-add-teacher').addEventListener('click', () => { app
 });
 function openRulesModal() { renderRulesTab(); const m = document.getElementById('rules-modal'); if(m) { m.classList.remove('hidden'); m.focus(); } }
 window.closeRulesModal = function() { const m = document.getElementById('rules-modal'); if(m) m.classList.add('hidden'); };
-document.getElementById('btn-rules-run').addEventListener('click', () => {
-    appData.config.examName = document.getElementById('exam-name').value; saveRules();
-    closeRulesModal();
-    window.pywebview.api.run_algorithm(appData).then(res => {
-        if(res.success) { appData.assignments = res.assignments; appData.baseAssignments = JSON.parse(JSON.stringify(res.assignments)); undoStack.length = redoStack.length = 0; appData.validation = res.validation; showToast("배정 실행 완료!", "success"); renderValidateTab(); showTab('tab-result'); }
-        else { if(res.error_type === "CAPACITY") { appData.validation = res.validation; showToast("현재 상황으로는 배정 할 수 없습니다. 배정 검증 메뉴에서 사유를 확인하세요.", "error"); showTab('tab-validate'); } else showToast("오류 발생:\n" + res.error, "error"); }
-    });
+document.getElementById('btn-rules-run').addEventListener('click', async () => {
+    const button = document.getElementById('btn-rules-run');
+    if (button.disabled) return;
+    button.disabled = true;
+    appData.config.examName = document.getElementById('exam-name').value;
+    saveRules(); closeRulesModal(); closeAppSelect();
+    try {
+        const res = await window.pywebview.api.run_algorithm(appData);
+        if (res.success) {
+            appData.assignments = res.assignments;
+            appData.baseAssignments = JSON.parse(JSON.stringify(res.assignments));
+            undoStack.length = redoStack.length = 0;
+            appData.validation = res.validation;
+            showToast("배정 실행 완료!", "success");
+            renderValidateTab(); showTab('tab-result');
+        } else {
+            if (res.validation) appData.validation = res.validation;
+            openAssignmentFailure(res);
+        }
+    } catch (error) {
+        openAssignmentFailure({ error: error.message || String(error), error_type: 'CONNECTION' });
+    } finally {
+        button.disabled = false;
+    }
 });
 document.getElementById('btn-export-excel').addEventListener('click', () => { const d = new Date(), yy = String(d.getFullYear()).slice(-2), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0'); const filename = `${appData.config.examName || "미지정고사"}(${yy}.${mm}.${dd}).xlsx`; window.pywebview.api.export_excel(appData, filename).then(res => { if(res.success) showToast(`엑셀 저장 완료!\n${res.path}`, "success"); else showToast("저장 실패: " + res.error, "error"); }); });
 window.toggleAllRoles = function(role, checked) { appData.teachers.forEach(t => { t[role] = checked; }); renderTeachers(); renderAbsencesTab(); };
+
+refreshDropdowns();

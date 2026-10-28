@@ -199,6 +199,23 @@
         thead.sticky-head th { position: static; }
         /* 머리글 두 줄 사이 경계는 윗줄 배경 선만 쓴다. 테두리를 두면 스크롤 때 그 1px 틈으로 아래 행이 비친다. */
         thead.sticky-head tr + tr th { border-top-width: 0 !important; }
+        #tab-teachers thead th { white-space: nowrap; }
+        #teacher-list-header { border-bottom: 1px solid rgb(var(--line)); }
+        #teacher-list-header thead, #teacher-list-header th { position: static !important; background-image: none; }
+        #teacher-list-scroll tbody > tr:first-child > td { border-top-width: 0 !important; }
+
+        .role-menu-btn { display: inline-flex; align-items: center; justify-content: center; margin-left: 3px; padding: 5px 2px; color: #6B7280; vertical-align: middle; cursor: pointer; }
+        .role-menu-btn:focus-visible { outline: 2px solid #64748B; outline-offset: 2px; border-radius: 2px; }
+        .role-menu { position: fixed; z-index: 100; width: 84px; padding: 4px; border: 1px solid rgb(var(--line)); border-radius: 6px; background: white; box-shadow: 0 4px 12px #0F172A26; }
+        .role-menu button { display: block; width: 100%; padding: 7px 4px; border-radius: 3px; text-align: center; white-space: nowrap; font-size: 12px; color: rgb(var(--text-main)); cursor: pointer; }
+        .role-menu button:hover, .role-menu button:focus-visible { background: #F1F5F9; outline: none; }
+        .role-menu-btn:hover { color: #111827; }
+        #titlebar button { position: relative; }
+        #titlebar button::before { content: ''; position: absolute; inset: -3px; border-radius: inherit; transition: background-color .15s; }
+        #titlebar button:hover::before { background-color: rgb(255 255 255 / .2); }
+        #titlebar #win-close:hover::before { background-color: rgb(var(--coral)); }
+        #titlebar button svg { position: relative; pointer-events: none; }
+
 
         /* 카드 외곽 테두리와 표 외각 셀 테두리 이중 중첩 방지 */
         table tr:first-child th { border-top: none !important; }
@@ -218,6 +235,17 @@
             transition: all 0.15s ease !important;
         }
         table td select option { text-align: left !important; }
+        .app-select-source { display: none !important; }
+        .app-select-btn { position: relative; padding: 4px 18px !important; white-space: nowrap; min-width: 90px; max-width: 100%; border: 1px solid #CBD5E1 !important; border-radius: 7px !important; background: #F8FAFC !important; color: #0F172A !important; font-size: 12.5px !important; font-weight: 700; text-align: center !important; cursor: pointer; }
+        .app-select-btn svg { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); }
+        .app-select-btn:hover:not(:disabled):not([aria-expanded="true"]):not(:focus) { border-color: #94A3B8 !important; }
+        .app-select-btn:focus, .app-select-btn[aria-expanded="true"] { outline: none; border-color: #2563EB !important; background: #FFFFFF !important; box-shadow: 0 0 0 2px #2563EB40 !important; }
+        .app-select-btn:disabled { opacity: .45; cursor: default; }
+        #grade-subject-menu { min-width: max-content; position: fixed; z-index: 20000; padding: 3px 0; border: 1px solid #CBD5E1; border-radius: 8px; background: #FFFFFF; box-shadow: 0 4px 12px #0F172A26; overflow-y: auto; }
+        #grade-subject-menu button { white-space: nowrap; display: block; width: 100%; padding: 5px 8px; color: #0F172A; font-size: 12.5px; text-align: center; cursor: pointer; }
+        #grade-subject-menu button:hover, #grade-subject-menu button:focus { background: #F1F5F9; outline: none; }
+        #grade-subject-menu button[aria-selected="true"] { background: #767676; color: #FFFFFF; }
+        #grade-subject-menu button:disabled { opacity: .45; cursor: default; }
         table td select:hover, table td input.fld:hover {
             border-color: #94A3B8 !important;
             background-color: #FFFFFF !important;
@@ -287,7 +315,7 @@
         .grade-toggle {
             position: relative;
             width: 44px; height: 24px;
-            background: #E2E8F0;
+            background: color-mix(in srgb, #DC2626 12%, #FFFFFF);
             border: 1px solid rgb(var(--line));
             border-radius: 999px;
             cursor: pointer;
@@ -300,16 +328,16 @@
             top: 2px; left: 2px;
             width: 18px; height: 18px;
             border-radius: 50%;
-            background: #F04A4A;
+            background: #DC2626;
             transition: transform 0.2s, background-color 0.2s;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         .grade-toggle.active {
-            background: #D1FAE5;
+            background: color-mix(in srgb, #16A34A 14%, #FFFFFF);
         }
         .grade-toggle.active::after {
             transform: translateX(20px);
-            background: #2EB87E;
+            background: #16A34A;
         }
         .grade-row-disabled td {
             opacity: 0.4;
@@ -442,6 +470,9 @@
         .flatpickr-calendar.arrowBottom:after { border-top-color: rgb(var(--surface-0)); }
         /* static 모드: 입력칸 바로 아래에 띄우고 다른 카드 위로 올라오게 한다 */
         .flatpickr-wrapper { position: relative; }
+        #date-input-wrapper input:not([type="hidden"]) { width: 130px; }
+        #new-subject { flex: 0 1 29%; min-width: 0; text-align: center; }
+
         .flatpickr-calendar.static { top: calc(100% + 6px); left: 0; z-index: 60; }
         /* 머리글: '2026년 10월' 순서, 위로 붙이고 달 넘김 버튼은 안쪽으로 */
         .flatpickr-current-month { padding: 0 !important; height: auto !important; display: flex !important; justify-content: center; align-items: center; gap: 6px; }
@@ -521,7 +552,7 @@
         <symbol id="i-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
         <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
         <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
-        <symbol id="i-file-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></symbol>
+        <symbol id="i-file-spreadsheet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h2m4 0h2M8 17h2m4 0h2"/></symbol>
         <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
         <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
         <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M12 3v18"/></symbol>
@@ -542,13 +573,13 @@
             시험감독 배정 프로그램 (중학교용)
         </span>
         <div class="flex items-center space-x-4">
-            <button id="win-min" title="최소화" class="w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:bg-white/20 hover:text-chrome-text rounded-md cursor-pointer transition-colors">
+            <button id="win-min" title="최소화" class="w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-chrome-text rounded-md cursor-pointer transition-colors">
                 <svg class="w-4 h-4"><use href="#i-minus"/></svg>
             </button>
-            <button id="win-max" title="최대화" class="w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:bg-white/20 hover:text-chrome-text rounded-md cursor-pointer transition-colors">
-                <svg class="w-3 h-3"><use href="#i-square"/></svg>
+            <button id="win-max" title="최대화" class="w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-chrome-text rounded-md cursor-pointer transition-colors">
+                <svg style="width:14.6px;height:14.6px"><use href="#i-square"/></svg>
             </button>
-            <button id="win-close" title="닫기" class="w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:bg-coral hover:text-white rounded-md cursor-pointer transition-colors">
+            <button id="win-close" title="닫기" class="w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors">
                 <svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg>
             </button>
         </div>
@@ -636,7 +667,7 @@
                                     </div>
                                     <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-visible shadow-sm flex flex-col flex-1 p-4">
                                         <div class="flex items-center gap-2 mb-3">
-                                            <div class="relative flex items-center">
+                                            <div id="date-input-wrapper" class="relative flex items-center">
                                                 <svg class="absolute left-2.5 w-4 h-4 text-stone pointer-events-none z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0V11.25A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
                                                 <input type="text" id="new-date" class="fld pl-8 pr-3 py-2 text-[13px] font-bold cursor-pointer text-center" placeholder="날짜 선택" readonly>
                                             </div>
@@ -656,12 +687,13 @@
                                         </div>
                                         <span class="flex items-center gap-1.5 pr-2 pb-1.5 text-[11px] font-semibold text-stone">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></span>
-                                            과목명이 '수업'인 경우 자습 시간으로 자동 인식합니다
+                                            자습은 1인 감독으로 자동 배정됩니다.
                                         </span>
+
                                     </div>
                                     <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1 p-4">
                                         <div class="flex gap-2 mb-3">
-                                            <input type="text" id="new-subject" class="fld flex-1 px-3 py-2 text-[13px] font-bold" placeholder="시험 과목명 입력">
+                                            <input type="text" id="new-subject" class="fld px-3 py-2 text-[13px] font-bold" placeholder="시험 과목명 입력">
                                             <button id="btn-add-subject" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">+추가</button>
                                         </div>
                                         <div id="subject-list" class="flex flex-wrap gap-1.5 min-h-[32px]"></div>
@@ -669,7 +701,7 @@
                                 </div>
                             </div>
 
-                            <!-- 2행: 학년 및 시험장소 (좌) & 교실별 배정 인원 (우). 두 카드 높이를 맞추고 표가 카드를 꽉 채운다. -->
+                            <!-- 2행: 학년 및 시험 장소 / 교실별 배정 인원 -->
                             <div class="grid grid-cols-2 gap-x-[24px] gap-y-10 flex-auto">
 
                                 <!-- 학년 및 시험장소 카드 (카드 자체가 표) -->
@@ -726,10 +758,7 @@
                                         <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px]">
                                             교실별 배정 인원
                                         </div>
-                                        <span class="flex items-center gap-1.5 pr-2 pb-1.5 text-[11px] font-semibold text-stone">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></span>
-                                            수업(자습)은 1인 감독으로 자동 배정됩니다.
-                                        </span>
+
                                     </div>
                                     <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1">
                                         <div class="overflow-hidden flex-1">
@@ -826,74 +855,81 @@
             <!-- 감독 명단 -->
             <section id="tab-teachers" class="tab-content hidden h-full flex flex-col">
                 <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0">
-                    <div class="flex items-center gap-2">
-                        <button id="btn-upload-csv" class="inline-flex items-center justify-center gap-1.5 px-[15px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
+                    <div class="flex items-center" style="gap:calc(0.5rem + 4px)">
+                        <button id="btn-download-template" class="inline-flex items-center justify-center gap-1.5 px-[13px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
+                            <svg class="w-3.5 h-3.5"><use href="#i-file-spreadsheet"/></svg> 감독명단 양식
+                        </button>
+                        <button id="btn-upload-csv" class="inline-flex items-center justify-center gap-1.5 px-[13px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
                             <svg class="w-3.5 h-3.5"><use href="#i-upload"/></svg> 명단 불러오기
                         </button>
-                        <button id="btn-add-teacher" class="inline-flex items-center justify-center gap-1.5 px-[15px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
+                        <button id="btn-add-teacher" class="inline-flex items-center justify-center gap-1.5 px-[13px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
                             <svg class="w-3.5 h-3.5"><use href="#i-plus"/></svg> 감독인원 추가
-                        </button>
-                        <button id="btn-download-template" class="inline-flex items-center justify-center gap-1.5 px-[15px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
-                            <svg class="w-3.5 h-3.5"><use href="#i-file-down"/></svg> 감독명단 양식
                         </button>
                     </div>
                     <button id="btn-clear-teachers" class="inline-flex items-center justify-center gap-1.5 px-[15px] h-9 bg-[#F04A4A] hover:bg-[#D93838] text-white font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors border border-transparent">
                         <svg class="w-3.5 h-3.5 text-white"><use href="#i-trash"/></svg> 명단 초기화
                     </button>
                 </div>
-                <div class="flex-1 overflow-auto pb-4">
-                    <table class="w-full text-center table-fixed text-[13px]">
-                        <!-- 열 너비는 colgroup 이 정한다 (머리글이 두 줄이고 첫 줄에 합친 칸이 있어서) -->
+                <div class="flex-1 min-h-0 flex flex-col">
+                    <div id="teacher-list-header" class="flex-shrink-0 bg-[#F1F5F9]">
+                        <table class="w-full text-center table-fixed text-[13px]">
                         <colgroup>
                             <col class="w-10">
-                            <col class="w-20">
-                            <col class="w-24">
-                            <col class="w-16">
-                            <col class="w-[76px]">
-                            <col class="w-[76px]">
-                            <col data-role="isClass1" class="w-[76px]">
-                            <col data-role="isClass2" class="w-[76px]">
-                            <col data-role="isClass3" class="w-[76px]">
-                            <col data-role="isHallway" class="w-[76px]">
-                            <col data-role="isSeparated" class="w-[76px]">
-                            <col data-role="isSpecial" class="w-[76px]">
+                            <col class="w-[88px]">
+                            <col class="w-[88px]">
+                            <col class="w-[88px]">
+                            <col class="w-[88px]">
+                            <col class="w-[88px]">
+                            <col data-role="isClass1" class="w-[96px]">
+                            <col data-role="isClass2" class="w-[96px]">
+                            <col data-role="isClass3" class="w-[96px]">
+                            <col data-role="isHallway" class="w-[88px]">
+                            <col data-role="isSeparated" class="w-[88px]">
+                            <col data-role="isSpecial" class="w-[88px]">
                             <col>
                             <col class="w-14">
                         </colgroup>
-                        <!-- 머리글 두 줄이 함께 위에 고정되도록 thead 자체를 고정한다 -->
                         <thead class="bg-[#F1F5F9] text-text-main font-bold text-[13px] sticky top-0 z-20 sticky-head">
                             <tr>
-                                <th colspan="4" class="text-[12px] text-stone">전체 선택</th>
-                                <th class="py-1.5"><input type="checkbox" id="chk-all-main" onchange="toggleAllRoles('isMain', this.checked)" class="chk-custom"></th>
-                                <th class="py-1.5"><input type="checkbox" id="chk-all-sub" onchange="toggleAllRoles('isSub', this.checked)" class="chk-custom"></th>
-                                <th data-role="isClass1" class="py-1.5"><input type="checkbox" id="chk-all-c1" onchange="toggleAllRoles('isClass1', this.checked)" class="chk-custom"></th>
-                                <th data-role="isClass2" class="py-1.5"><input type="checkbox" id="chk-all-c2" onchange="toggleAllRoles('isClass2', this.checked)" class="chk-custom"></th>
-                                <th data-role="isClass3" class="py-1.5"><input type="checkbox" id="chk-all-c3" onchange="toggleAllRoles('isClass3', this.checked)" class="chk-custom"></th>
-                                <th data-role="isHallway" class="py-1.5"><input type="checkbox" id="chk-all-hall" onchange="toggleAllRoles('isHallway', this.checked)" class="chk-custom"></th>
-                                <th data-role="isSeparated" class="py-1.5"><input type="checkbox" id="chk-all-sep" onchange="toggleAllRoles('isSeparated', this.checked)" class="chk-custom"></th>
-                                <th data-role="isSpecial" class="py-1.5"><input type="checkbox" id="chk-all-sp" onchange="toggleAllRoles('isSpecial', this.checked)" class="chk-custom"></th>
-                                <th></th>
-                                <th></th>
-                            </tr>
-                            <tr>
                                 <th>순</th>
-                                <th>성명</th>
+                                <th>이름</th>
                                 <th>담당교과</th>
-                                <th>담임</th>
-                                <th>정감독</th>
-                                <th>부감독</th>
-                                <th data-role="isClass1">1학년 자습</th>
-                                <th data-role="isClass2">2학년 자습</th>
-                                <th data-role="isClass3">3학년 자습</th>
-                                <th data-role="isHallway">복도감독</th>
-                                <th data-role="isSeparated">분리감독</th>
-                                <th data-role="isSpecial">특수감독</th>
+                                <th>담임학급</th>
+                                <th>정감독<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isMain')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
+                                <th>부감독<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isSub')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
+                                <th data-role="isClass1">1학년 자습<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isClass1')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
+                                <th data-role="isClass2">2학년 자습<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isClass2')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
+                                <th data-role="isClass3">3학년 자습<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isClass3')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
+                                <th data-role="isHallway">복도감독<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isHallway')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
+                                <th data-role="isSeparated">분리감독<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isSeparated')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
+                                <th data-role="isSpecial">특수감독<button type="button" class="role-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="role-menu" onclick="openRoleMenu(event, 'isSpecial')" title="전체 선택/취소"><svg width="9" height="6" viewBox="0 0 9 6"><path d="M0 0h9L4.5 6z" fill="currentColor"/></svg></button></th>
                                 <th>참고사항</th>
                                 <th>삭제</th>
                             </tr>
                         </thead>
-                        <tbody id="teacher-list-body" class="bg-surface-0"></tbody>
-                    </table>
+                        </table>
+                    </div>
+                    <div id="teacher-list-scroll" class="flex-1 min-h-0 overflow-auto pb-4">
+                        <table class="w-full text-center table-fixed text-[13px]">
+                        <colgroup>
+                            <col class="w-10">
+                            <col class="w-[88px]">
+                            <col class="w-[88px]">
+                            <col class="w-[88px]">
+                            <col class="w-[88px]">
+                            <col class="w-[88px]">
+                            <col data-role="isClass1" class="w-[96px]">
+                            <col data-role="isClass2" class="w-[96px]">
+                            <col data-role="isClass3" class="w-[96px]">
+                            <col data-role="isHallway" class="w-[88px]">
+                            <col data-role="isSeparated" class="w-[88px]">
+                            <col data-role="isSpecial" class="w-[88px]">
+                            <col>
+                            <col class="w-14">
+                        </colgroup>
+                            <tbody id="teacher-list-body" class="bg-surface-0"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -980,10 +1016,27 @@
 
     <!-- ── 토스트 ─────────────────────────────────────────────────────── -->
     <div id="toast-notification"
-         class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-text-main text-white rounded-full shadow-xl z-[9999] text-[13.5px] font-bold flex items-center space-x-2 transition-all duration-300 translate-y-10 opacity-0 pointer-events-none">
+         role="status" aria-live="polite" aria-atomic="true"
+         class="fixed top-14 left-1/2 -translate-x-1/2 max-w-[calc(var(--vw)*92)] px-6 py-3 bg-text-main text-white rounded-full shadow-xl z-[9999] text-[13.5px] font-bold flex items-center justify-center text-center space-x-2 transition-all duration-300 -translate-y-10 opacity-0 pointer-events-none">
     </div>
 
     <!-- ── 모달 ──────────────────────────────────────────────────────── -->
+    <div id="assignment-failure-modal" role="dialog" aria-modal="true" aria-labelledby="assignment-failure-title" tabindex="-1" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[20001] outline-none p-4">
+        <div class="bg-surface-0 rounded-2xl border border-line shadow-xl w-[660px] max-w-[calc(var(--vw)*92)] max-h-[calc(var(--vh)*86)] flex flex-col overflow-hidden animate-fade-in">
+            <div class="px-5 py-3 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
+                <svg class="w-4 h-4"><use href="#i-alert"/></svg><h3 id="assignment-failure-title" class="font-bold text-[15px]">배정 실행 실패</h3>
+            </div>
+            <div class="p-5 overflow-auto flex-1 min-h-0">
+                <p id="assignment-failure-summary" class="text-[14px] font-bold leading-relaxed mb-4"></p>
+                <h4 class="text-[13px] font-bold text-stone mb-3">실패 원인과 해결 방법</h4>
+                <div id="assignment-failure-reasons" class="space-y-4"></div>
+            </div>
+            <div class="px-5 py-3 bg-surface-50 border-t border-line flex justify-end flex-shrink-0">
+                <button type="button" onclick="closeAssignmentFailure()" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px]">확인 (Esc)</button>
+            </div>
+        </div>
+    </div>
+
     <div id="event-modal" tabindex="0" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
         <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-xl w-[720px] max-w-[calc(var(--vw)*92)] max-h-[calc(var(--vh)*80)] flex flex-col overflow-hidden animate-fade-in">
             <div class="px-5 py-3 border-b border-surface-200 flex items-center gap-2 flex-shrink-0">
@@ -1049,6 +1102,11 @@
     <!-- ES 모듈(type="module")을 쓰지 않는다: pywebview 가 이 파일을 file:// 로 열기 때문에
          모듈 스크립트는 불투명 오리진 CORS 로 차단된다. 클래식 스크립트를 의존 순서대로 싣는다.
          state → labels → ui → 각 화면 → shell(배선/부트스트랩) 순서를 지킬 것. -->
+    <div id="grade-subject-menu" role="listbox" hidden></div>
+    <div id="role-menu" class="role-menu" role="menu" aria-label="감독 유형 일괄 선택" hidden>
+        <button type="button" role="menuitem" data-checked="true">전체 선택</button>
+        <button type="button" role="menuitem" data-checked="false">전체 취소</button>
+    </div>
     <script src="flatpickr.min.js"></script>
     <script src="flatpickr-ko.js"></script>
     <script src="state.js"></script>

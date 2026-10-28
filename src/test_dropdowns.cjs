@@ -1,0 +1,68 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { pathToFileURL } = require('node:url');
+const { chromium } = require('playwright');
+(async () => {
+    const browser = await chromium.launch({channel:'msedge',headless:true});
+    try {
+        const page = await browser.newPage({viewport:{width:1600,height:1000}});
+        const errors=[]; page.on('pageerror',e=>errors.push(e.message));
+        await page.goto(pathToFileURL(path.join(__dirname,'index.html')).href);
+        const data=JSON.parse(fs.readFileSync(path.join(__dirname,'../timetable_data.json'),'utf8'));
+        await page.evaluate(data=>{appData=data;sanitizeAppData(appData);showTab('tab-config');},data);
+        const menu=page.locator('#grade-subject-menu');
+        const grade=await page.locator('#subject-tables-container').boundingBox();
+        const rooms=await page.locator('#grade-cards-frame').boundingBox();
+        const classroom = await page.locator('#rules-invig-body').boundingBox();
+        assert.ok(classroom.y+classroom.height <= rooms.y, 'Classroom cards must precede the bottom grade cards');
+        assert.ok(grade.y >= rooms.y);
+        assert.equal(await page.locator('#tab-config #rules-invig-body').count(),1);
+        assert.equal(await page.locator('#grade-cards-frame #subject-tables-container').count(),1);
+        assert.equal(await page.locator('#subject-tables-container').count(),1);
+        const source=page.locator('#iv-style-2');
+        const trigger=page.locator('#iv-style-2-dropdown');
+        const disabled=page.locator('#iv-style-1-dropdown');
+        if (!data.config.grades.includes(1)) assert.equal(await disabled.isDisabled(),true);
+        await trigger.click();
+        assert.equal(await menu.isVisible(),true);
+        await page.waitForFunction(()=>getComputedStyle(document.getElementById('iv-style-2-dropdown')).borderColor==='rgb(37, 99, 235)');
+        assert.equal(await trigger.evaluate(el=>getComputedStyle(el).borderColor),'rgb(37, 99, 235)');
+        assert.equal(await menu.locator('[aria-selected="true"]').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(118, 118, 118)');
+        const sideGaps = await menu.locator('[aria-selected="true"]').evaluate(option => {
+            const row = option.getBoundingClientRect();
+            const box = option.parentElement.getBoundingClientRect();
+            const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+            return [row.left - box.left - zoom, box.right - row.right - zoom];
+        });
+        assert.ok(sideGaps.every(gap => Math.abs(gap) < 1), JSON.stringify(sideGaps));
+        assert.equal(await menu.locator('button').evaluateAll(options => options.every(option => getComputedStyle(option).whiteSpace === 'nowrap' && option.scrollWidth <= option.clientWidth)), true);
+        await menu.getByRole('option',{name:'정·부감독 (2인)',exact:true}).click();
+        assert.equal(await source.inputValue(),'double');
+        await page.evaluate(()=>saveRules());
+        assert.equal(await page.evaluate(()=>appData.config.invigCounts[2].class),2);
+        await page.locator('#subject-tables-container .app-select-btn').first().click();
+        assert.equal(await menu.locator('[aria-selected="true"]').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(118, 118, 118)');
+        await page.keyboard.press('Escape');
+        await page.evaluate(()=>openRulesModal());
+        await page.locator('#rule-maxconsec-dropdown').click();
+        assert.equal(await menu.isVisible(),true);
+        assert.equal(await menu.evaluate(el=>getComputedStyle(el).zIndex),'20000');
+        await page.keyboard.press('End'); await page.keyboard.press('Enter');
+        await page.evaluate(()=>{closeRulesModal();showTab('tab-absences');});
+        await page.locator('#brush-class-select-dropdown').click();
+        await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
+        assert.equal(await page.evaluate(()=>activeBrush.target),await page.locator('#brush-class-select').inputValue());
+        assert.equal(await page.locator('select:not(.app-select-source)').count(),0);
+        await page.evaluate(()=>showTab('tab-config'));
+        const overlaps = await page.locator('.app-select-btn:visible').evaluateAll(buttons => buttons.filter(button => {
+            const text = button.firstElementChild.getBoundingClientRect();
+            const arrow = button.lastElementChild.getBoundingClientRect();
+            return text.right > arrow.left - 1;
+        }).map(button => button.id));
+        assert.deepEqual(overlaps, [], 'Dropdown labels must fit beside the arrow');
+        await page.screenshot({path:path.join(require('node:os').tmpdir(),'exam-dropdown-layout.png')});
+        assert.deepEqual(errors,[]);
+        console.log('PASS: card order, shared dropdowns, selected shade, blue border, disabled controls, rules, absence selection');
+    } finally {await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});

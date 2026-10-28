@@ -22,19 +22,19 @@ def write_template(path, teachers=None):
     center_align = Alignment(horizontal='center', vertical='center')
     header_fill = PatternFill(start_color="D9E1F2", end_color="D9E1F2", fill_type="solid")
 
-    ws.append(["성명", "담당교과", "담임", "참고사항"])
+    ws.append(["순", "이름", "담당교과", "담임학급", "참고사항"])
 
     # 지금 화면의 감독 명단을 그대로 담는다. 명단이 비어 있으면 입력 예시 한 줄을 둔다.
     if teachers:
-        for t in teachers:
-            ws.append([t.get('name', ''), t.get('subject', ''), t.get('homeroom', ''), t.get('notes', '')])
+        for index, t in enumerate(teachers, start=1):
+            ws.append([index, t.get('name', ''), t.get('subject', ''), t.get('homeroom', ''), t.get('notes', '')])
     else:
-        ws.append(["김민수", "국어", "1-1", "※ 담임은 '1-1' 과 같은 형태로 입력"])
+        ws.append([1, "김민수", "국어", "1-1", "※ 담임학급은 '1-1' 과 같은 형태로 입력"])
 
     max_r = ws.max_row
-    for col, width in enumerate([15, 20, 20, 40], start=1):
-        ws.column_dimensions[get_column_letter(col)].width = width * 1.6 
-    for row in ws.iter_rows(min_row=1, max_row=max_r, min_col=1, max_col=4):
+    for col, width in enumerate([6, 12, 12, 12, 64], start=1):
+        ws.column_dimensions[get_column_letter(col)].width = width
+    for row in ws.iter_rows(min_row=1, max_row=max_r, min_col=1, max_col=5):
         for cell in row:
             cell.border = thin_border
             cell.alignment = center_align
@@ -49,10 +49,17 @@ def read_teachers(path):
     wb = load_workbook(path, data_only=True)
     ws = wb.active
     teachers = []
-    for i, row in enumerate(ws.iter_rows(values_only=True)):
+    has_number_column = False
+    for row in ws.iter_rows(values_only=True):
+        if not row: continue
+        if str(row[0]).strip() == '순':
+            has_number_column = True
+            continue
+        if has_number_column:
+            row = row[1:]
         if not row or not row[0]: continue
         val_0 = str(row[0]).strip()
-        if "안내:" in val_0 or val_0 == "성명": continue
+        if "안내:" in val_0 or val_0 in ("성명", "이름"): continue
 
         homeroom_raw = str(row[2]).strip() if len(row)>2 and row[2] and str(row[2]) != "None" else ""
         homeroom_clean = ""
@@ -68,6 +75,7 @@ def read_teachers(path):
             "name": val_0, "subject": subject, "homeroom": homeroom_clean, "notes": notes,
             "isMain": True, "isSub": True, "isClass1": True, "isClass2": True, "isClass3": True, "isHallway": False, "isSeparated": False, "isSpecial": False
         })
+    wb.close()
     return teachers
 
 

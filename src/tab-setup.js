@@ -18,9 +18,18 @@ window.renderConfigTab = function() {
 };
 
 window.renderSubjects = function() {
+    appData.config.subjects = ['자습', ...appData.config.subjects.filter(subject => subject !== '자습')];
     const container = document.getElementById('subject-list'); container.innerHTML = ""; 
     appData.config.subjects.forEach(subject => {
         const b = document.createElement('div'); b.className = "flex items-center gap-1 px-3 py-1 bg-surface-0 border border-line rounded-full text-[12px] font-bold shadow-sm";
+        if (subject === '자습') {
+            b.classList.replace('bg-surface-0', 'bg-surface-200');
+            b.style.paddingLeft = b.style.paddingRight = 'calc(1rem + 7.25px)';
+            b.classList.add('justify-center');
+            b.textContent = subject;
+            container.appendChild(b);
+            return;
+        }
         b.innerHTML = `<span>${subject}</span><button class="text-coral ml-1 flex items-center x-btn" onclick="removeSubject('${subject}')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>`; container.appendChild(b);
     });
 };
@@ -34,6 +43,7 @@ window.renderDates = function() {
 };
 
 window.renderSubjectsTab = function() {
+    closeAppSelect();
     const container = document.getElementById('subject-tables-container'); container.innerHTML = "";
     if (appData.periods.length === 0) { container.innerHTML = `<div class="p-12 text-center text-pebble font-bold bg-surface-50 border border-surface-200 rounded-xl">기초 설정 값을 입력하세요</div>`; return; }
 
@@ -64,12 +74,10 @@ window.renderSubjectsTab = function() {
                     const p = periodsByDate[date][i];
                     if (p) {
                         const saved = (appData.classSubjects[p.id] || {})[grade] || "";
-                        let opts = `<option value="">선택</option>`;
-                        let has = false;
-                        appData.config.subjects.forEach(s => { opts += `<option value="${s}" ${saved===s?'selected':''}>${s}</option>`; if(saved===s) has=true; });
-                        if(saved && !has) opts += `<option value="${saved}" selected>${saved}</option>`;
-                        
-                        html += `<td class="${borderTdClass}"><select class="w-full py-1 px-1 text-[12.5px] font-bold outline-none cursor-pointer bg-transparent text-center [text-align-last:center]" onchange="updateGradeSubject('${p.id}', '${grade}', this.value)">${opts}</select></td>`;
+                        let opts = '<option value="">선택</option>';
+                        const subjects = [...new Set(['자습', ...appData.config.subjects, ...(saved ? [saved] : [])])];
+                        subjects.forEach(subject => { opts += `<option value="${subject}" ${saved === subject ? 'selected' : ''}>${subject}</option>`; });
+                        html += `<td class="${borderTdClass}"><select id="grade-subject-${p.id}-${grade}" class="w-full grade-subject-source" aria-label="${grade}학년 ${formatBeautifulDate(date)} ${i+1}교시 과목" onchange="updateGradeSubject('${p.id}', '${grade}', this.value)">${opts}</select></td>`;
                     } else html += `<td class="${borderEmptyTdClass}">-</td>`;
                 });
                 html += `</tr>`;
@@ -79,6 +87,7 @@ window.renderSubjectsTab = function() {
     });
     html += '</div>';
     container.innerHTML = html;
+    refreshDropdowns();
 };
 
 window.handleNotesKey = function(e, idx, tabName) {
@@ -93,40 +102,6 @@ window.handleNotesPaste = function(e, idx, tabName) {
         if (input && lines[i] !== undefined) { input.value = lines[i].trim(); updateTeacher(input.getAttribute('data-tid'), 'notes', input.value, false); }
     }
 };
-
-function syncMasterCheckboxes() {
-    const roles = ['isMain', 'isSub', 'isClass1', 'isClass2', 'isClass3', 'isHallway', 'isSeparated', 'isSpecial'];
-    if(appData.teachers.length === 0) return;
-
-    const activeGrades = appData.config.grades || [];
-    const totalHallways = [1,2,3].reduce((sum, g) => sum + (activeGrades.includes(g) ? (appData.config.hallways[g] || 0) : 0), 0);
-    const totalSeparated = [1,2,3].reduce((sum, g) => sum + (activeGrades.includes(g) ? (appData.config.separated[g] || 0) : 0), 0);
-    const totalSpecial = [1,2,3].reduce((sum, g) => sum + (activeGrades.includes(g) ? (appData.config.special[g] || 0) : 0), 0);
-
-    const disabledMap = {
-        isClass1: !activeGrades.includes(1),
-        isClass2: !activeGrades.includes(2),
-        isClass3: !activeGrades.includes(3),
-        isHallway: totalHallways === 0,
-        isSeparated: totalSeparated === 0,
-        isSpecial: totalSpecial === 0
-    };
-
-    roles.forEach(role => {
-        let chkId = role.startsWith('isClass') ? 'chk-all-c' + role.slice(-1) : `chk-all-${role.replace('is','').toLowerCase().substring(0,4)}`;
-        const chk = document.getElementById(chkId);
-        if(chk) {
-            if (disabledMap[role]) {
-                chk.disabled = true;
-                chk.checked = false;
-            } else {
-                chk.disabled = false;
-                const allChecked = appData.teachers.every(t => t[role] !== false); 
-                chk.checked = allChecked;
-            }
-        }
-    });
-}
 
 window.renderRulesTab = function() {
     const rules = appData.config.rules || {};
@@ -167,12 +142,12 @@ window.renderRulesTab = function() {
                         <select class="fld p-1 text-[12px] font-bold cursor-pointer" id="iv-style-${g}" ${disabledAttr}>
                             <option value="none" ${currentStyle==='none'?'selected':''}>없음</option>
                             <option value="single" ${currentStyle==='single'?'selected':''}>정감독 (1인)</option>
-                            <option value="double" ${currentStyle==='double'?'selected':''}>정+부감독 (2인)</option>
+                            <option value="double" ${currentStyle==='double'?'selected':''}>정·부감독 (2인)</option>
                         </select>
                     </div>
                 </td>
-                <td class="${tdBorderClass}"><select class="fld p-1 text-[12px] font-bold cursor-pointer" id="iv-sp-${g}" ${spDisabledAttr}><option value="0" ${spVal==0?'selected':''}>없음</option><option value="1" ${spVal==1?'selected':''}>정감독 (1인)</option><option value="2" ${spVal==2?'selected':''}>정+부감독 (2인)</option></select></td>
-                <td class="${tdBorderClass}"><select class="fld p-1 text-[12px] font-bold cursor-pointer" id="iv-sep-${g}" ${sepDisabledAttr}><option value="0" ${sepVal==0?'selected':''}>없음</option><option value="1" ${sepVal==1?'selected':''}>정감독 (1인)</option><option value="2" ${sepVal==2?'selected':''}>정+부감독 (2인)</option></select></td>`;
+                <td class="${tdBorderClass}"><select class="fld p-1 text-[12px] font-bold cursor-pointer" id="iv-sp-${g}" ${spDisabledAttr}><option value="0" ${spVal==0?'selected':''}>없음</option><option value="1" ${spVal==1?'selected':''}>정감독 (1인)</option><option value="2" ${spVal==2?'selected':''}>정·부감독 (2인)</option></select></td>
+                <td class="${tdBorderClass}"><select class="fld p-1 text-[12px] font-bold cursor-pointer" id="iv-sep-${g}" ${sepDisabledAttr}><option value="0" ${sepVal==0?'selected':''}>없음</option><option value="1" ${sepVal==1?'selected':''}>정감독 (1인)</option><option value="2" ${sepVal==2?'selected':''}>정·부감독 (2인)</option></select></td>`;
         rows += trHtml + `</tr>`;
     });
     tb.innerHTML = rows;
@@ -196,6 +171,7 @@ window.renderRulesTab = function() {
         document.getElementById('rule-f-sp').value = rules.fatigueSp || 4;
         document.getElementById('rule-bal-strategy').value = rules.balanceStrategy || 'FATIGUE';
     }
+    refreshDropdowns();
 };
 
 window.onStyleChange = function(g) {};

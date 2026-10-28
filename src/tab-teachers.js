@@ -1,7 +1,65 @@
 // 감독 명단 · 결시 관리 화면.
 // 결시 표는 드래그로 칠하는 방식이라 마우스 핸들러가 함께 있다.
 
+const roleMenu = document.getElementById('role-menu');
+let roleMenuTrigger = null;
+let selectedRole = null;
+
+function closeRoleMenu(restoreFocus = false) {
+    roleMenu.hidden = true;
+    if (roleMenuTrigger) {
+        roleMenuTrigger.setAttribute('aria-expanded', 'false');
+        if (restoreFocus) roleMenuTrigger.focus();
+    }
+    roleMenuTrigger = null;
+    selectedRole = null;
+}
+
+window.openRoleMenu = function(event, role) {
+    const trigger = event.currentTarget;
+    const wasOpen = roleMenuTrigger === trigger;
+    closeRoleMenu();
+    if (wasOpen) return;
+    roleMenuTrigger = trigger;
+    selectedRole = role;
+    trigger.setAttribute('aria-expanded', 'true');
+    roleMenu.hidden = false;
+    const rect = trigger.getBoundingClientRect();
+    // 화면 맞춤 확대율을 반영해 실제 화살표 중심과 메뉴 중심을 맞춘다.
+    const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+    const menuRect = roleMenu.getBoundingClientRect();
+    roleMenu.style.left = `${Math.max(4, Math.min(rect.left + rect.width / 2 - menuRect.width / 2, window.innerWidth - menuRect.width - 4)) / zoom}px`;
+    roleMenu.style.top = `${Math.max(4, Math.min(rect.bottom + 3, window.innerHeight - menuRect.height - 4)) / zoom}px`;
+    roleMenu.querySelector('button').focus();
+};
+
+roleMenu.addEventListener('click', event => {
+    const item = event.target.closest('[data-checked]');
+    if (!item) return;
+    const role = selectedRole;
+    closeRoleMenu(true);
+    toggleAllRoles(role, item.dataset.checked === 'true');
+});
+document.addEventListener('click', event => {
+    if (!event.target.closest('.role-menu, .role-menu-btn')) closeRoleMenu();
+});
+document.addEventListener('keydown', event => {
+    if (roleMenu.hidden) return;
+    if (event.key === 'Escape') { event.preventDefault(); closeRoleMenu(true); }
+    else if (event.key === 'Tab') closeRoleMenu();
+    else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const items = [...roleMenu.querySelectorAll('button')];
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        items[(items.indexOf(document.activeElement) + step + items.length) % items.length].focus();
+    }
+});
+document.addEventListener('scroll', () => closeRoleMenu(), true);
+window.addEventListener('resize', () => closeRoleMenu());
+
 window.renderTeachers = function() {
+    requestAnimationFrame(syncTeacherHeader);
+    closeRoleMenu();
     const tbody = document.getElementById('teacher-list-body'); tbody.innerHTML = "";
 
     const activeGrades = appData.config.grades || [];
@@ -45,7 +103,6 @@ window.renderTeachers = function() {
             </tr>`;
     });
     tbody.innerHTML = rows;
-    syncMasterCheckboxes();
 };
 
 // ── 결시 표시 ──────────────────────────────────────────────────────────
@@ -113,6 +170,8 @@ window.renderAbsencesTab = function() {
     tContainer.innerHTML = tHtml;
     // currentTarget: 학급 결시는 내부 select 클릭도 wrapper 기준으로 처리해야 한다.
     document.querySelectorAll('.abs-brush').forEach(b => { b.onclick = (e) => setBrush(e.currentTarget.getAttribute('data-type'), e.currentTarget.getAttribute('data-target'), e.currentTarget); });
+
+    refreshDropdowns();
 
     const dateHeaders = build2RowDatePeriodHeaderParts(periodsByDate, dates, 'text-[13px]');
     const row1 = `<tr>
