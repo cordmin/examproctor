@@ -366,8 +366,7 @@ function mountYearMonthPanel(fp) {
 
     const render = () => {
         const items = Array.from({ length: 12 }, (_, i) => mode === 'year' ? firstYear + i : i);
-        const nav = mode === 'year' ? '' : `<div class="ym-nav"><span>${fp.currentYear}년</span></div>`;
-        panel.innerHTML = `${nav}<div class="ym-grid">${items.map(v => {
+        panel.innerHTML = `<div class="ym-grid">${items.map(v => {
             const on = mode === 'year' ? v === fp.currentYear : v === fp.currentMonth;
             return `<button data-v="${v}" class="${on ? 'on' : ''}">${mode === 'year' ? v + '년' : (v + 1) + '월'}</button>`;
         }).join('')}</div>`;
