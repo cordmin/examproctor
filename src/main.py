@@ -296,17 +296,19 @@ class Api:
         return APP_VERSION
 
     def check_update(self):
-        if not UPDATE_REPO or not getattr(sys, 'frozen', False):
-            return {"available": False}
+        if not UPDATE_REPO:
+            return {"available": False, "status": "unconfigured"}
+        if not getattr(sys, 'frozen', False):
+            return {"available": False, "status": "development"}
         try:
             with urllib.request.urlopen(f'https://github.com/{UPDATE_REPO}/releases/latest', timeout=5) as r:
                 tag = r.geturl().rstrip('/').rsplit('/', 1)[-1]
             if version_tuple(tag) <= version_tuple(APP_VERSION):
-                return {"available": False}
+                return {"available": False, "status": "latest", "version": tag}
             return {"available": True, "version": tag, "current": f"v{APP_VERSION}"}
         except Exception as e:   # 오프라인이거나 릴리스가 없으면 조용히 넘어간다
             print(f"업데이트 확인 실패: {e}")
-            return {"available": False}
+            return {"available": False, "status": "error", "error": str(e)}
 
     def install_update(self, tag, data=None):
         """설치 파일을 받아 조용히 설치하도록 띄우고 창을 닫는다. 설치가 끝나면 설치 파일이 프로그램을 다시 켠다."""

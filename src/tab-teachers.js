@@ -70,12 +70,16 @@ window.renderTeachers = function() {
     const c1Dis = !activeGrades.includes(1);
     const c2Dis = !activeGrades.includes(2);
     const c3Dis = !activeGrades.includes(3);
+    const subDis = !activeGrades.some(g => {
+        const counts = appData.config.invigCounts?.[g] || {};
+        return (appData.config.classes[g] || 0) > 0 && (counts.class ?? 2) >= 2;
+    });
     const hwDis = totalHallways === 0;
     const sepDis = totalSeparated === 0;
     const spDis = totalSpecial === 0;
 
     // 기초 설정에서 쓰지 않는 감독 유형은 열째로 숨긴다. 남는 폭은 참고사항 열이 가져간다.
-    const hiddenRole = { isClass1: c1Dis, isClass2: c2Dis, isClass3: c3Dis, isHallway: hwDis, isSeparated: sepDis, isSpecial: spDis };
+    const hiddenRole = { isSub: subDis, isClass1: c1Dis, isClass2: c2Dis, isClass3: c3Dis, isHallway: hwDis, isSeparated: sepDis, isSpecial: spDis };
     document.querySelectorAll('#tab-teachers [data-role]').forEach(el => el.classList.toggle('hidden', !!hiddenRole[el.dataset.role]));
 
     if (appData.teachers.length === 0) { tbody.innerHTML = `<tr><td colspan="14" class="p-12 text-pebble font-bold bg-surface-50">명단이 없습니다.</td></tr>`; return; }
@@ -89,7 +93,7 @@ window.renderTeachers = function() {
                 <td class="py-2.5 px-1 border border-line"><input type="text" class="w-full text-center bg-transparent focus:outline-none font-bold text-[14.5px] p-0.5" value="${t.subject||''}" onchange="updateTeacher('${t.id}', 'subject', this.value, false)"></td>
                 <td class="py-2.5 px-1 border border-line"><input type="text" class="w-full text-center bg-transparent focus:outline-none font-bold text-[14.5px] p-0.5" value="${t.homeroom||''}" onchange="updateTeacher('${t.id}', 'homeroom', this.value, false)"></td>
                 <td class="py-2.5 px-1 border border-line"><input type="checkbox" class="chk-custom" ${t.isMain!==false?'checked':''} onchange="updateTeacher('${t.id}', 'isMain', this.checked, false)"></td>
-                <td class="py-2.5 px-1 border border-line"><input type="checkbox" class="chk-custom" ${t.isSub!==false?'checked':''} onchange="updateTeacher('${t.id}', 'isSub', this.checked, false)"></td>
+                ${subDis ? '' : `<td class="py-2.5 px-1 border border-line"><input type="checkbox" class="chk-custom" ${t.isSub!==false?'checked':''} onchange="updateTeacher('${t.id}', 'isSub', this.checked, false)"></td>`}
                 
                 ${c1Dis ? '' : `<td class="py-2.5 px-1 border border-line bg-yellow-50/80"><input type="checkbox" class="chk-custom" ${t.isClass1!==false?'checked':''} onchange="updateTeacher('${t.id}', 'isClass1', this.checked, false)"></td>`}
                 ${c2Dis ? '' : `<td class="py-2.5 px-1 border border-line bg-emerald-50/80"><input type="checkbox" class="chk-custom" ${t.isClass2!==false?'checked':''} onchange="updateTeacher('${t.id}', 'isClass2', this.checked, false)"></td>`}
@@ -226,11 +230,17 @@ window.renderAbsencesTab = function() {
         <td class="py-2.5 px-1 border border-line bg-surface-100 font-bold text-[13px] text-center">${idx+1}</td>
         <td class="py-2.5 px-2 border border-line font-bold bg-surface-0 text-center text-[14.5px]">${t.name||'-'}</td>
         <td class="py-2.5 px-1 border border-line bg-surface-0 text-center">
-            <div class="flex items-center justify-center gap-0.5 text-sm">
-                <input type="number" min="0" max="99" class="w-10 text-right outline-none bg-transparent" value="${valMax}"
-                       oninput="this.nextElementSibling.textContent = this.value > 0 ? '시간' : ''"
-                       onchange="if (!(this.value > 0)) this.value = ''; updateTeacher('${t.id}', 'maxPeriods', this.value, false)">
-                <span class="w-7 text-left">${valMax ? '시간' : ''}</span>
+            <div class="limit-control">
+                <div class="limit-value">
+                    <input type="number" min="0" max="99" placeholder="－" aria-label="${t.name || '교사'} 배정 제한 시간" style="width:${String(valMax).length || 1}ch" value="${valMax}"
+                           oninput="updateLimitDisplay(this)"
+                           onchange="if (!(this.value > 0)) this.value = ''; updateLimitDisplay(this); updateTeacher('${t.id}', 'maxPeriods', this.value, false)">
+                    <span ${valMax ? '' : 'hidden'}>시간</span>
+                </div>
+                <div class="limit-step">
+                    <button type="button" aria-label="${t.name || '교사'} 배정 제한 늘리기" onclick="stepTeacherLimit(this, 1)"><svg viewBox="0 0 8 5" aria-hidden="true"><path d="M4 0 8 5H0Z" fill="currentColor"/></svg></button>
+                    <button type="button" aria-label="${t.name || '교사'} 배정 제한 줄이기" onclick="stepTeacherLimit(this, -1)"><svg viewBox="0 0 8 5" aria-hidden="true"><path d="M0 0H8L4 5Z" fill="currentColor"/></svg></button>
+                </div>
             </div>
         </td>`;
         
@@ -307,4 +317,17 @@ window.clearAllAbsences = function() {
         renderAbsencesTab();
         showToast("모든 결시 데이터가 초기화되었습니다.", "success");
     });
+};
+
+window.updateLimitDisplay = function(input) {
+    input.style.width = `${input.value.length || 1}ch`;
+    input.nextElementSibling.hidden = !(Number(input.value) > 0);
+};
+
+window.stepTeacherLimit = function(button, direction) {
+    const input = button.closest('.limit-control').querySelector('input');
+    if (direction > 0) input.stepUp();
+    else input.stepDown();
+    input.dispatchEvent(new Event('input', {bubbles: true}));
+    input.dispatchEvent(new Event('change', {bubbles: true}));
 };

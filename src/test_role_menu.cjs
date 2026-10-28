@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
         page.on('pageerror', error => errors.push(error.message));
         await page.goto(pathToFileURL(path.join(__dirname, 'index.html')).href);
         await page.evaluate(() => {
-            appData.config = { ...appData.config, grades: [1, 2, 3], hallways: { 1: 1 }, separated: { 1: 1 }, special: { 1: 1 } };
+            appData.config = { ...appData.config, grades: [1, 2, 3], classes: { 1: 1, 2: 1, 3: 1 }, hallways: { 1: 1 }, separated: { 1: 1 }, special: { 1: 1 } };
             appData.teachers = [{ id: 'A', name: '교사1', absences: {}, isMain: true }, { id: 'B', name: '교사2', absences: {}, isMain: false }];
             showTab('tab-teachers');
         });

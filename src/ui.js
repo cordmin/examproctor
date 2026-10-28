@@ -277,6 +277,7 @@ function syncSplitTableHeader(scroll, header, viewport = null) {
     const bodyTable = scroll.querySelector('table');
     const headerTable = header.querySelector('table');
     if (!bodyTable || !headerTable || !scroll.clientWidth) return;
+    bodyTable.classList.remove('teacher-grid-body');
     [bodyTable, headerTable].forEach(table => {
         table.classList.add('aligned-table');
         table.querySelectorAll('.border-r-2').forEach(cell => cell.classList.add('border-thick'));
@@ -286,12 +287,15 @@ function syncSplitTableHeader(scroll, header, viewport = null) {
         });
     });
     const columns = [...bodyTable.querySelector('colgroup').children];
-    if (!splitTableWidths.has(bodyTable)) splitTableWidths.set(bodyTable, columns.map(col => col.style.width));
-    const originalWidths = splitTableWidths.get(bodyTable);
+    // 날짜/감독 열을 다시 만들면 이전 열의 너비 캐시도 폐기한다.
+    if (splitTableWidths.get(bodyTable)?.columns[0] !== columns[0]) {
+        splitTableWidths.set(bodyTable, { columns, widths: columns.map(col => col.style.width) });
+    }
+    const originalWidths = splitTableWidths.get(bodyTable).widths;
     bodyTable.style.width = '100%';
     columns.forEach((column, index) => column.style.width = originalWidths[index]);
     const zoom = parseFloat(document.documentElement.style.zoom) || 1;
-    const width = Math.floor(bodyTable.getBoundingClientRect().width / zoom);
+    let width = Math.floor(bodyTable.getBoundingClientRect().width / zoom);
     const widths = columns.map(column => Math.floor(column.getBoundingClientRect().width / zoom));
     const flexibleColumns = columns.map((column, index) => !originalWidths[index] && !column.className.trim() && widths[index] > 0 ? index : -1).filter(index => index >= 0);
     if (flexibleColumns.length > 1) {
@@ -302,6 +306,13 @@ function syncSplitTableHeader(scroll, header, viewport = null) {
     const spareColumn = originalWidths.findLastIndex((value, index) => parseFloat(value) >= 80 && widths[index] > 0);
     const spare = width - widths.reduce((sum, value) => sum + value, 0);
     widths[spareColumn >= 0 ? spareColumn : widths.length - 1] += spare;
+    if (header.id === 'teacher-list-header' && flexibleColumns.length === 1) {
+        // 모든 감독 열을 쓰는 좁은 창에서도 참고사항 칸이 0px로 붕괴하지 않게 한다.
+        const notes = flexibleColumns[0];
+        const extra = Math.max(0, 80 - widths[notes]);
+        widths[notes] += extra;
+        width += extra;
+    }
     bodyTable.style.width = headerTable.style.width = `${width}px`;
     headerTable.style.minWidth = `${width}px`;
     const headerColumns = [...headerTable.querySelector('colgroup').children];
@@ -310,7 +321,8 @@ function syncSplitTableHeader(scroll, header, viewport = null) {
     });
     headerTable.classList.add('grid-table-header');
     const head = headerTable.tHead;
-    head.style.gridTemplateColumns = columns.map(column => `${column.getBoundingClientRect().width / zoom}px`).join(' ');
+    const gridColumns = columns.map(column => `${column.getBoundingClientRect().width / zoom}px`).join(' ');
+    head.style.gridTemplateColumns = gridColumns;
     headerTable.style.width = headerTable.style.minWidth = `${bodyTable.getBoundingClientRect().width / zoom}px`;
     if (!head.dataset.gridPlaced) {
         const occupied = [];
@@ -331,6 +343,17 @@ function syncSplitTableHeader(scroll, header, viewport = null) {
         head.dataset.gridPlaced = 'true';
     }
     header.style.paddingRight = `${scroll.offsetWidth - scroll.clientWidth}px`;
+    if (header.id === 'teacher-list-header') {
+        // 같은 좌표라도 table 셀과 grid 셀은 소수 배율에서 선을 다르게 그린다.
+        // 본문도 헤더와 동일한 grid 트랙을 사용해 두 렌더링 방식을 통일한다.
+        bodyTable.style.setProperty('--teacher-columns', gridColumns);
+        bodyTable.classList.add('teacher-grid-body');
+        const visibleColumns = columns.map((column, index) => column.classList.contains('hidden') ? -1 : index + 1).filter(index => index > 0);
+        bodyTable.querySelectorAll('tbody tr').forEach(row => [...row.cells].forEach((cell, index) => {
+            cell.style.gridColumn = cell.colSpan > 1 ? '1 / -1' : String(visibleColumns[index]);
+        }));
+        header.scrollLeft = scroll.scrollLeft;
+    }
     if (viewport) viewport.scrollLeft = scroll.scrollLeft;
 }
 
@@ -344,7 +367,8 @@ const TOUR_STEPS = [
     { el: '[data-action="run"]',          title: '4. 배정 실행',  text: '배정 규칙을 확인하고 실행하면 감독이 자동으로 배정됩니다. 배정이 막히면 무엇부터 고치면 되는지 알려 줍니다.' },
     { el: '[data-target="tab-result"]',   title: '5. 배정 결과',  text: '선생님별·학급별 감독표를 봅니다. 칸을 끌어 놓거나 우클릭해서 선생님을 바꿀 수 있고, 엑셀로 내려받을 수 있습니다.' },
     { el: '[data-target="tab-validate"]', title: '6. 배정 검증',  text: '모든 규칙을 잘 지켰는지 확인합니다. 문제가 있으면 해결 방법과 바로 가기 버튼이 함께 나옵니다.' },
-    { el: '#data-card',                   title: '7. 열기·저장', text: '작업한 내용을 파일로 저장하고, 다음에 다시 불러옵니다. 오른쪽 위 ? 버튼을 누르면 이 안내를 다시 볼 수 있습니다.' },
+    { el: '#data-card',                   title: '7. 열기·저장', text: '작업한 내용을 파일로 저장하고, 다음에 다시 불러옵니다. 우측 상단에 도움말 버튼을 누르면 이 안내를 다시 볼 수 있습니다.' },
+    { el: '#app-version',                 title: '8. 프로그램 정보·업데이트', text: '버전 번호를 누르면 프로그램 정보와 업데이트 상태를 확인할 수 있습니다.' },
 ];
 let tourIndex = 0;
 let tourHidden = false;   // 켤 때 shell.js 가 settings.json 에서 읽어 둔다

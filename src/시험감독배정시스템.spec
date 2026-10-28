@@ -7,7 +7,7 @@ FRONTEND = ['index.html', 'tailwind.min.js',
             'flatpickr.min.js', 'flatpickr.min.css', 'flatpickr-ko.js',
             'state.js', 'labels.js', 'ui.js',
             'tab-setup.js', 'tab-teachers.js', 'tab-result.js', 'tab-validate.js',
-            'shell.js', 'icon.ico',
+            'shell.js', 'icon.ico', 'icon.png', 'motto-serif.woff2', 'motto-serif-LICENSE.txt',
             'sample_data.json']   # 처음 켤 때 보여 줄 예시 값 (main.py load_data)
 
 a = Analysis(

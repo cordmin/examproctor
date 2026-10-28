@@ -25,6 +25,23 @@ def test_self_study():
             assert set(labels) == {'1-1(정)', '1-1(부)', '1학년(복)'}
 
 
+
+def test_special_single():
+    # 이전 파일에 특수학급 2인 값이 남아 있어도 한 명만 배정한다.
+    data = {
+        'config': {'grades': [1], 'classes': {'1': 0}, 'special': {'1': 1}, 'separated': {'1': 1},
+                   'invigCounts': {'1': {'special': 2, 'separated': 2}}, 'rules': {'excludeSubject': False}},
+        'teachers': [{'id': str(i), 'name': f'교사{i}', 'isSpecial': True, 'isSeparated': True, 'isSub': True} for i in range(3)],
+        'periods': [{'id': 'p1', 'date': '2026-10-28', 'name': '1교시'}],
+        'classSubjects': {'p1': {'1': '국어'}},
+    }
+    result = run_algorithm(data)
+    assert result['success'], result
+    labels = [p.get('p1') for p in result['assignments'].values() if p.get('p1') not in (None, '', '-')]
+    assert set(labels) == {'1학년(특수)', '1학년(분리)'}, labels
+    assert len(labels) == 2, labels
+
 if __name__ == '__main__':
+    test_special_single()
     test_self_study()
     print('PASS: self-study, ordinary 수업/exam subjects, optional blank selection')

@@ -132,12 +132,17 @@ window.renderValidateTab = function() {
         verifyHtml = `<div class="text-pebble text-[13px] text-center py-10 font-bold">배정을 다시 실행하면 정밀 규칙 검사가 갱신됩니다.</div>`;
     } else {
         const allPass = v.verify.all_pass;
+        const passed = v.verify.checks.filter(check => check.pass).length;
+        const total = v.verify.checks.length;
         const banner = `
-            <div class="rounded-xl p-3.5 mb-4 font-semibold text-[14px] flex items-center justify-center gap-2 border ${
-                allPass ? 'bg-emerald-50 border-emerald-200 text-emerald-900 font-bold' : 'bg-coral/10 border-coral/30 text-text-main'}">
-              ${icon(allPass ? 'check-circle' : 'alert', 'w-5 h-5 ' + (allPass ? 'text-emerald-600' : ''))}
-              ${allPass ? '모든 필수 규칙 검증 통과' : '일부 규칙 위반 사항이 감지됨'}
-            </div>`;
+            <div class="verify-review ${allPass ? '' : 'has-issues'}">
+              <div class="verify-summary">
+                <span class="verify-seal" aria-hidden="true">${allPass ? '✓' : '!'}</span>
+                <div><h3>${allPass ? '모든 규칙을 충족했어요' : '확인이 필요한 규칙이 있어요'}</h3>
+                <p>${allPass ? '누락이나 중복 없이 배정되었습니다.' : `${total - passed}개 규칙의 위반 내용을 확인하세요.`}</p></div>
+                <div class="verify-score">${passed}<small> / ${total}</small></div>
+              </div>
+              <div class="verify-progress" aria-hidden="true"><span style="width:${total ? passed / total * 100 : 0}%"></span></div>`;
         const cleanCheckName = (name) => {
             if (!name) return '';
             return name
@@ -145,10 +150,8 @@ window.renderValidateTab = function() {
                 .replace("시간 배정 금지", " 배정 금지")
                 .replace("특정 감독 연속 배정 금지", "동일 역할(수업/복도) 연속 배정 금지");
         };
-        const cards = v.verify.checks.map(c => {
-            const badge = c.pass
-                ? `<span class="text-emerald-700 font-bold text-[10.5px] bg-emerald-100/90 border border-emerald-200/60 px-2 py-0.5 rounded-full flex-shrink-0">PASS</span>`
-                : `<span class="text-coral font-bold text-[10.5px] bg-coral/15 px-2 py-0.5 rounded-full flex-shrink-0">FAIL</span>`;
+        const cards = v.verify.checks.map((c, index) => {
+            const badge = `<span class="verify-status ${c.pass ? '' : 'is-failed'}">${c.pass ? '✓ 충족' : '! 확인 필요'}</span>`;
             let detail = '';
             if (!c.pass && c.messages.length) {
                 // 교사가 정해진 메시지는 누르면 배정 결과의 해당 칸으로 이동한다.
@@ -167,13 +170,14 @@ window.renderValidateTab = function() {
                 detail = `<div class="mt-2 ml-4 text-[11px] text-stone font-bold">${c.messages[0]}</div>`;
             }
             return `
-                <div class="border rounded-lg p-3 shadow-sm ${c.pass ? 'border-surface-200 bg-surface-0' : 'border-coral/30 bg-coral/5'}">
-                  <div class="flex items-start justify-between gap-2">
-                    <div class="font-bold text-[12.5px] break-keep leading-snug">${cleanCheckName(c.name)}</div>${badge}
-                  </div>${detail}
+                <div class="verify-row ${c.pass ? '' : 'is-failed'}">
+                  <div class="verify-row-heading">
+                    <span class="verify-number">${String(index + 1).padStart(2, '0')}</span>
+                    <span class="verify-rule-name">${cleanCheckName(c.name).replace(/^\s*\d+[.)]\s*/, '')}</span>${badge}
+                  </div>${detail ? `<div class="verify-detail">${detail}</div>` : ''}
                 </div>`;
         }).join('');
-        verifyHtml = banner + `<div class="grid grid-cols-1 gap-2.5">${cards}</div>`;
+        verifyHtml = banner + `<div class="verify-list">${cards}</div></div>`;
     }
 
     document.getElementById('event-modal-content').innerHTML =

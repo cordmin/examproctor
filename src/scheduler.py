@@ -84,14 +84,11 @@ def run_algorithm(appData):
                             if c_invig >= 2:
                                 slots.append({"name": f"{grade}-{c}", "type": "class", "role": "부", "subject": subj, "grade": g_str})
 
-                    for k, r, ik in [('special', '특수', 'special'), ('separated', '분리', 'separated')]:
+                    for k, r in [('special', '특수'), ('separated', '분리')]:
                         cnt = config.get(k, {}).get(g_str, 0)
-                        inv = int(invigCounts.get(g_str, {}).get(ik, 1))
                         for i in range(1, cnt + 1):
                             nm = f"{grade}학년({r})" if cnt == 1 else f"{grade}학년({r}{i})"
                             slots.append({"name": nm, "type": k, "role": r, "subject": "", "grade": g_str})
-                            if inv >= 2:
-                                slots.append({"name": nm, "type": k, "role": f"{r}(부)", "subject": "", "grade": g_str})
 
                     if subj != '자습':
                         hw_count = config.get('hallways', {}).get(g_str, 0)

@@ -154,12 +154,12 @@ window.renderRulesTab = function() {
         const hasSp = (appData.config.special[g] || 0) > 0;
         const hasSep = (appData.config.separated[g] || 0) > 0;
 
-        let iv = invigs[g] || { class: 2, special: 1, separated: 0 };
+        let iv = invigs[g] || { class: 2, special: 1, separated: 1 };
         
         let currentStyle = "single";
-        if ((iv.class || 1) === 0) {
+        if ((iv.class ?? 2) === 0) {
             currentStyle = "none";
-        } else if ((iv.class || 1) === 2) {
+        } else if ((iv.class ?? 2) === 2) {
             currentStyle = "double";
         } else {
             currentStyle = "single";
@@ -170,8 +170,6 @@ window.renderRulesTab = function() {
         const spDisabledAttr = (isActive && hasSp) ? '' : 'disabled';
         const sepDisabledAttr = (isActive && hasSep) ? '' : 'disabled';
 
-        const spVal = (isActive && hasSp) ? (iv.special !== undefined ? iv.special : 1) : 0;
-        const sepVal = (isActive && hasSep) ? (iv.separated !== undefined ? iv.separated : 0) : 0;
 
         const isLastRow = (g === 3);
         const tdBorderClass = isLastRow ? 'p-1.5 border-t border-r border-line' : 'p-1.5 border border-line';
@@ -180,15 +178,15 @@ window.renderRulesTab = function() {
         let trHtml = `<tr class="bg-surface-0 hover:bg-surface-50 ${disabledClass}"><td class="${tdFirstBorderClass}">${g}학년</td>
                 <td class="${tdBorderClass}">
                     <div class="flex flex-col items-center justify-center">
-                        <select class="fld iv-select p-1 text-[12px] font-bold cursor-pointer" id="iv-style-${g}" ${disabledAttr}>
+                        <select class="fld iv-select p-1 text-[12px] font-bold cursor-pointer" id="iv-style-${g}" onchange="saveRules()" ${disabledAttr}>
                             <option value="none" ${currentStyle==='none'?'selected':''}>없음</option>
                             <option value="single" ${currentStyle==='single'?'selected':''}>정감독 (1인)</option>
                             <option value="double" ${currentStyle==='double'?'selected':''}>정·부감독 (2인)</option>
                         </select>
                     </div>
                 </td>
-                <td class="${tdBorderClass}"><select class="fld iv-select p-1 text-[12px] font-bold cursor-pointer" id="iv-sp-${g}" ${spDisabledAttr}><option value="0" ${spVal==0?'selected':''}>없음</option><option value="1" ${spVal==1?'selected':''}>정감독 (1인)</option><option value="2" ${spVal==2?'selected':''}>정·부감독 (2인)</option></select></td>
-                <td class="${tdBorderClass}"><select class="fld iv-select p-1 text-[12px] font-bold cursor-pointer" id="iv-sep-${g}" ${sepDisabledAttr}><option value="0" ${sepVal==0?'selected':''}>없음</option><option value="1" ${sepVal==1?'selected':''}>정감독 (1인)</option><option value="2" ${sepVal==2?'selected':''}>정·부감독 (2인)</option></select></td>`;
+                <td class="${tdBorderClass}"><select class="fld iv-select p-1 text-[12px] font-bold cursor-pointer" id="iv-sp-${g}" onchange="saveRules()" ${spDisabledAttr}><option value="1" selected>정감독 (1인)</option></select></td>
+                <td class="${tdBorderClass}"><select class="fld iv-select p-1 text-[12px] font-bold cursor-pointer" id="iv-sep-${g}" onchange="saveRules()" ${sepDisabledAttr}><option value="1" selected>정감독 (1인)</option></select></td>`;
         rows += trHtml + `</tr>`;
     });
     tb.innerHTML = rows;
@@ -211,8 +209,8 @@ function saveRules() {
             else if (style === 'double') classCount = 2;
             appData.config.invigCounts[g] = { 
                 class: classCount, 
-                special: parseInt(spElem.value), 
-                separated: parseInt(sepElem.value) 
+                special: 1,
+                separated: 1
             };
         }
     });

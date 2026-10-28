@@ -95,6 +95,8 @@ function fitZoom() {
     const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.min(innerWidth / BASE_W, innerHeight / BASE_H)));
     const root = document.documentElement;
     root.style.zoom = z;
+    // 타이틀바는 콘텐츠의 화면 맞춤 배율과 무관하게 같은 크기를 유지한다.
+    document.getElementById('titlebar').style.zoom = 1 / z;
     root.style.setProperty('--vw', innerWidth / z / 100 + 'px');
     root.style.setProperty('--vh', innerHeight / z / 100 + 'px');
     // zoom 아래 1px 테두리는 장치 픽셀 단위로 내림되어 그려진다(1.35배면 1장치픽셀).
@@ -112,8 +114,39 @@ function syncTeacherHeader() {
     const scroll = document.getElementById('teacher-list-scroll');
     const header = document.getElementById('teacher-list-header');
     syncSplitTableHeader(scroll, header);
+    syncTeacherColumnLines();
+}
+// 헤더와 스크롤 본문을 따로 그리면 같은 좌표라도 픽셀 반올림이 달라진다.
+// 세로선은 두 영역에 걸친 한 개의 레이어에서 한 번만 그린다.
+function syncTeacherColumnLines() {
+    const header = document.getElementById('teacher-list-header');
+    const scroll = document.getElementById('teacher-list-scroll');
+    if (!scroll.clientWidth) return;
+    const frame = header.parentElement;
+    frame.classList.add('teacher-table-frame');
+    let lines = frame.querySelector('.teacher-column-lines');
+    if (!lines) {
+        lines = document.createElement('div');
+        lines.className = 'teacher-column-lines';
+        lines.setAttribute('aria-hidden', 'true');
+        frame.appendChild(lines);
+    }
+    const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+    const heads = [...header.querySelectorAll('th')].filter(cell => cell.getBoundingClientRect().width > 0);
+    const edges = heads.slice(0, -1);
+    if (lines.children.length !== edges.length) lines.replaceChildren(...edges.map(() => document.createElement('span')));
+    const origin = frame.getBoundingClientRect();
+    const body = scroll.querySelector('table').getBoundingClientRect();
+    const empty = document.querySelector('#teacher-list-body td[colspan]');
+    const bottom = empty ? header.getBoundingClientRect().bottom : Math.min(scroll.getBoundingClientRect().bottom, body.bottom);
+    lines.style.height = `${Math.max(0, bottom - origin.top) / zoom}px`;
+    edges.forEach((cell, index) => lines.children[index].style.left = `calc(${(cell.getBoundingClientRect().right - origin.left) / zoom}px - var(--hair))`);
 }
 new ResizeObserver(syncTeacherHeader).observe(document.getElementById('teacher-list-scroll'));
+document.getElementById('teacher-list-scroll').addEventListener('scroll', event => {
+    document.getElementById('teacher-list-header').scrollLeft = event.currentTarget.scrollLeft;
+    syncTeacherColumnLines();
+});
 
 function syncAbsenceHeader() {
     const scroll = document.getElementById('absence-table-scroll');
@@ -197,6 +230,7 @@ function sanitizeAppData(data) {
     if (!data.config) data.config = {};
     data.config.rules = {...DEFAULT_RULES, ...data.config.rules};
     if (!data.config.invigCounts) data.config.invigCounts = {};
+    Object.values(data.config.invigCounts).forEach(counts => { counts.special = counts.separated = 1; });
     if (!data.config.grades) data.config.grades = [];
     if (!data.config.classes) data.config.classes = {};
     if (!data.config.special) data.config.special = {};
@@ -283,6 +317,53 @@ function askUpdate(res) {
     m.classList.remove('hidden');
     m.focus();
 }
+
+window.closeAboutModal = function() {
+    document.getElementById('about-modal').classList.add('hidden');
+    document.getElementById('app-version').focus();
+};
+
+window.openAboutModal = async function() {
+    const modal = document.getElementById('about-modal');
+    modal.classList.remove('hidden');
+    modal.querySelector('button').focus();
+    document.getElementById('about-version').textContent = document.getElementById('app-version').textContent;
+    checkAboutUpdate();
+};
+
+window.checkAboutUpdate = async function() {
+    const button = document.getElementById('about-check');
+    if (button.disabled) return;
+    const status = document.getElementById('about-update-status');
+    const install = document.getElementById('about-install');
+    button.disabled = true;
+    install.classList.add('hidden');
+    status.classList.remove('hidden');
+    status.textContent = '업데이트를 확인하고 있습니다…';
+    try {
+        if (!winApi()) throw new Error('프로그램 실행 환경에서 확인할 수 있습니다.');
+        const version = await winApi().get_version();
+        document.getElementById('about-version').textContent = `v${version}`;
+        const res = await winApi().check_update();
+        if (res.available) {
+            status.textContent = `새 버전 ${res.version} · 업데이트 가능`;
+            install.classList.remove('hidden');
+            install.onclick = () => { closeAboutModal(); askUpdate(res); };
+        } else {
+            status.textContent = {
+                latest: '현재 최신 버전을 사용하고 있습니다.',
+                development: '',
+                unconfigured: '업데이트 저장소 미설정',
+                error: '확인 실패 · 인터넷 연결을 확인하세요.',
+            }[res.status] ?? '확인 실패 · 다시 시도해 주세요.';
+            status.classList.toggle('hidden', res.status === 'development');
+        }
+    } catch (error) {
+        status.textContent = '확인 불가 · 프로그램에서 다시 확인하세요.';
+    } finally {
+        button.disabled = false;
+    }
+};
 
 document.getElementById('btn-global-save').addEventListener('click', () => {
     appData.config.examName = document.getElementById('exam-name').value;

@@ -8,3 +8,6 @@ __pycache__/
 Output/
 /*.json
 *.xlsx
+
+# Generated design previews and UI verification captures
+/artifacts/
