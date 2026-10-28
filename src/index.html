@@ -185,6 +185,9 @@
             top: 0;
             z-index: 30;
             background-color: #F1F5F9 !important;
+            /* border-collapse 표에서는 테두리가 고정 머리글을 따라오지 않아 스크롤하면 아래 선이 사라진다.
+               배경으로 아래 1px 선을 그려 머리글과 함께 붙어 다니게 한다. */
+            background-image: linear-gradient(to top, rgb(var(--line)) 1px, transparent 1px);
             color: rgb(var(--text-main));
             border: 1px solid rgb(var(--line)) !important;
             font-weight: 700;
