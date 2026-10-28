@@ -186,12 +186,15 @@
             z-index: 30;
             background-color: #F1F5F9 !important;
             /* border-collapse 표에서는 테두리가 고정 머리글을 따라오지 않아 스크롤하면 아래 선이 사라진다.
-               배경으로 아래 1px 선을 그려 머리글과 함께 붙어 다니게 한다. */
-            background-image: linear-gradient(to top, rgb(var(--line)) 1px, transparent 1px);
+               그래서 머리글 아래 선은 테두리 대신 배경으로만 그린다(두께는 실제 1px 선 두께 --hair).
+               테두리까지 같이 두면 선이 두 겹으로 굵어진다. */
+            background-image: linear-gradient(to top, rgb(var(--line)) var(--hair), transparent var(--hair));
             color: rgb(var(--text-main));
             border: 1px solid rgb(var(--line)) !important;
+            border-bottom-width: 0 !important;
             font-weight: 700;
         }
+        thead + tbody > tr:first-child > td { border-top-width: 0 !important; }
 
         /* 카드 외곽 테두리와 표 외각 셀 테두리 이중 중첩 방지 */
         table tr:first-child th { border-top: none !important; }
@@ -341,8 +344,8 @@
            스크롤바 트랙이 투명하므로 스크롤 상자 배경(테두리 상자 기준, 스크롤과 무관하게 고정)이 비쳐 보인다. */
         .has-head {
             background-image: linear-gradient(to bottom,
-                #F1F5F9 0 calc(var(--thead-h) - 1px),
-                rgb(var(--line)) calc(var(--thead-h) - 1px) var(--thead-h),
+                #F1F5F9 0 calc(var(--thead-h) - var(--hair)),
+                rgb(var(--line)) calc(var(--thead-h) - var(--hair)) var(--thead-h),
                 transparent var(--thead-h));
             background-origin: border-box;
             background-repeat: no-repeat;

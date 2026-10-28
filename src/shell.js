@@ -125,7 +125,9 @@ function syncScrollHeads() {
         for (let el = head.closest('table'); el !== box; el = el.parentElement) {
             if (el.parentElement.firstElementChild !== el) return;
         }
-        box.style.setProperty('--thead-h', head.offsetHeight + 'px');
+        // offsetHeight 는 정수로 반올림돼 확대 화면에서 선이 1px 어긋난다. 실제 높이를 소수까지 쓴다.
+        const z = parseFloat(document.documentElement.style.zoom) || 1;
+        box.style.setProperty('--thead-h', head.getBoundingClientRect().height / z + 'px');
         box.classList.add('has-head');
     });
 }
