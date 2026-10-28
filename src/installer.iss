@@ -36,6 +36,7 @@ WizardStyle=modern
 Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 
 [Files]
+Source: "update-progress.ps1"; Flags: dontcopy
 Source: "dist\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
@@ -55,4 +56,31 @@ procedure PrepareAppRestart;
 begin
   // 이전 버전에서 실행한 설치 파일도 새 인스턴스로 프로그램을 다시 켠다.
   SetEnvironmentVariable('PYINSTALLER_RESET_ENVIRONMENT', '1');
+end;
+
+function GetCurrentProcessId: LongWord;
+  external 'GetCurrentProcessId@kernel32.dll stdcall';
+
+procedure InitializeWizard;
+var
+  ResultCode: Integer;
+  Parameters, PowerShellPath: string;
+begin
+  if not WizardSilent then Exit;
+  // 기존 버전의 조용한 업데이트에서도 별도 진행 창은 표시한다.
+  try
+    ExtractTemporaryFile('update-progress.ps1');
+    Parameters := '-NoProfile -NonInteractive -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File ' +
+      AddQuotes(ExpandConstant('{tmp}\update-progress.ps1')) +
+      ' -InstallerPid ' + IntToStr(GetCurrentProcessId) +
+      ' -AppPath ' + AddQuotes(ExpandConstant('{app}\{#MyAppExe}'));
+    if IsWin64 then
+      PowerShellPath := ExpandConstant('{sysnative}\WindowsPowerShell\v1.0\powershell.exe')
+    else
+      PowerShellPath := ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe');
+    if not Exec(PowerShellPath, Parameters, '', SW_HIDE, ewNoWait, ResultCode) then
+      Log('업데이트 진행 창 실행 실패: ' + IntToStr(ResultCode));
+  except
+    Log('업데이트 진행 창 준비 실패: ' + GetExceptionMessage);
+  end;
 end;

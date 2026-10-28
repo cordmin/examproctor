@@ -250,14 +250,35 @@ window.addEventListener('pywebviewready', function() {
 
 function askUpdate(res) {
     const m = document.getElementById('update-modal');
+    if (m.dataset.busy === 'true') return;
+    const confirm = document.getElementById('update-modal-ok');
+    const later = document.getElementById('update-modal-later');
+    const message = document.getElementById('update-modal-message');
+    const progress = document.getElementById('update-download-progress');
     document.getElementById('update-from').textContent = res.current;
     document.getElementById('update-to').textContent = res.version;
-    document.getElementById('update-modal-ok').onclick = () => {
-        m.classList.add('hidden');
-        showToast(`새 버전(${res.version})을 설치합니다.\n잠시 후 프로그램이 다시 켜집니다.`, "success");
-        window.pywebview.api.install_update(res.version, appData).then(r => {
-            if (!r.success) showToast("업데이트 실패: " + r.error, "error");
-        });
+    confirm.disabled = later.disabled = false;
+    confirm.textContent = '업데이트'; later.textContent = '나중에';
+    message.textContent = '새 버전이 나왔습니다. 지금 업데이트하시겠습니까?';
+    progress.classList.add('hidden');
+    confirm.onclick = async () => {
+        if (m.dataset.busy === 'true') return;
+        m.dataset.busy = 'true';
+        confirm.disabled = later.disabled = true;
+        confirm.textContent = '준비 중…';
+        message.textContent = '업데이트 파일을 다운로드하고 있습니다.\n설치가 시작되면 별도 창에서 진행 상황을 안내합니다.';
+        progress.classList.remove('hidden');
+        try {
+            const result = await window.pywebview.api.install_update(res.version, appData);
+            if (!result.success) throw new Error(result.error || '설치를 시작하지 못했습니다.');
+            message.textContent = '설치를 시작했습니다.\n별도 안내 창에서 설치와 재실행 상태를 확인해 주세요.';
+        } catch (error) {
+            message.textContent = `업데이트를 시작하지 못했습니다.\n${error.message || error}`;
+            progress.classList.add('hidden');
+            m.dataset.busy = 'false';
+            confirm.disabled = later.disabled = false;
+            confirm.textContent = '다시 시도'; later.textContent = '닫기';
+        }
     };
     m.classList.remove('hidden');
     m.focus();
