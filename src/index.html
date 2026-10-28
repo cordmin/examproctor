@@ -148,6 +148,7 @@
             font-size: 12.5px;
             --vw: 1vw;
             --vh: 1vh;
+            --hair: 1px;   /* 실제로 그려지는 1px 테두리 두께. 카드 탭을 테두리에 딱 맞춰 겹칠 때 쓴다. */
         }
 
         body {
@@ -564,7 +565,7 @@
 
                                 <!-- 고사 일정 및 교시 설정 카드 -->
                                 <div class="flex flex-col h-full">
-                                    <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px] self-start z-10 -mb-[1px]">
+                                    <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px] self-start z-10 mb-[calc(var(--hair)*-1)]">
                                         고사일정
                                     </div>
                                     <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1 p-4">
@@ -583,7 +584,7 @@
 
                                 <!-- 시험 과목 카드 -->
                                 <div class="flex flex-col h-full">
-                                    <div class="flex items-end justify-between -mb-[1px] relative z-10">
+                                    <div class="flex items-end justify-between mb-[calc(var(--hair)*-1)] relative z-10">
                                         <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px]">
                                             시험 과목
                                         </div>
@@ -607,7 +608,7 @@
 
                                 <!-- 학년 및 시험장소 카드 (카드 자체가 표) -->
                                 <div class="flex flex-col h-full">
-                                    <div class="flex items-end justify-between -mb-[1px] relative z-10">
+                                    <div class="flex items-end justify-between mb-[calc(var(--hair)*-1)] relative z-10">
                                         <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px]">
                                             학년 및 시험장소
                                         </div>
@@ -617,7 +618,7 @@
                                         </span>
                                     </div>
                                     <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1">
-                                        <div class="overflow-x-auto flex-1">
+                                        <div class="overflow-hidden flex-1">
                                             <table class="w-full text-center text-[12.5px] border-collapse">
                                                 <thead class="bg-surface-100 text-text-main font-bold text-[12px]">
                                                     <tr><th class="w-12 p-2 border border-line bg-surface-100">시험</th><th class="w-16 p-2 border border-line bg-surface-100">학년</th><th class="w-[18%] p-2 border border-line bg-surface-100">일반학급</th><th class="w-[18%] p-2 border border-line bg-surface-100">특수학급</th><th class="w-[18%] p-2 border border-line bg-surface-100">분리고사실</th><th class="w-[18%] p-2 border border-line bg-surface-100">복도구역</th></tr>
@@ -655,7 +656,7 @@
 
                                 <!-- 교실별 배정 인원 카드 -->
                                 <div class="flex flex-col">
-                                    <div class="flex items-end justify-between -mb-[1px] relative z-10">
+                                    <div class="flex items-end justify-between mb-[calc(var(--hair)*-1)] relative z-10">
                                         <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px]">
                                             교실별 배정 인원
                                         </div>
@@ -665,7 +666,7 @@
                                         </span>
                                     </div>
                                     <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm">
-                                        <div class="overflow-x-auto">
+                                        <div class="overflow-hidden">
                                         <table class="w-full text-center text-[12.5px] border-collapse table-fixed" id="rules-invig-table">
                                             <thead class="bg-surface-100 text-text-main font-bold text-[12px]">
                                                 <tr><th class="w-16 p-2 border border-line bg-surface-100">학년</th><th class="p-2 border border-line bg-surface-100">일반학급</th><th class="p-2 border border-line bg-surface-100">특수학급</th><th class="p-2 border border-line bg-surface-100">분리고사실</th></tr>

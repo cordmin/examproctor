@@ -44,12 +44,12 @@ window.renderSubjectsTab = function() {
     [1, 2, 3].forEach(grade => {
         const isSelected = appData.config.grades.includes(grade);
 
-        html += `<div class="flex flex-col h-full"><div class="inline-flex items-center bg-[#1E293B] text-white px-3.5 py-1.5 rounded-t-lg font-bold text-[12.5px] self-start z-10 -mb-[1px]"><span>${grade}학년</span></div><div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1 min-h-[140px]">`;
+        html += `<div class="flex flex-col h-full"><div class="inline-flex items-center bg-[#1E293B] text-white px-3.5 py-1.5 rounded-t-lg font-bold text-[12.5px] self-start z-10 mb-[calc(var(--hair)*-1)]"><span>${grade}학년</span></div><div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1 min-h-[140px]">`;
 
         if (!isSelected) {
             html += `<div class="flex-1 flex items-center justify-center p-8 bg-surface-50 text-pebble font-bold text-[13px]">시험 없음</div></div></div>`;
         } else {
-            html += `<div class="overflow-x-auto flex-1"><table class="w-full h-full text-[12.5px] text-center table-fixed"><thead class="bg-surface-100 text-text-main font-bold text-[12px]"><tr><th class="py-2.5 px-1.5 w-14">교시</th>`;
+            html += `<div class="overflow-hidden flex-1"><table class="w-full h-full text-[12.5px] text-center table-fixed"><thead class="bg-surface-100 text-text-main font-bold text-[12px]"><tr><th class="py-2.5 px-1.5 w-14">교시</th>`;
             dates.forEach((date, dIdx) => html += `<th class="py-2.5 px-1.5 text-text-main">${formatBeautifulDate(date)}</th>`);
             html += `</tr></thead><tbody class="bg-surface-0">`;
 

@@ -105,6 +105,10 @@ function fitZoom() {
     root.style.zoom = z;
     root.style.setProperty('--vw', innerWidth / z / 100 + 'px');
     root.style.setProperty('--vh', innerHeight / z / 100 + 'px');
+    // zoom 아래 1px 테두리는 장치 픽셀 단위로 내림되어 그려진다(1.35배면 1장치픽셀).
+    // 탭을 -1px 로 겹치면 남는 소수 픽셀만큼 표 안으로 파고들므로 실제 두께만큼만 겹친다.
+    const dz = z * devicePixelRatio;
+    root.style.setProperty('--hair', Math.max(1, Math.floor(dz)) / dz + 'px');
 }
 fitZoom();
 window.addEventListener('resize', fitZoom);

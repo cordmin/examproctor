@@ -46,7 +46,7 @@ window.renderValidateTab = function() {
 
     const panel = (iconName, title, body, noPadding = false) => `
         <div class="flex flex-col h-full min-h-0">
-          <div class="inline-flex items-center gap-2 bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px] self-start z-10 -mb-[1px]">
+          <div class="inline-flex items-center gap-2 bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px] self-start z-10 mb-[calc(var(--hair)*-1)]">
             ${icon(iconName, 'w-4 h-4 text-white')}
             <span>${title}</span>
           </div>
