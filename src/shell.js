@@ -120,6 +120,11 @@ function syncScrollHeads() {
     document.querySelectorAll('thead').forEach(head => {
         const box = head.closest('.overflow-auto, .overflow-y-auto');
         if (!box) return;
+        // 표가 스크롤 상자 맨 위에 붙어 있을 때만 (기초 설정처럼 카드 속 작은 표는 제외):
+        // 표에서 상자까지 올라가는 동안 줄곧 첫 번째 자식이어야 한다.
+        for (let el = head.closest('table'); el !== box; el = el.parentElement) {
+            if (el.parentElement.firstElementChild !== el) return;
+        }
         box.style.setProperty('--thead-h', head.offsetHeight + 'px');
         box.classList.add('has-head');
     });
