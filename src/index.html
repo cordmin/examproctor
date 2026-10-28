@@ -616,11 +616,6 @@
 
                 <!-- 기본 설정 -->
                 <section id="tab-config" class="tab-content h-full flex flex-col">
-                    <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0">
-                        <h2 class="font-semibold text-[15px] flex items-center gap-2 text-white">
-                            <svg class="w-4 h-4 text-white"><use href="#i-settings"/></svg> 기초 설정
-                        </h2>
-                    </div>
 
                     <div class="flex-1 overflow-auto bg-surface-0 p-6">
                         <input type="hidden" id="exam-name" value="">
@@ -825,10 +820,7 @@
 
             <!-- 감독 명단 -->
             <section id="tab-teachers" class="tab-content hidden h-full flex flex-col">
-                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0">
-                    <h2 class="font-semibold text-[15px] flex items-center gap-2 text-white">
-                        <svg class="w-4 h-4 text-white"><use href="#i-users"/></svg> 감독 명단
-                    </h2>
+                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-end flex-shrink-0">
                     <div class="flex items-center gap-2">
                         <button id="btn-add-teacher" class="inline-flex items-center justify-center gap-1.5 w-[125px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
                             <svg class="w-3.5 h-3.5"><use href="#i-plus"/></svg> 명단 추가
@@ -871,10 +863,7 @@
 
             <!-- 결시 관리 -->
             <section id="tab-absences" class="tab-content hidden h-full flex flex-col">
-                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0">
-                    <h2 class="font-semibold text-[15px] flex items-center gap-2 text-white">
-                        <svg class="w-4 h-4 text-white"><use href="#i-clipboard-list"/></svg> 결시 관리
-                    </h2>
+                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-end flex-shrink-0">
                     <button onclick="clearAllAbsences()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F04A4A] hover:bg-[#D93838] text-white font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors border-0">
                         <svg class="w-3.5 h-3.5 text-white"><use href="#i-trash"/></svg> 결시 초기화
                     </button>
@@ -894,9 +883,6 @@
             <section id="tab-result" class="tab-content hidden h-full flex flex-col">
                 <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0 gap-4">
                     <div class="flex items-center gap-4 min-w-0">
-                        <h2 class="font-semibold text-[15px] flex items-center gap-2 flex-shrink-0 text-white">
-                            <svg class="w-4 h-4 text-white"><use href="#i-table"/></svg> 배정 결과
-                        </h2>
                         <div class="flex bg-surface-100 p-1 rounded-lg border border-surface-200 flex-shrink-0">
                             <button class="result-sub-btn bg-brand-600 text-brand-text shadow-sm px-3 py-1 rounded-md font-bold text-[13px] transition-all cursor-pointer" data-target="result-teacher">교사별</button>
                             <button class="result-sub-btn bg-transparent text-stone hover:text-text-main px-3 py-1 rounded-md font-bold text-[13px] transition-all cursor-pointer" data-target="result-class">학급별</button>
@@ -906,6 +892,7 @@
                             <span class="truncate">셀 우클릭 또는 드래그로 동일 교시 내 교체</span>
                         </span>
                     </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
                     <button onclick="undo()" title="되돌리기 (Ctrl+Z)" class="inline-flex items-center justify-center w-9 h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 rounded-lg cursor-pointer transition-colors flex-shrink-0">
                         <svg class="w-4 h-4"><use href="#i-undo"/></svg>
                     </button>
@@ -915,6 +902,7 @@
                     <button id="btn-export-excel" class="hidden inline-flex items-center justify-center gap-1.5 w-[125px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors flex-shrink-0">
                         <svg class="w-3.5 h-3.5"><use href="#i-download"/></svg> 결과 내려받기
                     </button>
+                    </div>
                 </div>
                 <div class="flex-1 overflow-auto pb-4 min-h-0">
                     <div class="w-full min-w-full h-full">
@@ -926,10 +914,7 @@
 
             <!-- 배정 검증 -->
             <section id="tab-validate" class="tab-content hidden h-full flex flex-col">
-                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0">
-                    <h2 class="font-semibold text-[15px] flex items-center gap-2 text-white">
-                        <svg class="w-4 h-4 text-white"><use href="#i-search"/></svg> 배정 검증
-                    </h2>
+                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-end flex-shrink-0">
                     <div class="flex items-center gap-2">
                         <button id="btn-show-events" onclick="openEventModal()" class="hidden inline-flex items-center justify-center gap-1.5 h-9 px-3 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors flex-shrink-0">
                             <svg class="w-3.5 h-3.5 text-white"><use href="#i-clipboard-list"/></svg> 배정 중 발생한 이벤트
