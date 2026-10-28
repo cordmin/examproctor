@@ -820,21 +820,21 @@
 
             <!-- 감독 명단 -->
             <section id="tab-teachers" class="tab-content hidden h-full flex flex-col">
-                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-end flex-shrink-0">
+                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0">
                     <div class="flex items-center gap-2">
-                        <button id="btn-add-teacher" class="inline-flex items-center justify-center gap-1.5 w-[125px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
-                            <svg class="w-3.5 h-3.5"><use href="#i-plus"/></svg> 명단 추가
+                        <button id="btn-add-teacher" class="inline-flex items-center justify-center gap-1.5 px-[15px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
+                            <svg class="w-3.5 h-3.5"><use href="#i-plus"/></svg> 감독인원 추가
                         </button>
-                        <button id="btn-upload-csv" class="inline-flex items-center justify-center gap-1.5 w-[125px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
-                            <svg class="w-3.5 h-3.5"><use href="#i-upload"/></svg> 명단 올리기
+                        <button id="btn-upload-csv" class="inline-flex items-center justify-center gap-1.5 px-[15px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
+                            <svg class="w-3.5 h-3.5"><use href="#i-upload"/></svg> 감독명단 열기
                         </button>
-                        <button id="btn-download-template" class="inline-flex items-center justify-center gap-1.5 w-[125px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
-                            <svg class="w-3.5 h-3.5"><use href="#i-download"/></svg> 양식 내려받기
-                        </button>
-                        <button id="btn-clear-teachers" class="inline-flex items-center justify-center gap-1.5 w-[125px] h-9 bg-[#F04A4A] hover:bg-[#D93838] text-white font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors border-0">
-                            <svg class="w-3.5 h-3.5 text-white"><use href="#i-trash"/></svg> 명단 초기화
+                        <button id="btn-download-template" class="inline-flex items-center justify-center gap-1.5 px-[15px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
+                            <svg class="w-3.5 h-3.5"><use href="#i-download"/></svg> 감독명단 양식
                         </button>
                     </div>
+                    <button id="btn-clear-teachers" class="inline-flex items-center justify-center gap-1.5 px-[15px] h-9 bg-[#F04A4A] hover:bg-[#D93838] text-white font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors border border-transparent">
+                        <svg class="w-3.5 h-3.5 text-white"><use href="#i-trash"/></svg> 명단 초기화
+                    </button>
                 </div>
                 <div class="flex-1 overflow-auto pb-4">
                     <table class="w-full text-center table-fixed text-[13px]">
