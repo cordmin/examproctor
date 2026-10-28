@@ -339,7 +339,45 @@ document.getElementById('btn-add-subject').addEventListener('click', () => { con
 const fpDate = flatpickr('#new-date', { static: true, locale: 'ko', dateFormat: 'Y-m-d', altInput: true, altFormat: 'n월 j일 (D)', altInputClass: 'fld pl-8 pr-3 py-2 text-[13px] font-bold cursor-pointer text-center', disableMobile: true, monthSelectorType: 'static',
     onDayCreate: (dObj, dStr, fp, dayElem) => { const wd = dayElem.dateObj.getDay(); if (dayElem.classList.contains('selected')) return; if (wd === 0) dayElem.style.color = '#E11D48'; else if (wd === 6) dayElem.style.color = '#2563EB'; } });
 
+// 달력 머리글의 연·월을 누르면 고르는 판이 펼쳐진다. 연을 고르면 이어서 월을 고른다.
+function mountYearMonthPanel(fp) {
+    const cal = fp.calendarContainer;
+    const yearInput = cal.querySelector('.cur-year');
+    yearInput.readOnly = true;
+    const panel = document.createElement('div');
+    panel.className = 'ym-panel';
+    cal.appendChild(panel);
+    let mode = null, firstYear = 0;
+
+    const render = () => {
+        const items = Array.from({ length: 12 }, (_, i) => mode === 'year' ? firstYear + i : i);
+        const nav = mode === 'year'
+            ? `<button data-step="-12">‹</button><span>${firstYear} – ${firstYear + 11}</span><button data-step="12">›</button>`
+            : `<span>${fp.currentYear}년</span>`;
+        panel.innerHTML = `<div class="ym-nav">${nav}</div><div class="ym-grid">${items.map(v => {
+            const on = mode === 'year' ? v === fp.currentYear : v === fp.currentMonth;
+            return `<button data-v="${v}" class="${on ? 'on' : ''}">${mode === 'year' ? v + '년' : (v + 1) + '월'}</button>`;
+        }).join('')}</div>`;
+    };
+    const show = (m) => { mode = m; firstYear = fp.currentYear - 4; render(); panel.classList.add('show'); };
+    const hide = () => { mode = null; panel.classList.remove('show'); };
+    const toggle = (m) => (e) => { e.stopPropagation(); mode === m ? hide() : show(m); };
+
+    yearInput.parentElement.addEventListener('click', toggle('year'));
+    cal.querySelector('.cur-month').addEventListener('click', toggle('month'));
+    panel.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const b = e.target.closest('button');
+        if (!b) return;
+        if (b.dataset.step) { firstYear += Number(b.dataset.step); return render(); }
+        if (mode === 'year') { fp.changeYear(Number(b.dataset.v)); mode = 'month'; render(); }
+        else { fp.changeMonth(Number(b.dataset.v), false); hide(); }
+    });
+    fp.config.onClose.push(hide);
+}
+
 if (fpDate && fpDate.altInput) {
+    mountYearMonthPanel(fpDate);
     let dateBtnWasOpen = false;
     fpDate.altInput.addEventListener('mousedown', () => {
         dateBtnWasOpen = fpDate.isOpen;

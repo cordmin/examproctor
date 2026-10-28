@@ -418,7 +418,36 @@
         /* static 모드: 입력칸 바로 아래에 띄우고 다른 카드 위로 올라오게 한다 */
         .flatpickr-wrapper { position: relative; }
         .flatpickr-calendar.static { top: calc(100% + 6px); left: 0; z-index: 60; }
-        .flatpickr-months { padding-top: 4px; }
+        .flatpickr-months { padding-top: 0; }
+        /* 머리글: '2026년 10월' 순서, 위로 붙이고 달 넘김 버튼은 안쪽으로 */
+        .flatpickr-current-month { padding-top: 4px !important; display: flex !important; justify-content: center; align-items: center; gap: 6px; }
+        .flatpickr-current-month .numInputWrapper { order: 0; width: auto !important; }
+        .flatpickr-current-month .numInputWrapper::after { content: '년'; font-weight: 800; }
+        .flatpickr-current-month .numInputWrapper span.arrowUp,
+        .flatpickr-current-month .numInputWrapper span.arrowDown { display: none; }
+        .flatpickr-current-month .cur-month { order: 1; margin: 0 !important; font-weight: 800; }
+        .flatpickr-current-month input.cur-year { width: 4.2ch !important; padding: 0 !important; text-align: right; cursor: pointer; }
+        .flatpickr-current-month .cur-month, .flatpickr-current-month .numInputWrapper { border-radius: 6px; padding: 0 4px; cursor: pointer; }
+        .flatpickr-current-month .cur-month:hover, .flatpickr-current-month .numInputWrapper:hover { background: rgb(var(--brand-50)); }
+        .flatpickr-months .flatpickr-prev-month { left: 22px !important; }
+        .flatpickr-months .flatpickr-next-month { right: 22px !important; }
+        /* 요일·날짜 칸 폭을 줄여 일·토가 양끝에 붙지 않게 */
+        .flatpickr-weekdays { padding: 0 21px; }
+        .flatpickr-days { width: 266px !important; margin: 0 auto; }
+        .dayContainer { width: 266px !important; min-width: 266px !important; max-width: 266px !important; }
+        /* 연·월 고르는 판: 머리글을 누르면 날짜 칸 위로 펼쳐진다 */
+        .ym-panel { position: absolute; left: 4px; right: 4px; top: 46px; bottom: 4px; background: rgb(var(--surface-0));
+                    border-radius: 10px; display: flex; flex-direction: column; gap: 8px; padding: 6px 16px 10px;
+                    opacity: 0; transform: translateY(-8px) scale(.97); pointer-events: none;
+                    transition: opacity .18s ease, transform .22s cubic-bezier(.2,.8,.2,1); z-index: 5; }
+        .ym-panel.show { opacity: 1; transform: none; pointer-events: auto; }
+        .ym-nav { display: flex; align-items: center; justify-content: center; gap: 14px; font-weight: 800; color: rgb(var(--text-main)); font-size: 13px; }
+        .ym-nav button { width: 26px; height: 26px; border-radius: 6px; color: rgb(var(--stone)); font-size: 16px; }
+        .ym-nav button:hover { background: rgb(var(--brand-50)); color: rgb(var(--brand-600)); }
+        .ym-grid { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .ym-grid button { border-radius: 9px; font-weight: 700; font-size: 13px; color: rgb(var(--text-main)); transition: background-color .12s; }
+        .ym-grid button:hover { background: rgb(var(--brand-50)); }
+        .ym-grid button.on { background: rgb(var(--brand-600)); color: #fff; }
         .flatpickr-month { color: rgb(var(--brand-600)) !important; }
         .flatpickr-current-month .flatpickr-monthDropdown-months, .flatpickr-current-month input.cur-year { font-weight: 800; }
         .flatpickr-weekday { color: rgb(var(--stone)) !important; font-weight: 700; font-size: 11px; }
