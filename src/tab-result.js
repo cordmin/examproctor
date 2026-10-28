@@ -145,28 +145,12 @@ function syncResultHeaders() {
     document.querySelectorAll('.result-table-scroll').forEach(syncResultHeader);
 }
 
-// 교시 머리글에 마우스를 올리면 그 교시의 학년별 시험 과목을 말풍선으로 보여 준다.
-// 머리글 상자가 넘치는 부분을 숨기므로 칸 안이 아니라 body 에 띄운다.
-const periodSubjectTip = document.createElement('div');
-periodSubjectTip.className = 'fixed z-[9999] pointer-events-none hidden flex-col items-center';
-periodSubjectTip.innerHTML = `<div class="w-0 h-0 border-x-4 border-x-transparent border-b-4 border-b-[#1E293B]"></div>
-    <div class="bg-[#1E293B] text-white text-[11.5px] font-bold px-3 py-1.5 rounded-md shadow-2xl border border-white/20 whitespace-nowrap"></div>`;
-document.body.append(periodSubjectTip);
-
-function showPeriodSubjects(event) {
-    const cell = event.target.closest('[data-pid]');
-    const subjects = cell && (appData.classSubjects[cell.dataset.pid] || {});
-    const text = cell && [...appData.config.grades].sort().filter(g => subjects[g])
+// 교시 머리글에 마우스를 올리면 그 교시의 학년별 시험 과목을 말풍선으로 보여 준다 (ui.js 의 data-tip).
+function periodSubjectsText(pid) {
+    const subjects = appData.classSubjects[pid] || {};
+    return [...appData.config.grades].sort().filter(g => subjects[g])
         .map(g => `${g}학년: ${subjectLabel(subjects[g])}`).join('  /  ');
-    if (!text) return hidePeriodSubjects();
-    periodSubjectTip.lastElementChild.textContent = text;
-    periodSubjectTip.classList.replace('hidden', 'flex');
-    const zoom = parseFloat(document.documentElement.style.zoom) || 1;
-    const r = cell.getBoundingClientRect();
-    periodSubjectTip.style.left = `${(r.left + r.width / 2) / zoom - periodSubjectTip.offsetWidth / 2}px`;
-    periodSubjectTip.style.top = `${r.bottom / zoom + 2}px`;
 }
-function hidePeriodSubjects() { periodSubjectTip.classList.replace('flex', 'hidden'); }
 
 function mountResultTable(container, html, periodsByDate, dates, periodTitle = p => p.name) {
     container.innerHTML = html;
@@ -184,10 +168,9 @@ function mountResultTable(container, html, periodsByDate, dates, periodTitle = p
         periodHeaders.forEach((cell, index) => {
             cell.classList.add('result-period-title');
             cell.textContent = periodTitle(periods[index]);
-            cell.dataset.pid = periods[index].id;
+            const tip = periodSubjectsText(periods[index].id);
+            if (tip) cell.dataset.tip = tip;
         });
-        headerTable.addEventListener('mouseover', showPeriodSubjects);
-        headerTable.addEventListener('mouseleave', hidePeriodSubjects);
         const dateHeaders = [...head.rows[0].cells].slice(-dates.length);
         dateHeaders[0].classList.add('border-edge');
         periodHeaders[0].classList.add('border-edge');

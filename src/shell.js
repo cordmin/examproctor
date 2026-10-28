@@ -28,24 +28,16 @@ const TAB_RENDERERS = {
 };
 
 window.renderSidebar = function() {
+    // 짙은 남색 사이드바 위의 메뉴: 선택된 탭만 파란 바탕
     document.getElementById('sidebar-nav').innerHTML = NAV_ITEMS.map(item => {
-        if (item.action) return `
-            <button data-action="${item.action}"
-                    class="w-full flex items-center justify-center px-3 py-3.5 rounded-xl transition-colors font-semibold text-[13.5px] cursor-pointer text-text-main hover:bg-surface-100">
-                <div class="inline-flex items-center space-x-2 -translate-x-[8px]">
-                    ${icon(item.icon, 'w-4 h-4 flex-shrink-0 text-stone')}
-                    <span>${item.label}</span>
-                </div>
-            </button>`;
-        const isActive = item.target === activeTarget;
+        const isActive = item.target && item.target === activeTarget;
+        const attr = item.action ? `data-action="${item.action}"` : `data-target="${item.target}"`;
         return `
-            <button data-target="${item.target}"
-                    class="w-full flex items-center justify-center px-3 py-3.5 rounded-xl transition-colors font-semibold text-[13.5px] cursor-pointer ${
-                        isActive ? 'bg-[#1E293B] text-white font-bold' : 'text-text-main hover:bg-surface-100'}">
-                <div class="inline-flex items-center space-x-2 -translate-x-[8px]">
-                    ${icon(item.icon, `w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-stone'}`)}
-                    <span>${item.label}</span>
-                </div>
+            <button ${attr}
+                    class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-colors text-[13.5px] cursor-pointer ${
+                        isActive ? 'bg-[#2563EB] text-white font-bold' : 'text-white/90 font-semibold hover:bg-white/10'}">
+                ${icon(item.icon, `w-[18px] h-[18px] flex-shrink-0 ${isActive ? 'text-white' : 'text-white/75'}`)}
+                <span>${item.label}</span>
             </button>`;
     }).join('');
 };

@@ -201,7 +201,7 @@ window.renderAbsencesTab = function() {
     const row1 = `<tr>
         <th rowspan="2" class="p-2 align-middle text-[13px] border-b border-r border-line bg-[#F1F5F9]">순</th>
         <th rowspan="2" class="p-2 align-middle border-b border-r border-line text-[14.5px] bg-[#F1F5F9]">성명</th>
-        <th rowspan="2" class="p-2 leading-tight align-middle text-[13px] border-b border-r border-line bg-[#F1F5F9]">배정 제한<br>(시간)</th>
+        <th rowspan="2" class="p-2 leading-tight align-middle text-[13px] border-b border-r border-line bg-[#F1F5F9] cursor-help" data-tip="시험 기간 중 감독 배정 시간의 최대값을 설정">배정 제한</th>
         ${dateHeaders.row1}
         <th rowspan="2" class="p-2 align-middle text-[13px] border-b border-line bg-[#F1F5F9]">참고사항</th>
     </tr>`;
@@ -225,7 +225,14 @@ window.renderAbsencesTab = function() {
         let rHtml = `<tr class="hover:bg-surface-50">
         <td class="py-2.5 px-1 border border-line bg-surface-100 font-bold text-[13px] text-center">${idx+1}</td>
         <td class="py-2.5 px-2 border border-line font-bold bg-surface-0 text-center text-[14.5px]">${t.name||'-'}</td>
-        <td class="py-2.5 px-1 border border-line bg-surface-0 text-center"><input type="number" min="0" max="99" class="w-full text-center outline-none bg-transparent text-sm" value="${valMax}" onchange="updateTeacher('${t.id}', 'maxPeriods', this.value, false)"></td>`;
+        <td class="py-2.5 px-1 border border-line bg-surface-0 text-center">
+            <div class="flex items-center justify-center gap-0.5 text-sm">
+                <input type="number" min="0" max="99" class="w-10 text-right outline-none bg-transparent" value="${valMax}"
+                       oninput="this.nextElementSibling.textContent = this.value > 0 ? '시간' : ''"
+                       onchange="if (!(this.value > 0)) this.value = ''; updateTeacher('${t.id}', 'maxPeriods', this.value, false)">
+                <span class="w-7 text-left">${valMax ? '시간' : ''}</span>
+            </div>
+        </td>`;
         
         if(!t.absences) t.absences = {}; 
         dates.forEach((d, dIdx) => {

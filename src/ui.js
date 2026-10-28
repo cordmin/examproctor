@@ -339,7 +339,7 @@ function syncSplitTableHeader(scroll, header, viewport = null) {
 const TOUR_STEPS = [
     { el: '[data-target="tab-config"]',   title: '1. 기초 설정',  text: '시험 날짜와 교시, 시험 보는 학년과 과목을 정합니다. 교실마다 감독을 몇 명 둘지도 여기서 정합니다.' },
     { el: '[data-target="tab-teachers"]', title: '2. 감독 명단',  text: '감독 들어가실 선생님을 설정합니다. 엑셀 양식으로 한꺼번에 불러올 수도 있고, 선생님마다 맡을 수 있는 감독을 체크합니다.' },
-    { el: '[data-target="tab-absences"]', title: '3. 결시 관리',  text: '출장·수업 등으로 감독할 수 없는 시간을 표시합니다. 선생님별 배정 제한(시간)도 여기서 정합니다.' },
+    { el: '[data-target="tab-absences"]', title: '3. 결시 관리',  text: '출장·수업 등으로 감독할 수 없는 시간을 표시합니다. 선생님별 배정 제한도 여기서 정합니다.' },
     { el: '[data-action="run"]',          title: '4. 배정 실행',  text: '배정 규칙을 확인하고 실행하면 감독이 자동으로 배정됩니다. 배정이 막히면 무엇부터 고치면 되는지 알려 줍니다.' },
     { el: '[data-target="tab-result"]',   title: '5. 배정 결과',  text: '선생님별·학급별 감독표를 봅니다. 칸을 끌어 놓거나 우클릭해서 선생님을 바꿀 수 있고, 엑셀로 내려받을 수 있습니다.' },
     { el: '[data-target="tab-validate"]', title: '6. 배정 검증',  text: '모든 규칙을 잘 지켰는지 확인합니다. 문제가 있으면 해결 방법과 바로 가기 버튼이 함께 나옵니다.' },
@@ -353,8 +353,10 @@ function placeTour() {
     const zoom = parseFloat(document.documentElement.style.zoom) || 1;
     const r = document.querySelector(step.el).getBoundingClientRect();
     const pad = 4, spot = document.getElementById('tour-spot'), card = document.getElementById('tour-card');
-    Object.assign(spot.style, { left: `${r.left / zoom - pad}px`, top: `${r.top / zoom - pad}px`,
-                                width: `${r.width / zoom + pad * 2}px`, height: `${r.height / zoom + pad * 2}px` });
+    const x = r.left / zoom - pad, y = r.top / zoom - pad, w = r.width / zoom + pad * 2, h = r.height / zoom + pad * 2, rr = 12;
+    Object.assign(spot.style, { left: `${x}px`, top: `${y}px`, width: `${w}px`, height: `${h}px` });
+    // 화면 전체 사각형 + 둥근 구멍 (evenodd 로 구멍만 비운다)
+    document.getElementById('tour-mask').setAttribute('d', `M0 0H99999V99999H0Z M${x + rr} ${y}H${x + w - rr}A${rr} ${rr} 0 0 1 ${x + w} ${y + rr}V${y + h - rr}A${rr} ${rr} 0 0 1 ${x + w - rr} ${y + h}H${x + rr}A${rr} ${rr} 0 0 1 ${x} ${y + h - rr}V${y + rr}A${rr} ${rr} 0 0 1 ${x + rr} ${y}Z`);
     document.getElementById('tour-title').textContent = step.title;
     document.getElementById('tour-text').textContent = step.text;
     document.getElementById('tour-step').textContent = `${tourIndex + 1} / ${TOUR_STEPS.length}`;
@@ -396,3 +398,21 @@ document.getElementById('tour').addEventListener('keydown', event => {
     else if (event.key === 'ArrowLeft' && tourIndex > 0) moveTour(-1);
 });
 window.addEventListener('resize', () => { if (!document.getElementById('tour').classList.contains('hidden')) placeTour(); });
+
+// ── 말풍선 툴팁: data-tip 이 있는 요소에 마우스를 올리면 아래에 띄운다 ──
+// 표 머리글처럼 넘치는 부분을 숨기는 상자 안에서도 보이도록 칸 안이 아니라 body 에 띄운다.
+const hoverTip = document.createElement('div');
+hoverTip.className = 'fixed z-[9999] pointer-events-none hidden flex-col items-center';
+hoverTip.innerHTML = `<div class="w-0 h-0 border-x-4 border-x-transparent border-b-4 border-b-[#1E293B]"></div>
+    <div class="bg-[#1E293B] text-white text-[11.5px] font-bold px-3 py-1.5 rounded-md shadow-2xl border border-white/20 whitespace-nowrap"></div>`;
+document.body.append(hoverTip);
+document.addEventListener('mouseover', event => {
+    const el = event.target.closest('[data-tip]');
+    if (!el) { hoverTip.classList.replace('flex', 'hidden'); return; }
+    hoverTip.lastElementChild.textContent = el.dataset.tip;
+    hoverTip.classList.replace('hidden', 'flex');
+    const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+    const r = el.getBoundingClientRect();
+    hoverTip.style.left = `${Math.max(4, (r.left + r.width / 2) / zoom - hoverTip.offsetWidth / 2)}px`;
+    hoverTip.style.top = `${r.bottom / zoom + 2}px`;
+});

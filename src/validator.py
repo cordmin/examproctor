@@ -19,7 +19,7 @@ def generate_verify_data(teachers, periods, assignments, classSubjects, rules):
         {"name": "7. 동일 학급 연속 배정 금지", "desc": "동일한 학급에 연속으로 시험 감독이 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "8. 동일 역할(수업/복도) 연속 배정 금지", "desc": "수업감독 또는 복도감독이 2연속으로 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "9. 1일 최대 연속 감독 횟수 제한", "desc": "하루 최대 연속 감독 시간 제한을 초과하여 배정되었는지 확인합니다.", "pass": True, "messages": []},
-        {"name": "10. 교사별 배정 제한(시간) 준수", "desc": "교사별 설정된 '배정 제한(시간)' 한도를 초과하여 배정되었는지 확인합니다.", "pass": True, "messages": []},
+        {"name": "10. 교사별 배정 제한 준수", "desc": "교사별 설정된 '배정 제한' 한도를 초과하여 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "11. 1일 감독 횟수 편차 제한", "desc": "1일 최대 감독 횟수 편차 한도를 초과하여 교사 간 불균형이 있는지 확인합니다.", "pass": True, "messages": []}
     ]
 
@@ -33,7 +33,7 @@ def generate_verify_data(teachers, periods, assignments, classSubjects, rules):
         ("결시 관리에서 결시가 맞는지 확인하고, 맞다면 " + swap, "tab-absences"),
         rule_off, rule_off, rule_off, rule_off,
         ("연속으로 맡은 시간 중 하나를 다른 선생님과 교체하거나, 배정 규칙에서 연속 감독 시간을 늘리세요.", "rules"),
-        ("결시 관리에서 배정 제한(시간)이 맞는지 확인하거나, " + swap, "tab-absences"),
+        ("결시 관리에서 배정 제한이 맞는지 확인하거나, " + swap, "tab-absences"),
         ("가장 많이 맡은 선생님의 감독 하나를 가장 적게 맡은 선생님과 교체하거나, 배정 규칙에서 편차 허용을 늘리세요.", "rules"),
     ]
     for c, (fix, target) in zip(checks, fixes):
@@ -57,7 +57,7 @@ def generate_verify_data(teachers, periods, assignments, classSubjects, rules):
         actual_count = sum(1 for v in t_assigns.values() if v and v != '-')
         max_p = int(t.get('maxPeriods', 0) or 999)
         if max_p != 999 and actual_count > max_p:
-            fail(9, f"[{t['name']}] 배정 제한(시간) 초과 (설정:{max_p}시간, 실제:{actual_count}시간)", t_id)
+            fail(9, f"[{t['name']}] 배정 제한 초과 (설정:{max_p}시간, 실제:{actual_count}시간)", t_id)
 
         history_full = []
         for p in periods_sorted:
