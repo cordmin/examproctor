@@ -58,6 +58,8 @@ class Api:
         else:
             self.data_file = 'timetable_data.json'
         self.data = self.load_data()
+        # 마지막 창 위치·크기. 자동 저장 파일과 같은 폴더에 둔다.
+        self.window_file = os.path.join(os.path.dirname(os.path.abspath(self.data_file)), 'window.json')
         self._win = None        # webview.create_window() 결과. 창 제어에 쓴다.
         self._maximized = False
         self._normal_bounds = None   # 최대화 직전 위치·크기. 복원할 때 쓴다.
@@ -101,7 +103,24 @@ class Api:
 
     def close_window(self):
         if self._win:
+            self.save_window_state()
             self._win.destroy()
+
+    def load_window_state(self):
+        try:
+            with open(self.window_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (OSError, ValueError):
+            return None
+
+    def save_window_state(self):
+        try:
+            x, y, w, h = self._normal_bounds if self._maximized else                 (self._win.x, self._win.y, self._win.width, self._win.height)
+            if x < -10000:   # 최소화된 채로 닫으면 좌표가 -32000 이 된다
+                return
+            self._write_json(self.window_file, {'x': x, 'y': y, 'w': w, 'h': h, 'maximized': self._maximized})
+        except Exception as e:
+            print(f"창 크기 저장 실패: {e}")
 
     def get_bounds(self):
         if not self._win:
@@ -290,19 +309,27 @@ if __name__ == '__main__':
     # 기준 크기 1280x800 의 0.8배. shell.js 의 MIN_W/MIN_H 와 맞춘다.
     # 1366x768 노트북, 1920x1080 @150% 배율에서도 창이 화면 안에 들어간다.
     min_w, min_h = 1024, 640
-    # 복원(최대화 해제) 시 크기. 최대화 상태로 열리고, 화면 크기는 shell.js 가 맞춘다.
+    # 처음 켤 때 크기. 이후로는 마지막에 쓰던 위치·크기(window.json)로 연다.
+    # 화면 안 요소 크기는 shell.js 가 창 크기에 맞춘다.
     win_w, win_h = 1280, 800
     win_x, win_y = None, None
+    saved = api.load_window_state()
 
     try:
         screens = webview.screens
-        if screens and len(screens) > 0:
+        # 저장된 위치가 지금 연결된 모니터 안에 있을 때만 쓴다 (모니터를 뺐을 수도 있다)
+        if saved and any(sc.x <= saved['x'] + 50 < sc.x + sc.width and sc.y <= saved['y'] + 50 < sc.y + sc.height
+                         for sc in screens):
+            win_x, win_y, win_w, win_h = int(saved['x']), int(saved['y']), int(saved['w']), int(saved['h'])
+        elif screens:
             primary_screen = screens[0]
             win_w, win_h = min(win_w, primary_screen.width), min(win_h, primary_screen.height)
             win_x = max(0, int((primary_screen.width - win_w) / 2))
             win_y = max(0, int((primary_screen.height - win_h) / 2))
+            saved = None
     except Exception as e:
         print(f"화면 위치 계산 중 오류 (기본값 사용): {e}")
+        saved = None
 
     # frameless: 타이틀바를 index.html 이 직접 그린다.
     # easy_drag=False: 창 전체가 아니라 .pywebview-drag-region 만 드래그 대상이 된다.
@@ -317,8 +344,16 @@ if __name__ == '__main__':
         frameless=True,
         easy_drag=False,
     )
-    def open_maximized():
-        api._win.events.shown.wait()
-        api.toggle_maximize()
+    api._win.events.closing += api.save_window_state   # Alt+F4, 작업 표시줄에서 닫기
 
-    webview.start(open_maximized)
+    # create_window 의 크기는 테두리를 없애면서 조금 줄어든다. 그대로 두면 켤 때마다
+    # 창이 작아지므로, 창이 뜬 뒤 저장된 크기를 다시 정확히 맞춘다.
+    def restore_window():
+        if not saved:
+            return
+        api._win.events.shown.wait()
+        api._apply_bounds(win_x, win_y, win_w, win_h)
+        if saved.get('maximized'):
+            api.toggle_maximize()
+
+    webview.start(restore_window)
