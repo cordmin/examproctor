@@ -27,7 +27,9 @@ SetupIconFile=icon.ico
 UninstallDisplayIcon={app}\{#MyAppExe}
 Compression=lzma2
 SolidCompression=yes
-CloseApplications=yes
+CloseApplications=force
+RestartApplications=no
+SetupLogging=yes
 WizardStyle=modern
 
 [Languages]
@@ -42,5 +44,15 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"
 
 [Run]
 ; 처음 설치: 마지막 화면의 '실행' 체크. 자동 업데이트(조용한 설치): 끝나면 바로 다시 켠다.
-Filename: "{app}\{#MyAppExe}"; Description: "프로그램 실행"; Flags: nowait postinstall skipifsilent
-Filename: "{app}\{#MyAppExe}"; Flags: nowait skipifnotsilent
+Filename: "{app}\{#MyAppExe}"; WorkingDir: "{app}"; BeforeInstall: PrepareAppRestart; Description: "프로그램 실행"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExe}"; WorkingDir: "{app}"; BeforeInstall: PrepareAppRestart; Flags: nowait skipifnotsilent
+
+[Code]
+function SetEnvironmentVariable(lpName, lpValue: string): Boolean;
+  external 'SetEnvironmentVariableW@kernel32.dll stdcall';
+
+procedure PrepareAppRestart;
+begin
+  // 이전 버전에서 실행한 설치 파일도 새 인스턴스로 프로그램을 다시 켠다.
+  SetEnvironmentVariable('PYINSTALLER_RESET_ENVIRONMENT', '1');
+end;

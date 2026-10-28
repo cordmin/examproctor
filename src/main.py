@@ -308,14 +308,30 @@ class Api:
             print(f"업데이트 확인 실패: {e}")
             return {"available": False}
 
-    def install_update(self, tag):
+    def install_update(self, tag, data=None):
         """설치 파일을 받아 조용히 설치하도록 띄우고 창을 닫는다. 설치가 끝나면 설치 파일이 프로그램을 다시 켠다."""
         try:
             url = f'https://github.com/{UPDATE_REPO}/releases/download/{tag}/{SETUP_ASSET}'
             path = os.path.join(tempfile.gettempdir(), SETUP_ASSET)
             urllib.request.urlretrieve(url, path)
-            subprocess.Popen([path, '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'],
-                             creationflags=subprocess.DETACHED_PROCESS)
+            if data is not None:
+                self.data = data
+            self._write_json(self.data_file, self.data)
+            log_path = os.path.join(os.path.dirname(os.path.abspath(self.data_file)), 'update-install.log')
+            env = {**os.environ, 'PYINSTALLER_RESET_ENVIRONMENT': '1'}
+            bundle_dir = getattr(sys, '_MEIPASS', None)
+            # PyInstaller 의 DLL 검색 경로를 설치 파일에 상속하지 않는다.
+            if sys.platform == 'win32' and bundle_dir:
+                ctypes.windll.kernel32.SetDllDirectoryW(None)
+            try:
+                subprocess.Popen([path, '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART',
+                                  '/CLOSEAPPLICATIONS', '/FORCECLOSEAPPLICATIONS',
+                                  '/NORESTARTAPPLICATIONS', f'/LOG={log_path}'],
+                                 cwd=os.path.dirname(sys.executable), env=env,
+                                 creationflags=subprocess.DETACHED_PROCESS)
+            finally:
+                if sys.platform == 'win32' and bundle_dir:
+                    ctypes.windll.kernel32.SetDllDirectoryW(ctypes.c_wchar_p(bundle_dir))
             self.close_window()
             return {"success": True}
         except Exception as e:

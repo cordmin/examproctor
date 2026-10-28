@@ -255,7 +255,7 @@ function askUpdate(res) {
     document.getElementById('update-modal-ok').onclick = () => {
         m.classList.add('hidden');
         showToast(`새 버전(${res.version})을 설치합니다.\n잠시 후 프로그램이 다시 켜집니다.`, "success");
-        window.pywebview.api.install_update(res.version).then(r => {
+        window.pywebview.api.install_update(res.version, appData).then(r => {
             if (!r.success) showToast("업데이트 실패: " + r.error, "error");
         });
     };
