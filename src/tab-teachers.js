@@ -4,8 +4,6 @@
 window.renderTeachers = function() {
     const tbody = document.getElementById('teacher-list-body'); tbody.innerHTML = "";
 
-    if (appData.teachers.length === 0) { tbody.innerHTML = `<tr><td colspan="14" class="p-12 text-pebble font-bold bg-surface-50">명단이 없습니다.</td></tr>`; return; }
-
     const activeGrades = appData.config.grades || [];
     const totalHallways = [1,2,3].reduce((sum, g) => sum + (activeGrades.includes(g) ? (appData.config.hallways[g] || 0) : 0), 0);
     const totalSeparated = [1,2,3].reduce((sum, g) => sum + (activeGrades.includes(g) ? (appData.config.separated[g] || 0) : 0), 0);
@@ -18,6 +16,12 @@ window.renderTeachers = function() {
     const sepDis = totalSeparated === 0;
     const spDis = totalSpecial === 0;
 
+    // 기초 설정에서 쓰지 않는 감독 유형은 열째로 숨긴다. 남는 폭은 참고사항 열이 가져간다.
+    const hiddenRole = { isClass1: c1Dis, isClass2: c2Dis, isClass3: c3Dis, isHallway: hwDis, isSeparated: sepDis, isSpecial: spDis };
+    document.querySelectorAll('#tab-teachers th[data-role]').forEach(th => th.classList.toggle('hidden', hiddenRole[th.dataset.role]));
+
+    if (appData.teachers.length === 0) { tbody.innerHTML = `<tr><td colspan="14" class="p-12 text-pebble font-bold bg-surface-50">명단이 없습니다.</td></tr>`; return; }
+
     let rows = "";
     appData.teachers.forEach((t, idx) => {
         rows += `
@@ -29,13 +33,13 @@ window.renderTeachers = function() {
                 <td class="py-2.5 px-1 border border-line"><input type="checkbox" class="chk-custom" ${t.isMain!==false?'checked':''} onchange="updateTeacher('${t.id}', 'isMain', this.checked, false)"></td>
                 <td class="py-2.5 px-1 border border-line"><input type="checkbox" class="chk-custom" ${t.isSub!==false?'checked':''} onchange="updateTeacher('${t.id}', 'isSub', this.checked, false)"></td>
                 
-                <td class="py-2.5 px-1 border border-line bg-yellow-50/80 ${c1Dis?'opacity-40':''}"><input type="checkbox" class="chk-custom" ${t.isClass1!==false && !c1Dis?'checked':''} ${c1Dis?'disabled':''} onchange="updateTeacher('${t.id}', 'isClass1', this.checked, false)"></td>
-                <td class="py-2.5 px-1 border border-line bg-emerald-50/80 ${c2Dis?'opacity-40':''}"><input type="checkbox" class="chk-custom" ${t.isClass2!==false && !c2Dis?'checked':''} ${c2Dis?'disabled':''} onchange="updateTeacher('${t.id}', 'isClass2', this.checked, false)"></td>
-                <td class="py-2.5 px-1 border border-line bg-blue-50/80 ${c3Dis?'opacity-40':''}"><input type="checkbox" class="chk-custom" ${t.isClass3!==false && !c3Dis?'checked':''} ${c3Dis?'disabled':''} onchange="updateTeacher('${t.id}', 'isClass3', this.checked, false)"></td>
+                ${c1Dis ? '' : `<td class="py-2.5 px-1 border border-line bg-yellow-50/80"><input type="checkbox" class="chk-custom" ${t.isClass1!==false?'checked':''} onchange="updateTeacher('${t.id}', 'isClass1', this.checked, false)"></td>`}
+                ${c2Dis ? '' : `<td class="py-2.5 px-1 border border-line bg-emerald-50/80"><input type="checkbox" class="chk-custom" ${t.isClass2!==false?'checked':''} onchange="updateTeacher('${t.id}', 'isClass2', this.checked, false)"></td>`}
+                ${c3Dis ? '' : `<td class="py-2.5 px-1 border border-line bg-blue-50/80"><input type="checkbox" class="chk-custom" ${t.isClass3!==false?'checked':''} onchange="updateTeacher('${t.id}', 'isClass3', this.checked, false)"></td>`}
                 
-                <td class="py-2.5 px-1 border border-line ${hwDis?'opacity-40':''}"><input type="checkbox" class="chk-custom" ${t.isHallway && !hwDis?'checked':''} ${hwDis?'disabled':''} onchange="updateTeacher('${t.id}', 'isHallway', this.checked, false)"></td>
-                <td class="py-2.5 px-1 border border-line ${sepDis?'opacity-40':''}"><input type="checkbox" class="chk-custom" ${t.isSeparated && !sepDis?'checked':''} ${sepDis?'disabled':''} onchange="updateTeacher('${t.id}', 'isSeparated', this.checked, false)"></td>
-                <td class="py-2.5 px-1 border border-line ${spDis?'opacity-40':''}"><input type="checkbox" class="chk-custom" ${t.isSpecial && !spDis?'checked':''} ${spDis?'disabled':''} onchange="updateTeacher('${t.id}', 'isSpecial', this.checked, false)"></td>
+                ${hwDis ? '' : `<td class="py-2.5 px-1 border border-line"><input type="checkbox" class="chk-custom" ${t.isHallway?'checked':''} onchange="updateTeacher('${t.id}', 'isHallway', this.checked, false)"></td>`}
+                ${sepDis ? '' : `<td class="py-2.5 px-1 border border-line"><input type="checkbox" class="chk-custom" ${t.isSeparated?'checked':''} onchange="updateTeacher('${t.id}', 'isSeparated', this.checked, false)"></td>`}
+                ${spDis ? '' : `<td class="py-2.5 px-1 border border-line"><input type="checkbox" class="chk-custom" ${t.isSpecial?'checked':''} onchange="updateTeacher('${t.id}', 'isSpecial', this.checked, false)"></td>`}
                 <td class="py-2.5 px-1 border border-line w-full"><input type="text" id="note-t-${idx}" data-tid="${t.id}" class="w-full bg-transparent focus:outline-none text-stone text-sm p-0.5 text-left px-2" value="${t.notes||''}" onchange="updateTeacher('${t.id}', 'notes', this.value, false)" onkeydown="handleNotesKey(event, ${idx}, 't')" onpaste="handleNotesPaste(event, ${idx}, 't')"></td>
                 <td class="py-2.5 px-1 border border-line"><button class="text-coral transition-transform inline-flex items-center justify-center mx-auto x-btn" onclick="deleteTeacher('${t.id}')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button></td>
             </tr>`;
