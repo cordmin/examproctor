@@ -195,6 +195,10 @@
             font-weight: 700;
         }
         thead + tbody > tr:first-child > td { border-top-width: 0 !important; }
+        thead.sticky-head { position: sticky; top: 0; z-index: 30; }
+        thead.sticky-head th { position: static; }
+        /* 머리글 두 줄 사이 경계는 윗줄 배경 선만 쓴다. 테두리를 두면 스크롤 때 그 1px 틈으로 아래 행이 비친다. */
+        thead.sticky-head tr + tr th { border-top-width: 0 !important; }
 
         /* 카드 외곽 테두리와 표 외각 셀 테두리 이중 중첩 방지 */
         table tr:first-child th { border-top: none !important; }
@@ -839,22 +843,53 @@
                 </div>
                 <div class="flex-1 overflow-auto pb-4">
                     <table class="w-full text-center table-fixed text-[13px]">
-                        <thead class="bg-[#F1F5F9] text-text-main font-bold text-[13px] sticky top-0 z-20">
+                        <!-- 열 너비는 colgroup 이 정한다 (머리글이 두 줄이고 첫 줄에 합친 칸이 있어서) -->
+                        <colgroup>
+                            <col class="w-10">
+                            <col class="w-20">
+                            <col class="w-24">
+                            <col class="w-16">
+                            <col class="w-[76px]">
+                            <col class="w-[76px]">
+                            <col data-role="isClass1" class="w-[76px]">
+                            <col data-role="isClass2" class="w-[76px]">
+                            <col data-role="isClass3" class="w-[76px]">
+                            <col data-role="isHallway" class="w-[76px]">
+                            <col data-role="isSeparated" class="w-[76px]">
+                            <col data-role="isSpecial" class="w-[76px]">
+                            <col>
+                            <col class="w-14">
+                        </colgroup>
+                        <!-- 머리글 두 줄이 함께 위에 고정되도록 thead 자체를 고정한다 -->
+                        <thead class="bg-[#F1F5F9] text-text-main font-bold text-[13px] sticky top-0 z-20 sticky-head">
                             <tr>
-                                <th class="w-10">순</th>
-                                <th class="w-20">성명</th>
-                                <th class="w-24">담당교과</th>
-                                <th class="w-16">담임</th>
-                                <th class="w-[76px]">정감독<br><input type="checkbox" id="chk-all-main" onchange="toggleAllRoles('isMain', this.checked)" class="mt-1 chk-custom"></th>
-                                <th class="w-[76px]">부감독<br><input type="checkbox" id="chk-all-sub" onchange="toggleAllRoles('isSub', this.checked)" class="mt-1 chk-custom"></th>
-                                <th data-role="isClass1" class="w-[76px]">1학년 자습<br><input type="checkbox" id="chk-all-c1" onchange="toggleAllRoles('isClass1', this.checked)" class="mt-1 chk-custom"></th>
-                                <th data-role="isClass2" class="w-[76px]">2학년 자습<br><input type="checkbox" id="chk-all-c2" onchange="toggleAllRoles('isClass2', this.checked)" class="mt-1 chk-custom"></th>
-                                <th data-role="isClass3" class="w-[76px]">3학년 자습<br><input type="checkbox" id="chk-all-c3" onchange="toggleAllRoles('isClass3', this.checked)" class="mt-1 chk-custom"></th>
-                                <th data-role="isHallway" class="w-[76px]">복도감독<br><input type="checkbox" id="chk-all-hall" onchange="toggleAllRoles('isHallway', this.checked)" class="mt-1 chk-custom"></th>
-                                <th data-role="isSeparated" class="w-[76px]">분리감독<br><input type="checkbox" id="chk-all-sep" onchange="toggleAllRoles('isSeparated', this.checked)" class="mt-1 chk-custom"></th>
-                                <th data-role="isSpecial" class="w-[76px]">특수감독<br><input type="checkbox" id="chk-all-sp" onchange="toggleAllRoles('isSpecial', this.checked)" class="mt-1 chk-custom"></th>
+                                <th colspan="4" class="text-[12px] text-stone">전체 선택</th>
+                                <th class="py-1.5"><input type="checkbox" id="chk-all-main" onchange="toggleAllRoles('isMain', this.checked)" class="chk-custom"></th>
+                                <th class="py-1.5"><input type="checkbox" id="chk-all-sub" onchange="toggleAllRoles('isSub', this.checked)" class="chk-custom"></th>
+                                <th data-role="isClass1" class="py-1.5"><input type="checkbox" id="chk-all-c1" onchange="toggleAllRoles('isClass1', this.checked)" class="chk-custom"></th>
+                                <th data-role="isClass2" class="py-1.5"><input type="checkbox" id="chk-all-c2" onchange="toggleAllRoles('isClass2', this.checked)" class="chk-custom"></th>
+                                <th data-role="isClass3" class="py-1.5"><input type="checkbox" id="chk-all-c3" onchange="toggleAllRoles('isClass3', this.checked)" class="chk-custom"></th>
+                                <th data-role="isHallway" class="py-1.5"><input type="checkbox" id="chk-all-hall" onchange="toggleAllRoles('isHallway', this.checked)" class="chk-custom"></th>
+                                <th data-role="isSeparated" class="py-1.5"><input type="checkbox" id="chk-all-sep" onchange="toggleAllRoles('isSeparated', this.checked)" class="chk-custom"></th>
+                                <th data-role="isSpecial" class="py-1.5"><input type="checkbox" id="chk-all-sp" onchange="toggleAllRoles('isSpecial', this.checked)" class="chk-custom"></th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                            <tr>
+                                <th>순</th>
+                                <th>성명</th>
+                                <th>담당교과</th>
+                                <th>담임</th>
+                                <th>정감독</th>
+                                <th>부감독</th>
+                                <th data-role="isClass1">1학년 자습</th>
+                                <th data-role="isClass2">2학년 자습</th>
+                                <th data-role="isClass3">3학년 자습</th>
+                                <th data-role="isHallway">복도감독</th>
+                                <th data-role="isSeparated">분리감독</th>
+                                <th data-role="isSpecial">특수감독</th>
                                 <th>참고사항</th>
-                                <th class="w-14">삭제</th>
+                                <th>삭제</th>
                             </tr>
                         </thead>
                         <tbody id="teacher-list-body" class="bg-surface-0"></tbody>

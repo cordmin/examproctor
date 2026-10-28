@@ -18,7 +18,7 @@ window.renderTeachers = function() {
 
     // 기초 설정에서 쓰지 않는 감독 유형은 열째로 숨긴다. 남는 폭은 참고사항 열이 가져간다.
     const hiddenRole = { isClass1: c1Dis, isClass2: c2Dis, isClass3: c3Dis, isHallway: hwDis, isSeparated: sepDis, isSpecial: spDis };
-    document.querySelectorAll('#tab-teachers th[data-role]').forEach(th => th.classList.toggle('hidden', hiddenRole[th.dataset.role]));
+    document.querySelectorAll('#tab-teachers [data-role]').forEach(el => el.classList.toggle('hidden', !!hiddenRole[el.dataset.role]));
 
     if (appData.teachers.length === 0) { tbody.innerHTML = `<tr><td colspan="14" class="p-12 text-pebble font-bold bg-surface-50">명단이 없습니다.</td></tr>`; return; }
 
