@@ -1,4 +1,5 @@
 ; 설치 파일 만들기 (Inno Setup 6)
+;   (src 폴더에서 실행)
 ;   1) pyinstaller 시험감독배정시스템.spec   → dist\시험감독배정시스템.exe
 ;   2) ISCC /DMyAppVersion=1.0.0 installer.iss → Output\ExamProctorSetup.exe
 ; 관리자 권한 없이 사용자 폴더에 설치한다. 그래야 자동 업데이트가 확인 창 없이 조용히 설치된다.

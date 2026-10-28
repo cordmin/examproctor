@@ -9,6 +9,7 @@
 실행:  python test_label_parity.py     (1번 검사에 node 필요)
 """
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -101,7 +102,7 @@ def main():
         return 0
 
     labels = build_corpus()
-    with open('labels.js', encoding='utf-8') as f:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'labels.js'), encoding='utf-8') as f:
         js_results = run_js(f.read(), labels)
 
     failures = []

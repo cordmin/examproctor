@@ -20,7 +20,7 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ github.ref_name }}".TrimStart('v')
-          if (-not (Select-String -Path main.py -SimpleMatch "APP_VERSION = '$tag'")) {
+          if (-not (Select-String -Path src/main.py -SimpleMatch "APP_VERSION = '$tag'")) {
             throw "main.py 의 APP_VERSION 이 태그($tag)와 다릅니다."
           }
 
@@ -29,11 +29,13 @@ jobs:
           python-version: '3.12'
 
       - name: Build exe
+        working-directory: src
         run: |
           pip install pywebview openpyxl pyinstaller
           pyinstaller 시험감독배정시스템.spec
 
       - name: Build installer
+        working-directory: src
         shell: pwsh
         run: |
           if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
@@ -42,4 +44,4 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: Output/ExamProctorSetup.exe
+          files: src/Output/ExamProctorSetup.exe

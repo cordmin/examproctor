@@ -1,4 +1,6 @@
-﻿import os
+import os
+
+# 경로는 모두 이 spec 파일(src 폴더) 기준이다. 결과물은 실행한 위치의 dist\ 에 생긴다.
 
 # 프론트엔드 정적 파일. index.html 의 <script> 순서와 일치해야 한다.
 FRONTEND = ['index.html', 'tailwind.min.js',
@@ -8,10 +10,10 @@ FRONTEND = ['index.html', 'tailwind.min.js',
             'shell.js', 'icon.png', 'icon.ico']
 
 a = Analysis(
-    ['main.py'],
-    pathex=[],
+    [os.path.join(SPECPATH, 'main.py')],
+    pathex=[SPECPATH],
     binaries=[],
-    datas=[(f, '.') for f in FRONTEND],
+    datas=[(os.path.join(SPECPATH, f), '.') for f in FRONTEND],
     hiddenimports=['labels', 'scheduler', 'validator', 'excel'],
     hookspath=[],
     hooksconfig={},
@@ -41,6 +43,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=os.path.abspath('icon.ico'),
+    icon=os.path.join(SPECPATH, 'icon.ico'),
 )
 
