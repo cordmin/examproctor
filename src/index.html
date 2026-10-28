@@ -595,9 +595,9 @@
                     <div class="flex-1 overflow-auto bg-surface-0 p-6">
                         <input type="hidden" id="exam-name" value="">
 
-                        <div class="max-w-[1070px] w-full mx-auto space-y-10">
+                        <div class="max-w-[1070px] w-full mx-auto min-h-full flex flex-col gap-10">
                             <!-- 1행: 고사일정 (좌) & 시험 과목 (우) -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-10 items-start">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-10 flex-auto">
 
                                 <!-- 고사 일정 및 교시 설정 카드 -->
                                 <div class="flex flex-col h-full">
@@ -640,7 +640,7 @@
                             </div>
 
                             <!-- 2행: 학년 및 시험장소 (좌) & 교실별 배정 인원 (우). 두 카드 높이를 맞추고 표가 카드를 꽉 채운다. -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-10 items-start">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-10 flex-auto">
 
                                 <!-- 학년 및 시험장소 카드 (카드 자체가 표) -->
                                 <div class="flex flex-col h-full">
