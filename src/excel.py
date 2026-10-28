@@ -10,7 +10,10 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
-from labels import parse_label, period_num, role_key
+from labels import grade_of, parse_label, period_num, role_key
+
+# 과목 저장 값 -> 화면·엑셀 이름 ('자습' 은 '수업'으로 보인다. tab-setup.js 의 subjectLabel 과 같다)
+SUBJECT_LABEL = {'자습': '수업'}
 
 def write_template(path, teachers=None):
 
@@ -79,6 +82,10 @@ def read_teachers(path):
     return teachers
 
 
+# 교사별 시트의 감독 유형 칸 순서: (role_key 값, 머리글). 모든 교사가 0회인 칸은 내보내지 않는다.
+RESULT_ROLES = [('정', '정'), ('부', '부'), ('복도', '복'), ('분리', '분'), ('특수', '특'), ('수업', '수')]
+
+
 def write_result(appData, path):
 
     wb = Workbook()
@@ -93,48 +100,59 @@ def write_result(appData, path):
     periods_by_date = {}
     for p in periods_sorted: periods_by_date.setdefault(p['date'], []).append(p)
     dates = sorted(list(periods_by_date.keys()))
-
-    ws1 = wb.active
-    ws1.title = "교사별 시간표"
-    row1, row2 = ["순", "성명", "총", "정", "부", "복", "분", "수", "특"], ["", "", "", "", "", "", "", "", ""]
     days_kr = ['월','화','수','목','금','토','일']
-    for d in dates:
-        pl = len(periods_by_date[d])
-        dt = datetime.strptime(d, '%Y-%m-%d')
-        row1.extend([f"{dt.month}월 {dt.day}일({days_kr[dt.weekday()]})"] + [""]*(pl-1))
-        for p in periods_by_date[d]: row2.append(p['name'])
-    ws1.append(row1); ws1.append(row2)
-    for i in range(1, 10): ws1.merge_cells(start_row=1, start_column=i, end_row=2, end_column=i)
-    cidx = 10
-    for d in dates:
-        pl = len(periods_by_date[d])
-        if pl > 1: ws1.merge_cells(start_row=1, start_column=cidx, end_row=1, end_column=cidx+pl-1)
-        cidx += pl
+
+    def add_header(ws, fixed, period_title):
+        """앞 고정 칸(두 줄 병합) + 날짜(첫 줄 병합) / 교시(둘째 줄) 머리글."""
+        row1, row2 = list(fixed), [""] * len(fixed)
+        for d in dates:
+            dt = datetime.strptime(d, '%Y-%m-%d')
+            row1.extend([f"{dt.month}월 {dt.day}일({days_kr[dt.weekday()]})"] + [""] * (len(periods_by_date[d]) - 1))
+            row2.extend(period_title(p) for p in periods_by_date[d])
+        ws.append(row1); ws.append(row2)
+        for i in range(1, len(fixed) + 1):
+            ws.merge_cells(start_row=1, start_column=i, end_row=2, end_column=i)
+        cidx = len(fixed) + 1
+        for d in dates:
+            pl = len(periods_by_date[d])
+            if pl > 1: ws.merge_cells(start_row=1, start_column=cidx, end_row=1, end_column=cidx + pl - 1)
+            cidx += pl
+
+    def style(ws, align):
+        for r in ws.iter_rows():
+            for c in r:
+                c.border = thin_border
+                c.alignment = align
+                c.number_format = '@'
+                if c.row <= 2:
+                    c.font = Font(bold=True)
+                    c.fill = header_fill
 
     teachers, assigns = appData.get('teachers', []), appData.get('assignments', {})
-    for i, t in enumerate(teachers):
-        cnt = {'정':0,'부':0,'복도':0,'분리':0,'수업':0,'특수':0}
-        trow = [i+1, t['name']]
+
+    # ── 교사별 시간표: 순, 성명, 정·부·복·분·특·수(0회뿐인 칸 제외), 합 ──
+    ws1 = wb.active
+    ws1.title = "교사별 시간표"
+    counts = []
+    for t in teachers:
+        cnt = {k: 0 for k, _ in RESULT_ROLES}
         for p in periods_sorted:
             a = assigns.get(t['id'], {}).get(p['id'], "")
             if a and a != '-':
                 cnt[role_key(a)] += 1
-        trow.extend([sum(cnt.values()), cnt['정'], cnt['부'], cnt['복도'], cnt['분리'], cnt['수업'], cnt['특수']])
-        for p in periods_sorted: trow.append(assigns.get(t['id'], {}).get(p['id'], "-"))
+        counts.append(cnt)
+    roles = [(k, lbl) for k, lbl in RESULT_ROLES if any(cnt[k] for cnt in counts)]
+    fixed = ["순", "성명"] + [lbl for _, lbl in roles] + ["합"]
+    add_header(ws1, fixed, lambda p: p['name'])
+    for i, (t, cnt) in enumerate(zip(teachers, counts)):
+        trow = [i + 1, t['name']] + [cnt[k] for k, _ in roles] + [sum(cnt.values())]
+        trow += [assigns.get(t['id'], {}).get(p['id'], "-") for p in periods_sorted]
         ws1.append(trow)
-
     for col in range(1, ws1.max_column + 1):
-        ws1.column_dimensions[get_column_letter(col)].width = 16 if col > 9 else 5 if col == 1 else 12 if col == 2 else 4.5
-    for r in ws1.iter_rows():
-        for c in r:
-            c.border = thin_border
-            c.alignment = center_align
-            c.number_format = '@'
-            if c.row <= 2:
-                c.font = Font(bold=True)
-                c.fill = header_fill
+        ws1.column_dimensions[get_column_letter(col)].width = 16 if col > len(fixed) else 5 if col == 1 else 12 if col == 2 else 4.5
+    style(ws1, center_align)
 
-    ws2 = wb.create_sheet("학급별 시간표")
+    # ── 학년별 시간표: 시험 보는 학년마다 한 시트. 교시 머리글에 그 학년 과목을 괄호로 붙인다 ──
     cAssign = {}
     for t_id, p_dict in assigns.items():
         tObj = next((t for t in teachers if t['id'] == t_id), None)
@@ -144,64 +162,40 @@ def write_result(appData, path):
             cName, roleStr = parse_label(a_label)
             cAssign.setdefault(cName, {}).setdefault(p_id, []).append(f"{tObj['name']}({roleStr})" if roleStr else tObj['name'])
 
-    row1_c = ["학급"]
-    row2_c = [""]
-    for d in dates:
-        pl = len(periods_by_date[d])
-        dt = datetime.strptime(d, '%Y-%m-%d')
-        row1_c.extend([f"{dt.month}월 {dt.day}일({days_kr[dt.weekday()]})"] + [""]*(pl-1))
-        for p in periods_by_date[d]: row2_c.append(p['name'])
-
-    ws2.append(row1_c)
-    ws2.append(row2_c)
-    ws2.merge_cells('A1:A2')
-
-    cidx = 2
-    for d in dates:
-        pl = len(periods_by_date[d])
-        if pl > 1: ws2.merge_cells(start_row=1, start_column=cidx, end_row=1, end_column=cidx+pl-1)
-        cidx += pl
-
     def natural_sort_key(s):
         return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
-    for cName in sorted(cAssign.keys(), key=natural_sort_key):
-        row_data = [cName]
-        for p in periods_sorted:
-            assigned_list = cAssign[cName].get(p['id'], [])
+    def get_sort_key(name_str):
+        if '(정)' in name_str:
+            pri = 1
+        elif '(부)' in name_str:
+            pri = 2
+        elif '(수업)' in name_str or '(수)' in name_str:
+            pri = 3
+        else:
+            m = re.search(r'\((\d+)\)', name_str)
+            pri = 10 + int(m.group(1)) if m else 99
+        return (pri, name_str)
 
-            def get_sort_key(name_str):
-                if '(정)' in name_str:
-                    pri = 1
-                elif '(부)' in name_str:
-                    pri = 2
-                elif '(수업)' in name_str or '(수)' in name_str:
-                    pri = 3
-                else:
-                    m = re.search(r'\((\d+)\)', name_str)
-                    if m:
-                        pri = 10 + int(m.group(1))
-                    else:
-                        pri = 99
-                return (pri, name_str)
+    class_subjects = appData.get('classSubjects', {})
+    for g in sorted(appData.get('config', {}).get('grades', []), key=int):
+        g_str = str(g)
+        ws = wb.create_sheet(f"{g}학년 시간표")
 
-            assigned_list.sort(key=get_sort_key)
+        def period_title(p):
+            subj = class_subjects.get(p['id'], {}).get(g_str, '')
+            return f"{p['name']}({SUBJECT_LABEL.get(subj, subj)})" if subj else p['name']
 
-            # 한 칸에 여러 명이면 줄바꿈으로 잇는다
-            row_data.append("\n".join(assigned_list) if assigned_list else "-")
-        ws2.append(row_data)
-
-    # 학급별 시간표 셀은 줄바꿈 표시
-    for col in range(1, ws2.max_column + 1):
-        ws2.column_dimensions[get_column_letter(col)].width = 20 if col > 1 else 16
-
-    for r in ws2.iter_rows():
-        for c in r:
-            c.border = thin_border
-            c.alignment = center_align_wrap  # 줄바꿈 속성이 포함된 서식 적용
-            c.number_format = '@'
-            if c.row <= 2:
-                c.font = Font(bold=True)
-                c.fill = header_fill
+        add_header(ws, ["학급"], period_title)
+        for cName in sorted((c for c in cAssign if grade_of(c) == g_str), key=natural_sort_key):
+            row_data = [cName]
+            for p in periods_sorted:
+                assigned_list = sorted(cAssign[cName].get(p['id'], []), key=get_sort_key)
+                # 한 칸에 여러 명이면 줄바꿈으로 잇는다
+                row_data.append("\n".join(assigned_list) if assigned_list else "-")
+            ws.append(row_data)
+        for col in range(1, ws.max_column + 1):
+            ws.column_dimensions[get_column_letter(col)].width = 20 if col > 1 else 16
+        style(ws, center_align_wrap)
 
     wb.save(path)

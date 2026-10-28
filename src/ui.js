@@ -332,3 +332,67 @@ function syncSplitTableHeader(scroll, header, viewport = null) {
     header.style.paddingRight = `${scroll.offsetWidth - scroll.clientWidth}px`;
     if (viewport) viewport.scrollLeft = scroll.scrollLeft;
 }
+
+// ── 가이드 투어 ──────────────────────────────────────────────────────
+// 일하는 순서대로 사이드바 버튼을 하나씩 밝히고 옆에 설명 카드를 띄운다.
+// '다시 보지 않기'는 settings.json 의 hideTour 에 둔다 (main.py get_settings / set_setting).
+const TOUR_STEPS = [
+    { el: '[data-target="tab-config"]',   title: '1. 기초 설정',  text: '시험 날짜와 교시, 시험 보는 학년과 과목을 정합니다. 교실마다 감독을 몇 명 둘지도 여기서 정합니다.' },
+    { el: '[data-target="tab-teachers"]', title: '2. 감독 명단',  text: '감독 들어가실 선생님을 설정합니다. 엑셀 양식으로 한꺼번에 불러올 수도 있고, 선생님마다 맡을 수 있는 감독을 체크합니다.' },
+    { el: '[data-target="tab-absences"]', title: '3. 결시 관리',  text: '출장·수업 등으로 감독할 수 없는 시간을 표시합니다. 선생님별 배정 제한(시간)도 여기서 정합니다.' },
+    { el: '[data-action="run"]',          title: '4. 배정 실행',  text: '배정 규칙을 확인하고 실행하면 감독이 자동으로 배정됩니다. 배정이 막히면 무엇부터 고치면 되는지 알려 줍니다.' },
+    { el: '[data-target="tab-result"]',   title: '5. 배정 결과',  text: '선생님별·학급별 감독표를 봅니다. 칸을 끌어 놓거나 우클릭해서 선생님을 바꿀 수 있고, 엑셀로 내려받을 수 있습니다.' },
+    { el: '[data-target="tab-validate"]', title: '6. 배정 검증',  text: '모든 규칙을 잘 지켰는지 확인합니다. 문제가 있으면 해결 방법과 바로 가기 버튼이 함께 나옵니다.' },
+    { el: '#data-card',                   title: '7. 열기·저장', text: '작업한 내용을 파일로 저장하고, 다음에 다시 불러옵니다. 오른쪽 위 ? 버튼을 누르면 이 안내를 다시 볼 수 있습니다.' },
+];
+let tourIndex = 0;
+let tourHidden = false;   // 켤 때 shell.js 가 settings.json 에서 읽어 둔다
+
+function placeTour() {
+    const step = TOUR_STEPS[tourIndex];
+    const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+    const r = document.querySelector(step.el).getBoundingClientRect();
+    const pad = 4, spot = document.getElementById('tour-spot'), card = document.getElementById('tour-card');
+    Object.assign(spot.style, { left: `${r.left / zoom - pad}px`, top: `${r.top / zoom - pad}px`,
+                                width: `${r.width / zoom + pad * 2}px`, height: `${r.height / zoom + pad * 2}px` });
+    document.getElementById('tour-title').textContent = step.title;
+    document.getElementById('tour-text').textContent = step.text;
+    document.getElementById('tour-step').textContent = `${tourIndex + 1} / ${TOUR_STEPS.length}`;
+    document.getElementById('tour-prev').classList.toggle('invisible', tourIndex === 0);
+    document.getElementById('tour-next').textContent = tourIndex === TOUR_STEPS.length - 1 ? '시작하기' : '다음';
+    // 모든 대상이 왼쪽 사이드바에 있으므로 오른쪽에 붙이고, 화면 밖으로 나가지 않게 위아래만 맞춘다.
+    const maxTop = window.innerHeight / zoom - card.offsetHeight - 8;
+    card.style.left = `${r.right / zoom + 16}px`;
+    card.style.top = `${Math.max(40, Math.min(r.top / zoom - 8, maxTop))}px`;
+}
+
+window.startTour = function() {
+    closeAppSelect();
+    tourIndex = 0;
+    document.getElementById('tour-hide').checked = tourHidden;
+    document.getElementById('tour').classList.remove('hidden');
+    placeTour();
+    document.getElementById('tour-next').focus();
+};
+
+function closeTour() {
+    document.getElementById('tour').classList.add('hidden');
+    tourHidden = document.getElementById('tour-hide').checked;
+    window.pywebview?.api.set_setting('hideTour', tourHidden);
+}
+
+function moveTour(delta) {
+    tourIndex += delta;
+    if (tourIndex >= TOUR_STEPS.length) closeTour();
+    else placeTour();
+}
+
+document.getElementById('tour-next').onclick = () => moveTour(1);
+document.getElementById('tour-prev').onclick = () => moveTour(-1);
+document.getElementById('tour-skip').onclick = closeTour;
+document.getElementById('tour').addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); closeTour(); }
+    else if (event.key === 'ArrowRight') moveTour(1);
+    else if (event.key === 'ArrowLeft' && tourIndex > 0) moveTour(-1);
+});
+window.addEventListener('resize', () => { if (!document.getElementById('tour').classList.contains('hidden')) placeTour(); });

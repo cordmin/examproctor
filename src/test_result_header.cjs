@@ -13,11 +13,11 @@ const assert=require('node:assert/strict');const path=require('node:path');const
   });
   for(const [width,height] of [[1024,640],[1280,800],[1365,850],[1500,900],[1536,864],[1600,1000],[2544,1376]]){
    await page.setViewportSize({width,height});
-   for(const view of ['result-teacher','result-class']){
+   for(const [view,firstTitle] of [['result-teacher','1교시'],['result-grade-1','1교시(국어)']]){
     await page.locator(`.result-sub-btn[data-target="${view}"]`).click();
     await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>{syncResultHeaders();requestAnimationFrame(resolve)})));
     const header=page.locator(`#${view} .result-table-header`),scroll=page.locator(`#${view} .result-table-scroll`);
-    assert.equal(await header.locator('thead tr').nth(1).locator('.result-period-title').first().textContent(),'1교시');
+    assert.equal(await header.locator('thead tr').nth(1).locator('.result-period-title').first().textContent(),firstTitle);
     const overflow=await scroll.evaluate(el=>el.scrollWidth-el.clientWidth);
     assert.ok(overflow<=1,JSON.stringify({view,width,height,overflow}));
     const check=await page.locator(`#${view}`).evaluate(container=>{

@@ -69,19 +69,17 @@ document.getElementById('sidebar-nav').addEventListener('click', (e) => {
 
 renderSidebar();
 
-// ── 배정 결과 하위 전환 (교사별 / 학급·구역별) ────────────────────────
-const RESULT_BTN_ON  = 'result-sub-btn bg-brand-600 text-brand-text shadow-sm px-3 py-1 rounded-md font-bold text-[12.5px] transition-all cursor-pointer';
-const RESULT_BTN_OFF = 'result-sub-btn bg-transparent text-stone hover:text-text-main px-3 py-1 rounded-md font-bold text-[12.5px] transition-all cursor-pointer';
-
-document.querySelectorAll('.result-sub-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.result-sub-btn').forEach(b => b.className = RESULT_BTN_OFF);
-        e.currentTarget.className = RESULT_BTN_ON;
-        currentResultView = e.currentTarget.getAttribute('data-target');
-        document.querySelectorAll('.result-view').forEach(view => view.classList.add('hidden'));
-        document.getElementById(currentResultView).classList.remove('hidden');
-        requestAnimationFrame(syncResultHeaders);
-    });
+// ── 배정 결과 하위 전환 (교사별 / 학년별) ────────────────────────────
+// 버튼은 renderResultTab 이 학년에 맞춰 다시 만들므로 부모에 한 번만 건다.
+document.getElementById('result-view-btns').addEventListener('click', (e) => {
+    const btn = e.target.closest('.result-sub-btn');
+    if (!btn) return;
+    document.querySelectorAll('.result-sub-btn').forEach(b => b.className = RESULT_BTN_OFF);
+    btn.className = RESULT_BTN_ON;
+    currentResultView = btn.getAttribute('data-target');
+    document.querySelectorAll('.result-view').forEach(view => view.classList.add('hidden'));
+    document.getElementById(currentResultView).classList.remove('hidden');
+    requestAnimationFrame(syncResultHeaders);
 });
 
 // ── 프레임리스 창 제어 ─────────────────────────────────────────────────
@@ -238,6 +236,11 @@ window.addEventListener('pywebviewready', function() {
         if(data) appData = data;
         sanitizeAppData(appData);
         renderConfigTab(); renderSubjectsTab(); renderTeachers(); renderAbsencesTab(); renderResultTab(); renderRulesTab();
+    });
+    // 켤 때마다 가이드 투어를 띄운다. '다시 보지 않기'를 체크했으면 띄우지 않는다.
+    window.pywebview.api.get_settings().then(settings => {
+        tourHidden = !!settings.hideTour;
+        if (!tourHidden) startTour();
     });
     // 켜자마자(작업 전) 확인하므로 설치하느라 창이 닫혀도 잃을 작업이 없다.
     window.pywebview.api.check_update().then(res => {
@@ -449,7 +452,7 @@ document.getElementById('btn-rules-run').addEventListener('click', async () => {
         button.disabled = false;
     }
 });
-document.getElementById('btn-export-excel').addEventListener('click', () => { const d = new Date(), yy = String(d.getFullYear()).slice(-2), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0'); const filename = `${appData.config.examName || "미지정고사"}(${yy}.${mm}.${dd}).xlsx`; window.pywebview.api.export_excel(appData, filename).then(res => { if(res.success) showToast(`엑셀 저장 완료!\n${res.path}`, "success"); else if (!res.canceled) showToast("저장 실패: " + res.error, "error"); }); });
+document.getElementById('btn-export-excel').addEventListener('click', () => { const d = new Date(), yy = String(d.getFullYear()).slice(-2), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0'); const filename = `${appData.config.examName || "미지정고사"}(${yy}.${mm}.${dd}).xlsx`; window.pywebview.api.export_excel(appData, filename).then(res => { if(res.success) showToast("배정 결과 다운로드 완료", "success"); else if (!res.canceled) showToast("저장 실패: " + res.error, "error"); }); });
 window.toggleAllRoles = function(role, checked) { appData.teachers.forEach(t => { t[role] = checked; }); renderTeachers(); renderAbsencesTab(); };
 
 refreshDropdowns();

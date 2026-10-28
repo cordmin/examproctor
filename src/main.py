@@ -60,6 +60,8 @@ class Api:
         self.data = self.load_data()
         # 마지막 창 위치·크기. 자동 저장 파일과 같은 폴더에 둔다.
         self.window_file = os.path.join(os.path.dirname(os.path.abspath(self.data_file)), 'window.json')
+        # 화면 설정(가이드 투어 다시 보지 않기 등). 웹뷰 저장소는 창을 닫으면 지워지므로 파일에 둔다.
+        self.settings_file = os.path.join(os.path.dirname(os.path.abspath(self.data_file)), 'settings.json')
         self._win = None        # webview.create_window() 결과. 창 제어에 쓴다.
         self._maximized = False
         self._normal_bounds = None   # 최대화 직전 위치·크기. 복원할 때 쓴다.
@@ -162,6 +164,23 @@ class Api:
 
     def get_initial_data(self):
         return self.data
+
+    def get_settings(self):
+        try:
+            with open(self.settings_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (OSError, ValueError):
+            return {}
+
+    def set_setting(self, key, value):
+        settings = self.get_settings()
+        settings[key] = value
+        try:
+            self._write_json(self.settings_file, settings)
+            return {"success": True}
+        except OSError as e:
+            print(f"설정 저장 실패: {e}")
+            return {"success": False, "error": str(e)}
 
     def save_data_dialog(self, data, default_filename):
         result = self._ask_save(default_filename, JSON_TYPES)
