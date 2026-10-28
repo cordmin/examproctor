@@ -334,7 +334,9 @@ document.querySelectorAll('.grade-toggle').forEach(toggle => { toggle.addEventLi
     document.getElementById(`sp-count-${g}`).addEventListener('input', (e) => { if(appData.config.grades.includes(g)) { appData.config.special[g] = parseInt(e.target.value)||0; renderRulesTab(); renderTeachers(); } });
 });
 document.getElementById('btn-add-subject').addEventListener('click', () => { const i = document.getElementById('new-subject'), v = i.value.trim(); if(v && !appData.config.subjects.includes(v)) { appData.config.subjects.push(v); i.value = ""; renderSubjects(); renderSubjectsTab(); renderTeachers(); } });
-const fpDate = flatpickr('#new-date', { locale: 'ko', dateFormat: 'Y-m-d', altInput: true, altFormat: 'n월 j일 (D)', altInputClass: 'fld pl-8 pr-3 py-2 text-[13px] font-bold cursor-pointer text-center', disableMobile: true, monthSelectorType: 'static',
+// static: 달력을 입력칸 옆에 붙여 띄운다. 화면 확대(zoom) 아래에서 flatpickr 가 직접
+// 위치를 계산하면 좌표가 확대 배율만큼 어긋나 엉뚱한 곳에 열린다.
+const fpDate = flatpickr('#new-date', { static: true, locale: 'ko', dateFormat: 'Y-m-d', altInput: true, altFormat: 'n월 j일 (D)', altInputClass: 'fld pl-8 pr-3 py-2 text-[13px] font-bold cursor-pointer text-center', disableMobile: true, monthSelectorType: 'static',
     onDayCreate: (dObj, dStr, fp, dayElem) => { const wd = dayElem.dateObj.getDay(); if (dayElem.classList.contains('selected')) return; if (wd === 0) dayElem.style.color = '#E11D48'; else if (wd === 6) dayElem.style.color = '#2563EB'; } });
 
 if (fpDate && fpDate.altInput) {
