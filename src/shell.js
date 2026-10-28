@@ -371,7 +371,12 @@ function mountYearMonthPanel(fp) {
             return `<button data-v="${v}" class="${on ? 'on' : ''}">${mode === 'year' ? v + '년' : (v + 1) + '월'}</button>`;
         }).join('')}</div>`;
     };
-    const show = (m) => { mode = m; firstYear = fp.currentYear - 4; render(); panel.classList.add('show'); };
+    const show = (m) => {
+        mode = m; firstYear = fp.currentYear - 4; render();
+        const head = cal.querySelector('.flatpickr-months');
+        panel.style.top = head.offsetTop + head.offsetHeight + 'px';   // 머리글 바로 아래부터 덮는다
+        panel.classList.add('show');
+    };
     const hide = () => { mode = null; panel.classList.remove('show'); };
     const toggle = (m) => (e) => { e.stopPropagation(); mode === m ? hide() : show(m); };
 
