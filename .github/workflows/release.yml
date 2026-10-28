@@ -52,6 +52,11 @@ jobs:
           if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
           iscc "/DMyAppVersion=$env:VERSION" installer.iss
 
+      - name: Test silent update notice through delayed restart
+        working-directory: src
+        shell: powershell
+        run: ./test_update_installer.ps1
+
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}

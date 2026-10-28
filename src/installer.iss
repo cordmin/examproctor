@@ -61,17 +61,23 @@ end;
 function GetCurrentProcessId: LongWord;
   external 'GetCurrentProcessId@kernel32.dll stdcall';
 
-procedure InitializeWizard;
+function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   ResultCode: Integer;
-  Parameters, PowerShellPath: string;
+  Parameters, PowerShellPath, ProgressScript: string;
 begin
+  Result := '';
   if not WizardSilent then Exit;
-  // 기존 버전의 조용한 업데이트에서도 별도 진행 창은 표시한다.
+  // 설치 경로가 확정된 뒤, 기존 프로그램 종료 대기 전에 안내 창을 시작한다.
   try
     ExtractTemporaryFile('update-progress.ps1');
+    // 설치가 먼저 끝나 임시 폴더가 삭제되어도 PowerShell 이 스크립트를 읽을 수 있게 한다.
+    ForceDirectories(ExpandConstant('{userappdata}\시험감독배정'));
+    ProgressScript := ExpandConstant('{userappdata}\시험감독배정\update-progress.ps1');
+    if not FileCopy(ExpandConstant('{tmp}\update-progress.ps1'), ProgressScript, False) then
+      RaiseException('업데이트 안내 파일을 준비하지 못했습니다.');
     Parameters := '-NoProfile -NonInteractive -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File ' +
-      AddQuotes(ExpandConstant('{tmp}\update-progress.ps1')) +
+      AddQuotes(ProgressScript) +
       ' -InstallerPid ' + IntToStr(GetCurrentProcessId) +
       ' -AppPath ' + AddQuotes(ExpandConstant('{app}\{#MyAppExe}'));
     if IsWin64 then
