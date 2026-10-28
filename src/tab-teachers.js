@@ -21,7 +21,7 @@ window.renderTeachers = function() {
     let rows = "";
     appData.teachers.forEach((t, idx) => {
         rows += `
-            <tr class="hover:bg-surface-50 transition-colors">
+            <tr class="row-hover">
                 <td class="py-2.5 px-1 border border-line bg-surface-100 font-bold text-[11px]">${idx+1}</td>
                 <td class="py-2.5 px-1 border border-line"><input type="text" class="w-full text-center bg-transparent focus:outline-none font-bold text-[14.5px] p-0.5" value="${t.name||''}" onchange="updateTeacher('${t.id}', 'name', this.value, false); renderAbsencesTab();"></td>
                 <td class="py-2.5 px-1 border border-line"><input type="text" class="w-full text-center bg-transparent focus:outline-none font-bold text-[14.5px] p-0.5" value="${t.subject||''}" onchange="updateTeacher('${t.id}', 'subject', this.value, false)"></td>

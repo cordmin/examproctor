@@ -263,6 +263,8 @@
             outline: 3px solid rgb(var(--brand-600));
             outline-offset: -1px;
         }
+        /* 감독 명단 행 호버: 칸마다 색이 달라도 같은 회색 막을 덮어 줄 전체가 짙어 보이게 한다 */
+        .row-hover:hover > td { background-image: linear-gradient(rgba(100, 116, 139, .16), rgba(100, 116, 139, .16)); }
         /* 자동 배정 뒤 손으로 바꾼 칸 */
         .cell-changed { background-color: #FEF3C7 !important; }
         /* 검증 메시지에서 이동해 온 칸 */
