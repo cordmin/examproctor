@@ -1,0 +1,3311 @@
+{
+  "config": {
+    "grades": [
+      2,
+      3
+    ],
+    "classes": {
+      "1": 11,
+      "2": 12,
+      "3": 11
+    },
+    "special": {
+      "1": 0,
+      "2": 1,
+      "3": 1
+    },
+    "separated": {
+      "1": 0,
+      "2": 0,
+      "3": 0
+    },
+    "hallways": {
+      "1": 0,
+      "2": 6,
+      "3": 6
+    },
+    "subjects": [
+      "자습",
+      "국어",
+      "영어",
+      "수학",
+      "사회",
+      "역사",
+      "과학"
+    ],
+    "examDates": [
+      {
+        "date": "2026-04-28",
+        "periods": 3
+      },
+      {
+        "date": "2026-04-29",
+        "periods": 3
+      },
+      {
+        "date": "2026-04-30",
+        "periods": 3
+      }
+    ],
+    "rules": {
+      "excludeSubject": true,
+      "excludeHomeroom": true,
+      "excludeHallwayConsecutive": false,
+      "excludeSameClass": false,
+      "excludeClassConsecutive": true,
+      "maxConsecutive": 99,
+      "maxDailyDiff": 99,
+      "balanceStrategy": "FATIGUE",
+      "fatigueMain": 5,
+      "fatigueSub": 3,
+      "fatigueSp": 3,
+      "fatigueSep": 3,
+      "fatigueHall": 2,
+      "fatigueClass": 1,
+      "excludeConsecutive": true,
+      "assignPriority": "MAIN_FIRST",
+      "balanceMainSub": true,
+      "excludeSubConsecutive": true,
+      "excludeSubjectConsecutive": false
+    },
+    "examName": "2026학년도 1학기 1회고사",
+    "invigCounts": {
+      "1": {
+        "class": 2,
+        "special": 1,
+        "separated": 1
+      },
+      "2": {
+        "class": 1,
+        "special": 1,
+        "separated": 0
+      },
+      "3": {
+        "class": 1,
+        "special": 1,
+        "separated": 0
+      }
+    }
+  },
+  "teachers": [
+    {
+      "id": "T17775219277550",
+      "absences": {
+        "p_2026-05-26_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_3": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "박민수",
+      "subject": "과학",
+      "homeroom": "1-1",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "maxPeriods": 0,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T17775219277551",
+      "absences": {
+        "p_2026-05-26_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_2": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "구영희",
+      "subject": "음악",
+      "homeroom": "1-2",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "maxPeriods": 0,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T17775219277552",
+      "absences": {
+        "p_2026-05-26_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_3": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "이철수",
+      "subject": "미술",
+      "homeroom": "1-3",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T17775219277553",
+      "absences": {
+        "p_2026-05-26_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_2": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "이지훈",
+      "subject": "영어",
+      "homeroom": "1-4",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T17775219277554",
+      "absences": {
+        "p_2026-05-26_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_2": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "이서연",
+      "subject": "도덕",
+      "homeroom": "1-5",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "maxPeriods": 0,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T17775219277555",
+      "absences": {
+        "p_2026-05-26_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_1": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "김도윤",
+      "subject": "가정",
+      "homeroom": "1-6",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T17775219277556",
+      "absences": {
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_2": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "안하은",
+      "subject": "체육",
+      "homeroom": "1-7",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T17775219277557",
+      "absences": {
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_3": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "김준호",
+      "subject": "영어",
+      "homeroom": "1-8",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T17775219277558",
+      "absences": {
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_2": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "유예은",
+      "subject": "정보",
+      "homeroom": "1-9",
+      "notes": "3학년 자습감독 불가",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": false
+    },
+    {
+      "id": "T17775219277559",
+      "absences": {
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_3": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "이현우",
+      "subject": "과학",
+      "homeroom": "1-10",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775510",
+      "absences": {
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_3": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "이지우",
+      "subject": "음악",
+      "homeroom": "1-11",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775511",
+      "absences": {
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_1": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "문서준",
+      "subject": "특수",
+      "homeroom": "1-12",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775512",
+      "absences": {},
+      "name": "김유진",
+      "subject": "도덕",
+      "homeroom": "2-1",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775513",
+      "absences": {},
+      "name": "최성민",
+      "subject": "역사",
+      "homeroom": "2-2",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775514",
+      "absences": {},
+      "name": "김수빈",
+      "subject": "한문",
+      "homeroom": "2-3",
+      "notes": "3학년 자습감독 불가",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": false
+    },
+    {
+      "id": "T177752192775515",
+      "absences": {},
+      "name": "이동현",
+      "subject": "체육",
+      "homeroom": "2-4",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775516",
+      "absences": {},
+      "name": "김채원",
+      "subject": "과학",
+      "homeroom": "2-5",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775518",
+      "absences": {},
+      "name": "장정우",
+      "subject": "역사",
+      "homeroom": "2-7",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775519",
+      "absences": {},
+      "name": "김지민",
+      "subject": "국어",
+      "homeroom": "2-8",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775520",
+      "absences": {},
+      "name": "박건우",
+      "subject": "영어",
+      "homeroom": "2-9",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775521",
+      "absences": {},
+      "name": "박다은",
+      "subject": "수학",
+      "homeroom": "2-10",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775522",
+      "absences": {},
+      "name": "이승현",
+      "subject": "과학",
+      "homeroom": "2-11",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775523",
+      "absences": {},
+      "name": "김지현",
+      "subject": "체육",
+      "homeroom": "2-12",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775524",
+      "absences": {
+        "p_2026-04-28_1": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-04-28_2": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-04-28_3": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-04-28_4": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-04-29_1": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-04-29_2": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-04-29_3": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-04-29_4": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-04-30_1": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-04-30_2": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-04-30_3": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-05-26_1": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-05-26_2": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-05-26_3": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-05-26_4": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-05-27_1": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-05-27_2": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-05-27_3": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-05-27_4": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-05-28_1": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-05-28_2": {
+          "type": "GRADE",
+          "target": "3"
+        },
+        "p_2026-05-28_3": {
+          "type": "GRADE",
+          "target": "3"
+        }
+      },
+      "name": "김태양",
+      "subject": "특수",
+      "homeroom": "2-13",
+      "notes": "특수학급 전담",
+      "isMain": false,
+      "isSub": false,
+      "isHallway": false,
+      "isSeparated": false,
+      "isSpecial": true,
+      "isClass": false,
+      "isClass1": false,
+      "isClass2": false,
+      "isClass3": false
+    },
+    {
+      "id": "T177752192775525",
+      "absences": {},
+      "name": "이윤서",
+      "subject": "국어",
+      "homeroom": "3-1",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775526",
+      "absences": {},
+      "name": "선민재",
+      "subject": "영어",
+      "homeroom": "3-2",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775527",
+      "absences": {
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_3": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "조소율",
+      "subject": "사회",
+      "homeroom": "3-3",
+      "notes": "2학년 자습감독 불가",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": false,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775528",
+      "absences": {},
+      "name": "나우진",
+      "subject": "국어",
+      "homeroom": "3-4",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775529",
+      "absences": {},
+      "name": "이시은",
+      "subject": "과학",
+      "homeroom": "3-5",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775530",
+      "absences": {},
+      "name": "김재현",
+      "subject": "미술",
+      "homeroom": "3-6",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775531",
+      "absences": {},
+      "name": "이예린",
+      "subject": "국어",
+      "homeroom": "3-7",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775532",
+      "absences": {},
+      "name": "박지성",
+      "subject": "과학",
+      "homeroom": "3-8",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775533",
+      "absences": {},
+      "name": "김하윤",
+      "subject": "사회",
+      "homeroom": "3-9",
+      "notes": "2학년 자습감독 불가",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": false,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775534",
+      "absences": {},
+      "name": "조주원",
+      "subject": "미술",
+      "homeroom": "3-10",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775535",
+      "absences": {
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_1": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "권나은",
+      "subject": "가정",
+      "homeroom": "3-11",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775536",
+      "absences": {
+        "p_2026-04-28_1": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-04-28_2": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-04-28_3": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-04-28_4": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-04-29_1": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-04-29_2": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-04-29_3": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-04-29_4": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-04-30_1": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-04-30_2": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-04-30_3": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-05-26_1": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-05-26_2": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-05-26_3": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-05-26_4": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-05-27_1": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-05-27_2": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-05-27_3": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-05-27_4": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-05-28_1": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-05-28_2": {
+          "type": "GRADE",
+          "target": "2"
+        },
+        "p_2026-05-28_3": {
+          "type": "GRADE",
+          "target": "2"
+        }
+      },
+      "name": "최성현",
+      "subject": "특수",
+      "homeroom": "3-12",
+      "notes": "특수학급 전담",
+      "isMain": false,
+      "isSub": false,
+      "isHallway": false,
+      "isSeparated": false,
+      "isSpecial": true,
+      "isClass": false,
+      "isClass1": false,
+      "isClass2": false,
+      "isClass3": false
+    },
+    {
+      "id": "T177752192775537",
+      "absences": {},
+      "name": "김은지",
+      "subject": "체육",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775538",
+      "absences": {
+        "p_2026-05-27_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_3": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "오태민",
+      "subject": "국어",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775539",
+      "absences": {},
+      "name": "조아린",
+      "subject": "체육",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775540",
+      "absences": {
+        "p_2026-05-27_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_1": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "권진우",
+      "subject": "수학",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775541",
+      "absences": {
+        "p_2026-05-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_3": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "박서현",
+      "subject": "사회",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775542",
+      "absences": {
+        "p_2026-05-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_2": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "김연우",
+      "subject": "진로",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775543",
+      "absences": {
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_3": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "이가은",
+      "subject": "수학",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775544",
+      "absences": {
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-30_1": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "박민성",
+      "subject": "정보",
+      "homeroom": "",
+      "notes": "3학년 자습감독 불가",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": false
+    },
+    {
+      "id": "T177752192775545",
+      "absences": {
+        "p_2026-05-26_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-26_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_4": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_3": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_3": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "윤수아",
+      "subject": "국어",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775546",
+      "absences": {},
+      "name": "박준영",
+      "subject": "영어",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775547",
+      "absences": {
+        "p_2026-05-27_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-05-27_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_1": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-29_2": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "문지아",
+      "subject": "국어",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775548",
+      "absences": {},
+      "name": "이현준",
+      "subject": "기술",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775549",
+      "absences": {
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_2": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "한유나",
+      "subject": "사서",
+      "homeroom": "",
+      "notes": "전체 자습감독 불가",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": false,
+      "isClass2": false,
+      "isClass3": false
+    },
+    {
+      "id": "T177752192775550",
+      "absences": {},
+      "name": "박도현",
+      "subject": "수학",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775551",
+      "absences": {},
+      "name": "심서윤",
+      "subject": "기술",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775552",
+      "absences": {},
+      "name": "조상현",
+      "subject": "보건",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775553",
+      "absences": {},
+      "name": "황혜원",
+      "subject": "음악",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775554",
+      "absences": {},
+      "name": "주동건",
+      "subject": "사회",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775555",
+      "absences": {},
+      "name": "유시아",
+      "subject": "가정",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775556",
+      "absences": {},
+      "name": "심재민",
+      "subject": "보건",
+      "homeroom": "",
+      "notes": "2학년 자습감독 불가",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": false,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775557",
+      "absences": {},
+      "name": "김소현",
+      "subject": "도덕",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775558",
+      "absences": {
+        "p_2026-05-26_2": {
+          "type": "ALL",
+          "target": ""
+        },
+        "p_2026-04-28_2": {
+          "type": "ALL",
+          "target": ""
+        }
+      },
+      "name": "도선우",
+      "subject": "상담",
+      "homeroom": "",
+      "notes": "전체 자습감독 불가",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass": false,
+      "isClass1": false,
+      "isClass2": false,
+      "isClass3": false
+    },
+    {
+      "id": "T177752192775559",
+      "absences": {},
+      "name": "김민지",
+      "subject": "수학",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    },
+    {
+      "id": "T177752192775560",
+      "absences": {},
+      "name": "박태현",
+      "subject": "영어",
+      "homeroom": "",
+      "notes": "",
+      "isMain": true,
+      "isSub": false,
+      "isHallway": true,
+      "isSeparated": false,
+      "isSpecial": false,
+      "isClass1": true,
+      "isClass2": true,
+      "isClass3": true
+    }
+  ],
+  "periods": [
+    {
+      "id": "p_2026-04-28_1",
+      "date": "2026-04-28",
+      "name": "1교시"
+    },
+    {
+      "id": "p_2026-04-28_2",
+      "date": "2026-04-28",
+      "name": "2교시"
+    },
+    {
+      "id": "p_2026-04-28_3",
+      "date": "2026-04-28",
+      "name": "3교시"
+    },
+    {
+      "id": "p_2026-04-29_1",
+      "date": "2026-04-29",
+      "name": "1교시"
+    },
+    {
+      "id": "p_2026-04-29_2",
+      "date": "2026-04-29",
+      "name": "2교시"
+    },
+    {
+      "id": "p_2026-04-29_3",
+      "date": "2026-04-29",
+      "name": "3교시"
+    },
+    {
+      "id": "p_2026-04-30_1",
+      "date": "2026-04-30",
+      "name": "1교시"
+    },
+    {
+      "id": "p_2026-04-30_2",
+      "date": "2026-04-30",
+      "name": "2교시"
+    },
+    {
+      "id": "p_2026-04-30_3",
+      "date": "2026-04-30",
+      "name": "3교시"
+    }
+  ],
+  "classSubjects": {
+    "p_2026-04-28_1": {
+      "2": "자습",
+      "3": "사회"
+    },
+    "p_2026-04-28_2": {
+      "2": "자습",
+      "3": "자습"
+    },
+    "p_2026-04-29_2": {
+      "2": "역사",
+      "3": "자습"
+    },
+    "p_2026-04-30_1": {
+      "2": "과학",
+      "3": "자습"
+    },
+    "p_2026-04-29_1": {
+      "2": "자습",
+      "3": "역사"
+    },
+    "p_2026-04-30_2": {
+      "2": "자습",
+      "3": "과학"
+    },
+    "p_2026-04-28_3": {
+      "2": "수학",
+      "3": "수학"
+    },
+    "p_2026-04-29_3": {
+      "2": "국어",
+      "3": "국어"
+    },
+    "p_2026-04-30_3": {
+      "2": "영어",
+      "3": "영어"
+    }
+  },
+  "assignments": {
+    "T17775219277550": {
+      "p_2026-04-29_2": "2-5(정)",
+      "p_2026-04-29_3": "3학년(복3)",
+      "p_2026-04-30_1": "3-7(수업)"
+    },
+    "T17775219277551": {
+      "p_2026-04-28_1": "2-5(수업)",
+      "p_2026-04-28_3": "3학년(복2)",
+      "p_2026-04-29_1": "3-8(정)",
+      "p_2026-04-30_3": "2-8(정)"
+    },
+    "T17775219277552": {
+      "p_2026-04-28_1": "2-7(수업)",
+      "p_2026-04-28_3": "3-2(정)",
+      "p_2026-04-29_3": "3학년(복1)"
+    },
+    "T17775219277553": {
+      "p_2026-04-28_3": "2-9(정)",
+      "p_2026-04-29_1": "2-2(수업)",
+      "p_2026-04-29_3": "2학년(복2)",
+      "p_2026-04-30_2": "3-5(정)"
+    },
+    "T17775219277554": {
+      "p_2026-04-28_2": "2-8(수업)",
+      "p_2026-04-28_3": "3학년(복1)",
+      "p_2026-04-30_1": "2-12(정)",
+      "p_2026-04-30_3": "3-2(정)"
+    },
+    "T17775219277555": {
+      "p_2026-04-28_1": "2-8(수업)",
+      "p_2026-04-28_3": "3-1(정)",
+      "p_2026-04-29_1": "2-7(수업)",
+      "p_2026-04-29_3": "3-4(정)",
+      "p_2026-04-30_2": "3학년(복5)",
+      "p_2026-04-30_3": "2-7(정)"
+    },
+    "T17775219277556": {
+      "p_2026-04-28_2": "3-10(수업)",
+      "p_2026-04-30_3": "2-10(정)"
+    },
+    "T17775219277557": {
+      "p_2026-04-28_2": "2-6(수업)",
+      "p_2026-04-29_3": "3-9(정)",
+      "p_2026-04-30_1": "2학년(복1)",
+      "p_2026-04-30_2": "3-1(정)"
+    },
+    "T17775219277558": {
+      "p_2026-04-28_1": "2-4(수업)",
+      "p_2026-04-28_3": "3-10(정)",
+      "p_2026-04-29_3": "3학년(복4)",
+      "p_2026-04-30_1": "2-3(정)"
+    },
+    "T17775219277559": {
+      "p_2026-04-28_2": "2-5(수업)",
+      "p_2026-04-28_3": "2학년(복4)"
+    },
+    "T177752192775510": {
+      "p_2026-04-28_2": "3-9(수업)",
+      "p_2026-04-29_2": "2-11(정)",
+      "p_2026-04-30_2": "3학년(복2)"
+    },
+    "T177752192775511": {
+      "p_2026-04-28_3": "3-8(정)"
+    },
+    "T177752192775512": {
+      "p_2026-04-28_1": "3-3(정)",
+      "p_2026-04-28_3": "2학년(복6)",
+      "p_2026-04-29_1": "2-9(수업)",
+      "p_2026-04-29_3": "2-10(정)",
+      "p_2026-04-30_2": "2-2(수업)",
+      "p_2026-04-30_3": "3-9(정)"
+    },
+    "T177752192775513": {
+      "p_2026-04-28_1": "3-6(정)",
+      "p_2026-04-29_1": "2-11(수업)",
+      "p_2026-04-29_3": "2-7(정)",
+      "p_2026-04-30_1": "2학년(복4)",
+      "p_2026-04-30_3": "3-1(정)"
+    },
+    "T177752192775514": {
+      "p_2026-04-28_2": "2-1(수업)",
+      "p_2026-04-28_3": "2-6(정)",
+      "p_2026-04-29_2": "2-10(정)",
+      "p_2026-04-29_3": "3학년(복2)",
+      "p_2026-04-30_2": "2-1(수업)",
+      "p_2026-04-30_3": "2-9(정)"
+    },
+    "T177752192775515": {
+      "p_2026-04-28_1": "3-10(정)",
+      "p_2026-04-29_1": "3학년(복1)",
+      "p_2026-04-29_2": "3-10(수업)",
+      "p_2026-04-29_3": "3-8(정)",
+      "p_2026-04-30_2": "2-7(수업)",
+      "p_2026-04-30_3": "3-3(정)"
+    },
+    "T177752192775516": {
+      "p_2026-04-28_1": "3-5(정)",
+      "p_2026-04-29_1": "3학년(복5)",
+      "p_2026-04-29_2": "3-11(수업)",
+      "p_2026-04-30_1": "3-3(수업)",
+      "p_2026-04-30_3": "2-6(정)"
+    },
+    "T177752192775518": {
+      "p_2026-04-28_2": "3-7(수업)",
+      "p_2026-04-28_3": "2-2(정)",
+      "p_2026-04-29_2": "3-9(수업)",
+      "p_2026-04-29_3": "2-9(정)",
+      "p_2026-04-30_2": "3학년(복6)",
+      "p_2026-04-30_3": "2-3(정)"
+    },
+    "T177752192775519": {
+      "p_2026-04-28_1": "2-6(수업)",
+      "p_2026-04-28_3": "2-12(정)",
+      "p_2026-04-29_2": "2-7(정)",
+      "p_2026-04-30_1": "2학년(복5)",
+      "p_2026-04-30_2": "2-11(수업)",
+      "p_2026-04-30_3": "3학년(복2)"
+    },
+    "T177752192775520": {
+      "p_2026-04-28_1": "3학년(복1)",
+      "p_2026-04-28_2": "2-2(수업)",
+      "p_2026-04-29_1": "3-2(정)",
+      "p_2026-04-29_3": "2-5(정)",
+      "p_2026-04-30_2": "2-4(수업)"
+    },
+    "T177752192775521": {
+      "p_2026-04-28_2": "3-1(수업)",
+      "p_2026-04-29_1": "3-6(정)",
+      "p_2026-04-29_2": "3-7(수업)",
+      "p_2026-04-29_3": "2-6(정)",
+      "p_2026-04-30_2": "3-11(정)",
+      "p_2026-04-30_3": "3학년(복4)"
+    },
+    "T177752192775522": {
+      "p_2026-04-28_1": "2-10(수업)",
+      "p_2026-04-28_3": "2-1(정)",
+      "p_2026-04-29_2": "2-3(정)",
+      "p_2026-04-29_3": "2학년(복4)",
+      "p_2026-04-30_1": "3-11(수업)",
+      "p_2026-04-30_3": "2학년(복5)"
+    },
+    "T177752192775523": {
+      "p_2026-04-28_2": "3-11(수업)",
+      "p_2026-04-28_3": "2-3(정)",
+      "p_2026-04-29_2": "2학년(복3)",
+      "p_2026-04-29_3": "2-4(정)",
+      "p_2026-04-30_1": "3-5(수업)",
+      "p_2026-04-30_3": "3-6(정)"
+    },
+    "T177752192775524": {
+      "p_2026-04-28_1": "2학년(특수)",
+      "p_2026-04-28_2": "2학년(특수)",
+      "p_2026-04-28_3": "2학년(특수)",
+      "p_2026-04-29_1": "2학년(특수)",
+      "p_2026-04-29_2": "2학년(특수)",
+      "p_2026-04-29_3": "2학년(특수)",
+      "p_2026-04-30_1": "2학년(특수)",
+      "p_2026-04-30_2": "2학년(특수)",
+      "p_2026-04-30_3": "2학년(특수)"
+    },
+    "T177752192775525": {
+      "p_2026-04-28_1": "2-9(수업)",
+      "p_2026-04-28_3": "3-7(정)",
+      "p_2026-04-29_1": "2-12(수업)",
+      "p_2026-04-30_1": "2-9(정)",
+      "p_2026-04-30_2": "3학년(복4)",
+      "p_2026-04-30_3": "3학년(복3)"
+    },
+    "T177752192775526": {
+      "p_2026-04-28_2": "3-4(수업)",
+      "p_2026-04-28_3": "2-5(정)",
+      "p_2026-04-29_2": "2학년(복2)",
+      "p_2026-04-29_3": "3-5(정)",
+      "p_2026-04-30_2": "2-3(수업)"
+    },
+    "T177752192775527": {
+      "p_2026-04-28_2": "3-5(수업)",
+      "p_2026-04-28_3": "3학년(복3)",
+      "p_2026-04-29_1": "3-10(정)",
+      "p_2026-04-30_2": "3-9(정)"
+    },
+    "T177752192775528": {
+      "p_2026-04-28_2": "2-9(수업)",
+      "p_2026-04-28_3": "2-8(정)",
+      "p_2026-04-29_1": "2-3(수업)",
+      "p_2026-04-30_1": "2-4(정)",
+      "p_2026-04-30_2": "3학년(복3)",
+      "p_2026-04-30_3": "2학년(복2)"
+    },
+    "T177752192775529": {
+      "p_2026-04-28_2": "3-2(수업)",
+      "p_2026-04-28_3": "3-4(정)",
+      "p_2026-04-29_2": "2-6(정)",
+      "p_2026-04-29_3": "2학년(복5)",
+      "p_2026-04-30_1": "3-9(수업)",
+      "p_2026-04-30_3": "2학년(복1)"
+    },
+    "T177752192775530": {
+      "p_2026-04-28_1": "3학년(복2)",
+      "p_2026-04-28_2": "2-7(수업)",
+      "p_2026-04-29_1": "3-9(정)",
+      "p_2026-04-29_3": "3-11(정)",
+      "p_2026-04-30_2": "2-6(수업)",
+      "p_2026-04-30_3": "3-11(정)"
+    },
+    "T177752192775531": {
+      "p_2026-04-28_2": "3-8(수업)",
+      "p_2026-04-28_3": "3-6(정)",
+      "p_2026-04-29_2": "2-4(정)",
+      "p_2026-04-30_1": "2학년(복2)",
+      "p_2026-04-30_3": "2-4(정)"
+    },
+    "T177752192775532": {
+      "p_2026-04-28_1": "3-9(정)",
+      "p_2026-04-29_1": "3학년(복2)",
+      "p_2026-04-29_2": "3-1(수업)",
+      "p_2026-04-30_1": "3-6(수업)",
+      "p_2026-04-30_3": "2-2(정)"
+    },
+    "T177752192775533": {
+      "p_2026-04-28_3": "2-7(정)",
+      "p_2026-04-29_1": "3학년(복6)",
+      "p_2026-04-29_2": "3-6(수업)",
+      "p_2026-04-29_3": "3학년(복5)",
+      "p_2026-04-30_1": "2-2(정)"
+    },
+    "T177752192775534": {
+      "p_2026-04-28_1": "2-2(수업)",
+      "p_2026-04-28_3": "3-5(정)",
+      "p_2026-04-29_1": "2-10(수업)",
+      "p_2026-04-29_3": "3-7(정)",
+      "p_2026-04-30_2": "3학년(복1)",
+      "p_2026-04-30_3": "2-11(정)"
+    },
+    "T177752192775535": {
+      "p_2026-04-28_1": "2-3(수업)",
+      "p_2026-04-28_3": "2학년(복1)",
+      "p_2026-04-29_2": "2-8(정)",
+      "p_2026-04-30_1": "2-1(정)"
+    },
+    "T177752192775536": {
+      "p_2026-04-28_1": "3학년(특수)",
+      "p_2026-04-28_2": "3학년(특수)",
+      "p_2026-04-28_3": "3학년(특수)",
+      "p_2026-04-29_1": "3학년(특수)",
+      "p_2026-04-29_2": "3학년(특수)",
+      "p_2026-04-29_3": "3학년(특수)",
+      "p_2026-04-30_1": "3학년(특수)",
+      "p_2026-04-30_2": "3학년(특수)",
+      "p_2026-04-30_3": "3학년(특수)"
+    },
+    "T177752192775537": {
+      "p_2026-04-28_1": "3-2(정)",
+      "p_2026-04-28_3": "2학년(복3)",
+      "p_2026-04-29_1": "2-6(수업)",
+      "p_2026-04-29_3": "3-2(정)",
+      "p_2026-04-30_2": "2-9(수업)",
+      "p_2026-04-30_3": "2학년(복4)"
+    },
+    "T177752192775538": {
+      "p_2026-04-28_2": "2-4(수업)",
+      "p_2026-04-28_3": "3학년(복5)",
+      "p_2026-04-30_2": "3-6(정)"
+    },
+    "T177752192775539": {
+      "p_2026-04-28_1": "3-1(정)",
+      "p_2026-04-29_1": "3학년(복3)",
+      "p_2026-04-29_2": "3-3(수업)",
+      "p_2026-04-29_3": "2학년(복3)",
+      "p_2026-04-30_1": "2-6(정)"
+    },
+    "T177752192775540": {
+      "p_2026-04-28_1": "3학년(복5)",
+      "p_2026-04-29_2": "2-1(정)",
+      "p_2026-04-30_2": "3-7(정)"
+    },
+    "T177752192775541": {
+      "p_2026-04-29_2": "2-9(정)",
+      "p_2026-04-30_1": "3-4(수업)",
+      "p_2026-04-30_3": "2학년(복6)"
+    },
+    "T177752192775542": {
+      "p_2026-04-28_2": "2-11(수업)",
+      "p_2026-04-28_3": "2학년(복2)",
+      "p_2026-04-29_3": "3-3(정)",
+      "p_2026-04-30_3": "2-12(정)"
+    },
+    "T177752192775543": {
+      "p_2026-04-29_2": "2-2(정)",
+      "p_2026-04-29_3": "2학년(복1)",
+      "p_2026-04-30_2": "2-8(수업)"
+    },
+    "T177752192775544": {
+      "p_2026-04-29_1": "3-1(정)",
+      "p_2026-04-30_2": "3-10(정)",
+      "p_2026-04-30_3": "3학년(복5)"
+    },
+    "T177752192775545": {
+      "p_2026-04-28_2": "2-10(수업)",
+      "p_2026-04-29_1": "3-5(정)",
+      "p_2026-04-30_1": "2학년(복6)",
+      "p_2026-04-30_2": "3-4(정)"
+    },
+    "T177752192775546": {
+      "p_2026-04-28_1": "2-11(수업)",
+      "p_2026-04-28_3": "2-10(정)",
+      "p_2026-04-29_2": "2학년(복4)",
+      "p_2026-04-29_3": "3-6(정)",
+      "p_2026-04-30_2": "2-10(수업)"
+    },
+    "T177752192775547": {
+      "p_2026-04-28_2": "2-12(수업)",
+      "p_2026-04-28_3": "3학년(복6)",
+      "p_2026-04-30_1": "2-10(정)",
+      "p_2026-04-30_2": "3-2(정)"
+    },
+    "T177752192775548": {
+      "p_2026-04-28_1": "3-8(정)",
+      "p_2026-04-29_1": "3학년(복4)",
+      "p_2026-04-29_2": "3-5(수업)",
+      "p_2026-04-29_3": "2학년(복6)",
+      "p_2026-04-30_1": "2-11(정)"
+    },
+    "T177752192775549": {
+      "p_2026-04-28_3": "2-11(정)",
+      "p_2026-04-29_2": "2학년(복6)",
+      "p_2026-04-30_1": "2-5(정)",
+      "p_2026-04-30_3": "3학년(복1)"
+    },
+    "T177752192775550": {
+      "p_2026-04-28_2": "3-6(수업)",
+      "p_2026-04-29_1": "3-3(정)",
+      "p_2026-04-29_2": "3-4(수업)",
+      "p_2026-04-29_3": "2-3(정)",
+      "p_2026-04-30_2": "3-3(정)",
+      "p_2026-04-30_3": "3학년(복6)"
+    },
+    "T177752192775551": {
+      "p_2026-04-28_1": "3-7(정)",
+      "p_2026-04-28_3": "3학년(복4)",
+      "p_2026-04-29_1": "2-1(수업)",
+      "p_2026-04-29_3": "3-10(정)",
+      "p_2026-04-30_1": "3-1(수업)",
+      "p_2026-04-30_3": "3-10(정)"
+    },
+    "T177752192775552": {
+      "p_2026-04-28_1": "2-1(수업)",
+      "p_2026-04-28_3": "3-9(정)",
+      "p_2026-04-29_1": "2-5(수업)",
+      "p_2026-04-29_3": "2-11(정)",
+      "p_2026-04-30_2": "3-8(정)",
+      "p_2026-04-30_3": "2학년(복3)"
+    },
+    "T177752192775553": {
+      "p_2026-04-28_1": "3학년(복6)",
+      "p_2026-04-28_2": "2-3(수업)",
+      "p_2026-04-29_1": "3-7(정)",
+      "p_2026-04-29_3": "2-12(정)",
+      "p_2026-04-30_2": "2-12(수업)",
+      "p_2026-04-30_3": "3-5(정)"
+    },
+    "T177752192775554": {
+      "p_2026-04-28_1": "2-12(수업)",
+      "p_2026-04-28_3": "3-11(정)",
+      "p_2026-04-29_2": "2-12(정)",
+      "p_2026-04-29_3": "3학년(복6)",
+      "p_2026-04-30_1": "3-8(수업)",
+      "p_2026-04-30_3": "3-4(정)"
+    },
+    "T177752192775555": {
+      "p_2026-04-28_1": "3-11(정)",
+      "p_2026-04-28_3": "2학년(복5)",
+      "p_2026-04-29_1": "2-8(수업)",
+      "p_2026-04-29_3": "2-1(정)",
+      "p_2026-04-30_1": "3-10(수업)",
+      "p_2026-04-30_3": "3-8(정)"
+    },
+    "T177752192775556": {
+      "p_2026-04-28_1": "3학년(복4)",
+      "p_2026-04-29_1": "3-4(정)",
+      "p_2026-04-29_2": "3-8(수업)",
+      "p_2026-04-30_1": "2-8(정)",
+      "p_2026-04-30_3": "2-5(정)"
+    },
+    "T177752192775557": {
+      "p_2026-04-28_2": "3-3(수업)",
+      "p_2026-04-28_3": "2-4(정)",
+      "p_2026-04-29_2": "2학년(복1)",
+      "p_2026-04-29_3": "2-8(정)",
+      "p_2026-04-30_2": "2-5(수업)",
+      "p_2026-04-30_3": "2-1(정)"
+    },
+    "T177752192775558": {
+      "p_2026-04-28_3": "3-3(정)",
+      "p_2026-04-29_2": "2학년(복5)",
+      "p_2026-04-30_1": "2-7(정)"
+    },
+    "T177752192775559": {
+      "p_2026-04-28_1": "3학년(복3)",
+      "p_2026-04-29_1": "3-11(정)",
+      "p_2026-04-29_2": "3-2(수업)",
+      "p_2026-04-29_3": "2-2(정)",
+      "p_2026-04-30_1": "3-2(수업)",
+      "p_2026-04-30_3": "3-7(정)"
+    },
+    "T177752192775560": {
+      "p_2026-04-28_1": "3-4(정)",
+      "p_2026-04-29_1": "2-4(수업)",
+      "p_2026-04-29_3": "3-1(정)",
+      "p_2026-04-30_1": "2학년(복3)"
+    }
+  },
+  "validation": {
+    "shortage": false,
+    "logs": [],
+    "avg": 4.8,
+    "std_dev": 1.52,
+    "max": 9,
+    "min": 1,
+    "stats": [
+      {
+        "name": "김태양",
+        "total": 9,
+        "workload": 27,
+        "main": 0,
+        "sub": 0,
+        "hall": 0,
+        "sep": 0,
+        "cls": 0,
+        "sp": 9
+      },
+      {
+        "name": "최성현",
+        "total": 9,
+        "workload": 27,
+        "main": 0,
+        "sub": 0,
+        "hall": 0,
+        "sep": 0,
+        "cls": 0,
+        "sp": 9
+      },
+      {
+        "name": "김도윤",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "김유진",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "김수빈",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "이동현",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "장정우",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "박다은",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "김지현",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "김재현",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "조주원",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "박도현",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "심서윤",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "조상현",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "황혜원",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "주동건",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "유시아",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "김소현",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "김민지",
+        "total": 6,
+        "workload": 19,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "최성민",
+        "total": 5,
+        "workload": 18,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "이예린",
+        "total": 5,
+        "workload": 18,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "심재민",
+        "total": 5,
+        "workload": 18,
+        "main": 3,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "김지민",
+        "total": 6,
+        "workload": 16,
+        "main": 2,
+        "sub": 0,
+        "hall": 2,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "이승현",
+        "total": 6,
+        "workload": 16,
+        "main": 2,
+        "sub": 0,
+        "hall": 2,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "이윤서",
+        "total": 6,
+        "workload": 16,
+        "main": 2,
+        "sub": 0,
+        "hall": 2,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "나우진",
+        "total": 6,
+        "workload": 16,
+        "main": 2,
+        "sub": 0,
+        "hall": 2,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "이시은",
+        "total": 6,
+        "workload": 16,
+        "main": 2,
+        "sub": 0,
+        "hall": 2,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "김은지",
+        "total": 6,
+        "workload": 16,
+        "main": 2,
+        "sub": 0,
+        "hall": 2,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "김하윤",
+        "total": 5,
+        "workload": 15,
+        "main": 2,
+        "sub": 0,
+        "hall": 2,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "조아린",
+        "total": 5,
+        "workload": 15,
+        "main": 2,
+        "sub": 0,
+        "hall": 2,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "이현준",
+        "total": 5,
+        "workload": 15,
+        "main": 2,
+        "sub": 0,
+        "hall": 2,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "김채원",
+        "total": 5,
+        "workload": 14,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "박건우",
+        "total": 5,
+        "workload": 14,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "선민재",
+        "total": 5,
+        "workload": 14,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "박지성",
+        "total": 5,
+        "workload": 14,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "박준영",
+        "total": 5,
+        "workload": 14,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 2,
+        "sp": 0
+      },
+      {
+        "name": "한유나",
+        "total": 4,
+        "workload": 14,
+        "main": 2,
+        "sub": 0,
+        "hall": 2,
+        "sep": 0,
+        "cls": 0,
+        "sp": 0
+      },
+      {
+        "name": "구영희",
+        "total": 4,
+        "workload": 13,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "이지훈",
+        "total": 4,
+        "workload": 13,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "이서연",
+        "total": 4,
+        "workload": 13,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "김준호",
+        "total": 4,
+        "workload": 13,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "유예은",
+        "total": 4,
+        "workload": 13,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "조소율",
+        "total": 4,
+        "workload": 13,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "권나은",
+        "total": 4,
+        "workload": 13,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "김연우",
+        "total": 4,
+        "workload": 13,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "윤수아",
+        "total": 4,
+        "workload": 13,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "문지아",
+        "total": 4,
+        "workload": 13,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "박태현",
+        "total": 4,
+        "workload": 13,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "권진우",
+        "total": 3,
+        "workload": 12,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 0,
+        "sp": 0
+      },
+      {
+        "name": "박민성",
+        "total": 3,
+        "workload": 12,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 0,
+        "sp": 0
+      },
+      {
+        "name": "도선우",
+        "total": 3,
+        "workload": 12,
+        "main": 2,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 0,
+        "sp": 0
+      },
+      {
+        "name": "박민수",
+        "total": 3,
+        "workload": 8,
+        "main": 1,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "이철수",
+        "total": 3,
+        "workload": 8,
+        "main": 1,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "이지우",
+        "total": 3,
+        "workload": 8,
+        "main": 1,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "오태민",
+        "total": 3,
+        "workload": 8,
+        "main": 1,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "박서현",
+        "total": 3,
+        "workload": 8,
+        "main": 1,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "이가은",
+        "total": 3,
+        "workload": 8,
+        "main": 1,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "안하은",
+        "total": 2,
+        "workload": 6,
+        "main": 1,
+        "sub": 0,
+        "hall": 0,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      },
+      {
+        "name": "문서준",
+        "total": 1,
+        "workload": 5,
+        "main": 1,
+        "sub": 0,
+        "hall": 0,
+        "sep": 0,
+        "cls": 0,
+        "sp": 0
+      },
+      {
+        "name": "이현우",
+        "total": 2,
+        "workload": 3,
+        "main": 0,
+        "sub": 0,
+        "hall": 1,
+        "sep": 0,
+        "cls": 1,
+        "sp": 0
+      }
+    ],
+    "verify": {
+      "all_pass": true,
+      "checks": [
+        {
+          "name": "1. 모든 구역/학급 배정 완료 (누락 없음)",
+          "desc": "요구된 모든 시험감독 자리에 누락 없이 교사가 배정되었는지 확인합니다.",
+          "pass": true,
+          "messages": []
+        },
+        {
+          "name": "2. 동일 교시 중복 배정 방지",
+          "desc": "한 교시 동안 2개 이상의 감독 자리에 중복 배정되었는지 확인합니다.",
+          "pass": true,
+          "messages": []
+        },
+        {
+          "name": "3. 교사별 감독 역할 권한 일치",
+          "desc": "교사별로 허용된 감독 역할(정, 부, 복, 수 등)에 맞게 배정되었는지 확인합니다.",
+          "pass": true,
+          "messages": []
+        },
+        {
+          "name": "4. 결시 교사 배정 방지 (결시 위반)",
+          "desc": "전체/학년/학급 결시로 설정된 시간대에 배정된 교사가 없는지 확인합니다.",
+          "pass": true,
+          "messages": []
+        },
+        {
+          "name": "5. 본인 담임학급 배정 금지",
+          "desc": "본인이 담임을 맡고 있는 학급의 시험 감독으로 배정되었는지 확인합니다.",
+          "pass": true,
+          "messages": []
+        },
+        {
+          "name": "6. 본인 담당교과 배정 금지",
+          "desc": "본인이 담당하는 교과목의 시험 시간대에 감독으로 배정되었는지 확인합니다.",
+          "pass": true,
+          "messages": []
+        },
+        {
+          "name": "7. 동일 학급 연속 배정 금지",
+          "desc": "동일한 학급에 연속으로 시험 감독이 배정되었는지 확인합니다.",
+          "pass": true,
+          "messages": []
+        },
+        {
+          "name": "8. 동일 역할(수업/복도) 연속 배정 금지",
+          "desc": "수업감독 또는 복도감독이 2연속으로 배정되었는지 확인합니다.",
+          "pass": true,
+          "messages": []
+        },
+        {
+          "name": "9. 1일 최대 연속 감독 횟수 제한",
+          "desc": "하루 최대 연속 감독 시간 제한을 초과하여 배정되었는지 확인합니다.",
+          "pass": true,
+          "messages": []
+        },
+        {
+          "name": "10. 교사별 배정 제한(시간) 준수",
+          "desc": "교사별 설정된 '배정 제한(시간)' 한도를 초과하여 배정되었는지 확인합니다.",
+          "pass": true,
+          "messages": []
+        },
+        {
+          "name": "11. 1일 감독 횟수 편차 제한",
+          "desc": "1일 최대 감독 횟수 편차 한도를 초과하여 교사 간 불균형이 있는지 확인합니다.",
+          "pass": true,
+          "messages": []
+        }
+      ]
+    }
+  }
+}

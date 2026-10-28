@@ -153,9 +153,11 @@ class Api:
     # ── 데이터 저장 / 불러오기 ───────────────────────────────────────
 
     def load_data(self):
-        if os.path.exists(self.data_file):
-            with open(self.data_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
+        # 저장된 작업이 없으면(처음 설치) 무엇을 어떻게 넣는지 보이도록 예시 값으로 시작한다.
+        for path in (self.data_file, self.get_resource_path('sample_data.json')):
+            if os.path.exists(path):
+                with open(path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
         return json.loads(json.dumps(EMPTY_DATA))   # 매 호출마다 새 사본
 
     def _write_json(self, path, data):
