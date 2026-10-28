@@ -432,7 +432,16 @@ const btnGen = document.getElementById('btn-generate-periods');
 if(btnGen) {
     btnGen.addEventListener('click', () => { if(appData.config.examDates.length===0) return showToast("날짜를 추가해주세요.", "error"); autoSyncPeriods(); showToast("기초 시간표 동기화 완료!", "success"); });
 }
-document.getElementById('btn-add-teacher').addEventListener('click', () => { appData.teachers.push({ id:'T'+Date.now(), name:"", category:"교사", isMain:true, isSub:true, isClass1:true, isClass2:true, isClass3:true, isHallway:false, isSeparated:false, isSpecial:false, homeroom:"", subject:"", notes:"", absences:{}, maxPeriods: 0 }); renderTeachers(); renderAbsencesTab(); });
+document.getElementById('btn-add-teacher').addEventListener('click', () => { appData.teachers.push({ id:'T'+Date.now(), name:"", category:"교사", isMain:true, isSub:true, isClass1:true, isClass2:true, isClass3:true, isHallway:false, isSeparated:false, isSpecial:false, homeroom:"", subject:"", notes:"", absences:{}, maxPeriods: 0 }); renderTeachers(); renderAbsencesTab();
+    // 새 줄로 스크롤하고 성명 칸에 바로 입력할 수 있게 한다
+    const nameInput = document.querySelector('#teacher-list-body tr:last-child input[type="text"]');
+    if (nameInput) {
+        const box = nameInput.closest('.overflow-auto');
+        // 새 줄은 항상 맨 아래. 표가 다시 그려진 뒤 높이가 확정되므로 한 프레임 뒤에 내린다.
+        requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+        nameInput.focus({ preventScroll: true });
+    }
+});
 function openRulesModal() { renderRulesTab(); const m = document.getElementById('rules-modal'); if(m) { m.classList.remove('hidden'); m.focus(); } }
 window.closeRulesModal = function() { const m = document.getElementById('rules-modal'); if(m) m.classList.add('hidden'); };
 document.getElementById('btn-rules-run').addEventListener('click', () => {
