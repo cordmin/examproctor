@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>시험감독 배정 프로그램</title>
+    <!-- Tailwind 런타임(로컬 사본). 오프라인에서도 동작하고, JS 에서 조합한 클래스명도 처리한다. -->
+    <script src="tailwind.min.js"></script>
+    <link rel="stylesheet" href="flatpickr.min.css">
+
+    <script>
+        // 색상 램프는 :root 의 CSS 변수 하나만 고치면 전체에 반영된다.
+        // rgb(var(--x) / <alpha-value>) 형태라 bg-brand-600/80 같은 투명도 지정도 동작한다.
+        const ramp = (name, steps) => Object.fromEntries(
+            steps.map(s => [s, `rgb(var(--${name}-${s}) / <alpha-value>)`])
+        );
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: ramp('brand', [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950]),
+                        surface: ramp('surface', [0, 50, 100, 200, 300]),
+                        chrome: {
+                            DEFAULT: 'rgb(var(--chrome) / <alpha-value>)',
+                            hover: 'rgb(var(--chrome-hover) / <alpha-value>)',
+                            border: 'rgb(var(--chrome-border) / <alpha-value>)',
+                            soft: 'rgb(var(--chrome-soft) / <alpha-value>)',
+                            'soft-hover': 'rgb(var(--chrome-soft-hover) / <alpha-value>)',
+                        },
+                        line: 'rgb(var(--line) / <alpha-value>)',
+                        'text-main': 'rgb(var(--text-main) / <alpha-value>)',
+                        'chrome-text': 'rgb(var(--chrome-text) / <alpha-value>)',
+                        'brand-text': 'rgb(var(--brand-text) / <alpha-value>)',
+                        head: 'rgb(var(--head) / <alpha-value>)',
+                        stone: 'rgb(var(--stone) / <alpha-value>)',
+                        pebble: 'rgb(var(--pebble) / <alpha-value>)',
+                        // 마커 팔레트 — 범주(학년/역할/상태)를 색으로 구분하는 데만 쓴다.
+                        teal:   'rgb(var(--teal) / <alpha-value>)',
+                        coral:  'rgb(var(--coral) / <alpha-value>)',
+                        amber:  'rgb(var(--amber) / <alpha-value>)',
+                        orchid: 'rgb(var(--orchid) / <alpha-value>)',
+                        // 파스텔 워시 — 부드러운 배경 틴트
+                        mint:     'rgb(var(--mint) / <alpha-value>)',
+                        peach:    'rgb(var(--peach) / <alpha-value>)',
+                        lavender: 'rgb(var(--lavender) / <alpha-value>)',
+                        'teal-mist': 'rgb(var(--teal-mist) / <alpha-value>)',
+                    },
+                    // 반경: 버튼·입력·내비 8px, 작은 카드 14px, 큰 카드/블록 18px, 태그만 알약.
+                    // 기존 마크업의 rounded-lg / xl / 2xl 이 그대로 이 값에 떨어진다.
+                    borderRadius: {
+                        sm: '4px', md: '6px', lg: '8px', xl: '14px', '2xl': '18px', '3xl': '18px',
+                    },
+                    fontFamily: {
+                        sans: ['haffer', 'Inter', 'General Sans', 'Geist', 'Pretendard Variable',
+                               'Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui',
+                               'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'sans-serif'],
+                        mono: ['ui-monospace', 'JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .btn-tooltip-wrapper {
+            position: relative;
+        }
+        .btn-tooltip-wrapper .tooltip-bubble {
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+            z-index: 9999;
+            white-space: nowrap;
+        }
+        .btn-tooltip-wrapper:hover .tooltip-bubble {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 카드 내부 테이블 최하단 행 td의 border-bottom 제거 (이중 테두리 두꺼움 차단) */
+        div.rounded-b-xl table tbody tr:last-child td,
+        div.rounded-b-xl table tbody tr:last-child th,
+        div.rounded-b-xl tbody tr:last-child td {
+            border-bottom: 0 !important;
+        }
+
+        /* ── 색상 테마 ─────────────
+           - #1E293B: 타이틀바, 메인 버튼, 메인 텍스트, 활성 탭
+           - #313F52: 메디움 슬레이트, 버튼 호버, 캡슐 타이틀
+           - #F04A4A: 포인트 코랄 레드 (초기화, 삭제, 경고)
+           - #4A5565: 보조 텍스트, 서브 헤더, 보더 라인 포인트 */
+        :root {
+            /* Brand: #1E293B & #313F52 기반 슬레이트 팔레트 */
+            --brand-50:  240 244 248;  /* #F0F4F8 */
+            --brand-100: 224 232 240;  /* #E0E8F0 */
+            --brand-200: 186 202 220;
+            --brand-300: 140 164 194;
+            --brand-400:  90 120 156;
+            --brand-500:  49  63  82;  /* #313F52 — 서브/미디움 슬레이트 */
+            --brand-600:  30  41  59;  /* #1E293B — 주 메인 버튼/액션 */
+            --brand-700:  49  63  82;  /* #313F52 — 호버 */
+            --brand-800:  20  28  41;
+            --brand-900:  15  21  32;
+            --brand-950:  10  15  23;
+
+            /* Surfaces: 깨끗한 백색 카드 & 쿨 슬레이트 캔버스 */
+            --surface-0:   255 255 255; /* 백색 카드면 */
+            --surface-50:  248 250 252; /* 폼 백그라운드 */
+            --surface-100: 241 245 249; /* 캔버스 바탕 #F1F5F9 */
+            --surface-200: 203 213 225; /* 선명한 보더 라인 */
+            --surface-300: 148 163 184;
+
+            /* 타이틀바: #1E293B 슬레이트 메인 다크 */
+            --chrome:            30  41  59;   /* #1E293B */
+            --chrome-hover:      49  63  82;   /* #313F52 */
+            --chrome-border:     20  28  41;
+            --chrome-soft:      240 244 248;
+            --chrome-soft-hover:224 232 240;
+
+            --head: 241 245 249;        /* 표 머리 */
+            --line: 148 163 184;        /* 헤어라인 진한 슬레이트 (#94A3B8) */
+            --text-main:  30  41  59;   /* #1E293B — 메인 텍스트 */
+            --stone:      74  85 101;   /* #4A5565 — 보조 텍스트 */
+            --pebble:    148 163 184;   /* 플레이스홀더 */
+            --chrome-text: 255 255 255;
+            --brand-text:  255 255 255;
+
+            /* 마커 (포인트 레드 #F04A4A) */
+            --teal:   13 148 136;
+            --coral: 240  74  74;       /* #F04A4A 포인트 코랄 레드 */
+            --amber: 217 119   6;
+            --orchid:124  58 237;
+
+            /* 파스텔 워시 */
+            --mint:     204 251 241;
+            --peach:    254 243 199;
+            --lavender: 237 233 254;
+            --teal-mist:207 250 254;
+        }
+
+        /* 화면 크기 맞춤은 shell.js 의 fitZoom() 이 html 에 zoom 을 걸어 처리한다.
+           zoom 아래에서는 vh/vw 가 함께 확대돼 넘치므로 --vh/--vw 를 대신 쓴다. */
+        html {
+            font-size: 12.5px;
+            --vw: 1vw;
+            --vh: 1vh;
+        }
+
+        body {
+            margin: 0;
+            font-family: haffer, Inter, "General Sans", Geist, "Pretendard Variable", Pretendard,
+                         -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI",
+                         "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* #1E293B 단색 슬레이트 타이틀바 (하단 그레이 가로 라인 포함) */
+        .sky { background-color: #1E293B; background-image: none; border-bottom: 1px solid #475569; }
+
+        .hidden { display: none !important; }
+
+        /* 모든 카드 및 컨테이너 그림자 완전 제거 */
+        *, *::before, *::after {
+            box-shadow: none !important;
+        }
+
+        /* ── 표 단일선 (Single Border) 정밀 규칙 ─────────────────── */
+        table {
+            border-collapse: collapse !important;
+            width: 100%;
+            border: none !important;
+        }
+        th, td {
+            border: 1px solid rgb(var(--line)) !important;
+            padding: 0.35rem 0.4rem;
+        }
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background-color: #F1F5F9 !important;
+            color: rgb(var(--text-main));
+            border: 1px solid rgb(var(--line)) !important;
+            font-weight: 700;
+        }
+
+        /* 카드 외곽 테두리와 표 외각 셀 테두리 이중 중첩 방지 */
+        table tr:first-child th { border-top: none !important; }
+        table tr:last-child td { border-bottom: 1px solid rgb(var(--line)) !important; }
+        table th:first-child, table td:first-child { border-left: none !important; }
+        table th:last-child, table td:last-child { border-right: none !important; }
+
+        /* 표 내부 입력폼(select, input)의 명확한 입력 필드 경계 및 톤다운 배경 적용 */
+        table td select, table td input.fld {
+            border: 1px solid #CBD5E1 !important;
+            border-radius: 5px !important;
+            background-color: #F8FAFC !important;
+            color: #0F172A !important;
+            outline: none !important;
+            text-align: center !important;
+            text-align-last: center !important;
+            transition: all 0.15s ease !important;
+        }
+        table td select option { text-align: left !important; }
+        table td select:hover, table td input.fld:hover {
+            border-color: #94A3B8 !important;
+            background-color: #FFFFFF !important;
+        }
+        table td select:focus, table td input.fld:focus {
+            border-color: #2563EB !important;
+            background-color: #FFFFFF !important;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25) !important;
+        }
+
+        .border-thick { border-right: 2px solid rgb(var(--surface-300)) !important; }
+        .border-edge  { border-left: 2px solid rgb(var(--surface-300)) !important; }
+
+        /* ── 검은색 V 체크 무늬 맑은 커스텀 체크박스 ── */
+        .chk-custom {
+            appearance: none; -webkit-appearance: none;
+            width: 16px; height: 16px;
+            border: 1.5px solid #94A3B8;
+            border-radius: 4px;
+            background-color: #FFFFFF;
+            cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            position: relative;
+            transition: all 0.15s ease;
+            vertical-align: middle;
+        }
+        .chk-custom:hover { border-color: #475569; }
+        .chk-custom:checked {
+            background-color: #FFFFFF;
+            border-color: #334155;
+        }
+        .chk-custom:checked::after {
+            content: '';
+            display: block;
+            width: 4px; height: 8px;
+            border: solid #0F172A;
+            border-width: 0 1.5px 1.5px 0;
+            transform: rotate(45deg);
+            margin-bottom: 2px;
+        }
+
+        .hover-swap:hover {
+            background-color: rgb(var(--brand-50)) !important;
+            cursor: pointer;
+            outline: 2px solid rgb(var(--brand-600));
+            outline-offset: -2px;
+        }
+        /* 학급별 표: 이름 한 줄이 곧 교체 단위라, 한 줄만 굵게 잡아준다.
+           (셀 전체를 잡으면 복도처럼 여러 명이 든 칸에서 전원이 대상인 것처럼 보인다) */
+        .swap-name:hover {
+            background-color: rgb(var(--brand-50)) !important;
+            cursor: pointer;
+            outline: 3px solid rgb(var(--brand-600));
+            outline-offset: -1px;
+        }
+        /* 자동 배정 뒤 손으로 바꾼 칸 */
+        .cell-changed { background-color: #FEF3C7 !important; }
+        /* 검증 메시지에서 이동해 온 칸 */
+        .cell-flash { outline: 3px solid #F04A4A !important; outline-offset: -3px; }
+        .card-elev {
+            box-shadow: none !important;
+        }
+
+        /* ── 학년 토글 스위치 ─────────────────────── */
+        .grade-toggle {
+            position: relative;
+            width: 44px; height: 24px;
+            background: #E2E8F0;
+            border: 1px solid rgb(var(--line));
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            flex-shrink: 0;
+        }
+        .grade-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: #F04A4A;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .grade-toggle.active {
+            background: #D1FAE5;
+        }
+        .grade-toggle.active::after {
+            transform: translateX(20px);
+            background: #2EB87E;
+        }
+        .grade-row-disabled td {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .grade-row-disabled td:first-child {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        tr[id^="grade-row-"].grade-row-disabled td:nth-child(2) {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #subject-tables-container { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
+        #subject-tables-container > div {
+            margin-bottom: 0 !important;
+            width: max-content !important; flex: none !important;
+        }
+        #subject-tables-container th, #subject-tables-container td { white-space: nowrap !important; }
+
+        /* ── 스크롤바 ───────────────────────────── */
+        ::-webkit-scrollbar { width: 9px; height: 9px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(148, 163, 184, 0.5);
+            border-radius: 9999px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        ::-webkit-scrollbar-thumb:hover { background-color: rgba(100, 116, 139, 0.8); }
+        * { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.5) transparent; }
+
+        /* ── 애니메이션 ──────────────────────────────────────────── */
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+        .animate-fade-in { animation: fadeIn 0.15s ease-out forwards; }
+
+        input[type='number'].hide-spin::-webkit-inner-spin-button,
+        input[type='number'].hide-spin::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+        /* 선명한 입력 요소: 1px 선명한 보더, 톤다운 배경, 포커스 파랑 2px 링. */
+        .fld {
+            border: 1px solid #CBD5E1;
+            border-radius: 6px;
+            background-color: #F8FAFC;
+            color: rgb(var(--text-main));
+            outline: none;
+            transition: border-color .15s, box-shadow .15s, background-color .15s;
+        }
+        .fld:hover {
+            border-color: #94A3B8;
+            background-color: #FFFFFF;
+        }
+        .fld::placeholder { color: rgb(var(--pebble)); }
+        .fld:focus {
+            border-color: rgb(var(--brand-600));
+            background-color: #FFFFFF;
+            box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.3);
+        }
+        .fld:disabled { background-color: rgb(var(--surface-100)); color: rgb(var(--pebble)); border-color: #E2E8F0; }
+        /* 감독 형평성 조절 카드: 입력폼 내부 배경 흰색 */
+        #equity-card .fld { background-color: #FFFFFF; }
+        /* 기초 설정 페이지 모든 카드: 입력폼 내부 배경 흰색 (비활성 제외) */
+        #tab-config .fld:not(:disabled),
+        #grade-cards-frame .fld:not(:disabled) { background-color: #FFFFFF; }
+        #tab-config table td select:not(:disabled),
+        #tab-config table td input.fld:not(:disabled),
+        #grade-cards-frame table td select:not(:disabled) { background-color: #FFFFFF !important; }
+
+        /* 날짜 입력 필드 텍스트 가운데 정렬 및 달력 피커 모달 명확화 */
+        input[type="date"].fld {
+            text-align: center;
+            color-scheme: light;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 2px;
+            transition: background-color 0.15s;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            background-color: rgba(37, 99, 235, 0.12);
+        }
+
+        body { user-select: none; }
+        input, textarea, select { user-select: text; }
+
+        /* ── 전체 아이콘(svg) 크기 1.3배 확대 ── */
+        svg[class~="w-3"]   { width: 15.6px !important; }
+        svg[class~="h-3"]   { height: 15.6px !important; }
+        svg[class~="w-3.5"] { width: 18.2px !important; }
+        svg[class~="h-3.5"] { height: 18.2px !important; }
+        svg[class~="w-4"]   { width: 20.8px !important; }
+        svg[class~="h-4"]   { height: 20.8px !important; }
+        svg[class~="w-5"]   { width: 26px !important; }
+        svg[class~="h-5"]   { height: 26px !important; }
+        svg[class~="w-6"]   { width: 31.2px !important; }
+        svg[class~="h-6"]   { height: 31.2px !important; }
+
+        /* 칩/행 삭제(X) 버튼: 축소 크기 + hover 연한 붉은색 */
+        .x-btn svg { width: 14.5px !important; height: 14.5px !important; }
+        .x-btn { color: #FCA5A5 !important; }
+        .x-btn:hover { color: #DC2626 !important; }
+
+        /* ── flatpickr 달력 테마 ── */
+        .flatpickr-calendar {
+            border: 1px solid rgb(var(--line)) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.28) !important;
+            padding: 4px !important;
+            font-family: inherit;
+        }
+        .flatpickr-calendar.arrowTop:before, .flatpickr-calendar.arrowTop:after { border-bottom-color: rgb(var(--surface-0)); }
+        .flatpickr-months { padding-top: 4px; }
+        .flatpickr-month { color: rgb(var(--brand-600)) !important; }
+        .flatpickr-current-month .flatpickr-monthDropdown-months, .flatpickr-current-month input.cur-year { font-weight: 800; }
+        .flatpickr-weekday { color: rgb(var(--stone)) !important; font-weight: 700; font-size: 11px; }
+        .flatpickr-weekdays .flatpickr-weekday:first-child { color: #E11D48 !important; }
+        .flatpickr-weekdays .flatpickr-weekday:last-child { color: #2563EB !important; }
+        .flatpickr-day { border-radius: 9px !important; font-weight: 600; color: rgb(var(--text-main)); }
+        .flatpickr-day:hover { background: rgb(var(--brand-50)) !important; border-color: rgb(var(--brand-50)) !important; }
+        .flatpickr-day.today { border-color: rgb(var(--brand-400)) !important; }
+        .flatpickr-day.selected, .flatpickr-day.selected:hover {
+            background: rgb(var(--brand-600)) !important;
+            border-color: rgb(var(--brand-600)) !important;
+            color: #fff !important;
+            box-shadow: 0 2px 6px -1px rgba(30, 41, 59, 0.45);
+        }
+        .flatpickr-day.flatpickr-disabled, .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { color: rgb(var(--pebble)); }
+        .flatpickr-prev-month:hover svg, .flatpickr-next-month:hover svg { fill: rgb(var(--brand-600)) !important; }
+    </style>
+</head>
+<body class="h-[calc(var(--vh)*100)] flex flex-col bg-chrome text-text-main text-[14px] overflow-hidden">
+
+    <!-- ── 아이콘 스프라이트 (lucide) ───────────────────────────────────────
+         <svg class="w-4 h-4"><use href="#i-이름"/></svg> 형태로 재사용한다. -->
+    <svg style="display:none" aria-hidden="true">
+        <defs>
+            <g id="i-base" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></g>
+        </defs>
+        <symbol id="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" x2="19" y1="12" y2="12"/></symbol>
+        <symbol id="i-square" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/></symbol>
+        <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+        <symbol id="i-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></symbol>
+        <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></symbol>
+        <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></symbol>
+        <symbol id="i-zap" viewBox="0 0 24 24" fill="none" stroke="#FCD34D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/></symbol>
+        <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+        <symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></symbol>
+        <symbol id="i-clipboard-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></symbol>
+        <symbol id="i-clipboard-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></symbol>
+        <symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+        <symbol id="i-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+        <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+        <symbol id="i-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+        <symbol id="i-redo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
+        <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+        <symbol id="i-rocket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol>
+        <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+        <symbol id="i-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></symbol>
+        <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+    </svg>
+
+    <!-- ── 커스텀 타이틀바 (frameless 창) ─────────────────────────────── -->
+    <div id="titlebar"
+         class="pywebview-drag-region sky text-chrome-text px-4 py-[8px] flex justify-between items-center text-[13px] flex-shrink-0 z-30">
+        <span class="font-bold tracking-tight flex items-center gap-2">
+            <img src="icon.png" alt="" class="w-[18px] h-[18px]" draggable="false">
+            시험감독 배정 프로그램
+        </span>
+        <div class="flex items-center space-x-4">
+            <button id="win-min" title="최소화" class="w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:bg-white/20 hover:text-chrome-text rounded-md cursor-pointer transition-colors">
+                <svg class="w-4 h-4"><use href="#i-minus"/></svg>
+            </button>
+            <button id="win-max" title="최대화" class="w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:bg-white/20 hover:text-chrome-text rounded-md cursor-pointer transition-colors">
+                <svg class="w-3 h-3"><use href="#i-square"/></svg>
+            </button>
+            <button id="win-close" title="닫기" class="w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:bg-coral hover:text-white rounded-md cursor-pointer transition-colors">
+                <svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="flex-grow overflow-hidden p-[13px] flex space-x-[13px]">
+
+        <!-- ── 좌측 사이드바 ────── -->
+        <div class="w-[168px] flex-shrink-0 flex flex-col gap-[13px]">
+
+            <!-- [상단 사이드바 카드] 프로그램 이름 & 열기/저장 -->
+            <div class="bg-surface-0 rounded-2xl border border-line card-elev p-3 flex flex-col justify-between relative z-20 gap-2.5">
+                <div class="text-center leading-tight py-1">
+                    <div class="font-extrabold text-[13px] tracking-tight whitespace-nowrap text-text-main">시험감독 배정 프로그램</div>
+                    <div class="font-semibold text-[11.5px] text-stone mt-0.5">(중학교용)</div>
+                </div>
+
+                <!-- 구분선 -->
+                <div class="border-t border-line w-full my-0.5"></div>
+
+                <!-- 열기 / 저장 -->
+                <div class="grid grid-cols-2 gap-1.5">
+                    <!-- 열기 -->
+                    <div class="btn-tooltip-wrapper relative w-full">
+                        <button id="btn-global-load"
+                                class="w-full py-2 px-1.5 flex items-center justify-center gap-1 rounded-lg border border-line bg-surface-0 hover:bg-surface-100 text-stone hover:text-text-main font-semibold text-[12px] transition-all cursor-pointer shadow-sm">
+                            <svg class="w-3.5 h-3.5 flex-shrink-0"><use href="#i-upload"/></svg>
+                            <span>열기</span>
+                        </button>
+                        <!-- 위쪽 말풍선 툴팁 -->
+                        <div class="tooltip-bubble flex flex-col items-center">
+                            <div class="bg-[#1E293B] text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-2xl border border-white/20">
+                                설정 및 배정결과 열기
+                            </div>
+                            <div class="w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-[#1E293B] -mt-[0.5px]"></div>
+                        </div>
+                    </div>
+                    <!-- 저장 -->
+                    <div class="btn-tooltip-wrapper relative w-full">
+                        <button id="btn-global-save"
+                                class="w-full py-2 px-1.5 flex items-center justify-center gap-1 rounded-lg border border-line bg-surface-0 hover:bg-surface-100 text-stone hover:text-text-main font-semibold text-[12px] transition-all cursor-pointer shadow-sm">
+                            <svg class="w-3.5 h-3.5 flex-shrink-0"><use href="#i-save"/></svg>
+                            <span>저장</span>
+                        </button>
+                        <!-- 위쪽 말풍선 툴팁 -->
+                        <div class="tooltip-bubble flex flex-col items-center">
+                            <div class="bg-[#1E293B] text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-2xl border border-white/20">
+                                설정 및 배정결과 저장
+                            </div>
+                            <div class="w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-[#1E293B] -mt-[0.5px]"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- [하단 사이드바 카드] 탭 메뉴 -->
+            <div class="bg-surface-0 flex-1 min-h-0 rounded-2xl border border-line card-elev flex flex-col overflow-hidden">
+                <!-- 메뉴 -->
+                <nav id="sidebar-nav" class="flex-grow p-2 space-y-2 overflow-y-auto"></nav>
+
+            </div>
+
+        </div>
+
+        <!-- ── 콘텐츠 패널 ──────────────── -->
+        <div class="flex-grow min-w-0 flex flex-col gap-4 relative z-10 h-full overflow-hidden">
+
+            <!-- [상단 메인 프레임 패널] 기본 설정 등 메인 탭 콘텐츠 -->
+            <div class="bg-surface-0 flex-1 min-h-0 rounded-2xl border border-line card-elev overflow-hidden flex flex-col">
+
+                <!-- 기본 설정 -->
+                <section id="tab-config" class="tab-content h-full flex flex-col">
+                    <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0">
+                        <h2 class="font-semibold text-[15px] flex items-center gap-2 text-white">
+                            <svg class="w-4 h-4 text-white"><use href="#i-settings"/></svg> 기초 설정
+                        </h2>
+                    </div>
+
+                    <div class="flex-1 overflow-auto bg-surface-0 p-6">
+                        <input type="hidden" id="exam-name" value="">
+
+                        <div class="max-w-[1070px] w-full mx-auto space-y-10">
+                            <!-- 1행: 고사 일정 및 교시 설정 (좌) & 학년 및 학급 설정 (우) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-10 items-start">
+
+                                <!-- 고사 일정 및 교시 설정 카드 -->
+                                <div class="flex flex-col h-full">
+                                    <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px] self-start z-10 -mb-[1px]">
+                                        고사일정 설정
+                                    </div>
+                                    <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1 p-4">
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <div class="relative flex items-center">
+                                                <svg class="absolute left-2.5 w-4 h-4 text-stone pointer-events-none z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0V11.25A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+                                                <input type="text" id="new-date" class="fld pl-8 pr-3 py-2 text-[13px] font-bold cursor-pointer text-center" placeholder="날짜 선택" readonly>
+                                            </div>
+                                            <input type="number" id="daily-periods" class="fld w-16 px-2 py-2 text-[13px] font-bold text-center" min="1" max="7" value="3">
+                                            <span class="font-bold text-[12.5px] text-stone">교시까지 시험</span>
+                                            <button id="btn-add-date" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">+추가</button>
+                                        </div>
+                                        <div id="date-list" class="flex flex-wrap gap-1.5 min-h-[32px]"></div>
+                                    </div>
+                                </div>
+
+                                <!-- 학년 및 구역 설정 카드 (카드 자체가 표) -->
+                                <div class="flex flex-col h-full">
+                                    <div class="flex items-end justify-between -mb-[1px] relative z-10">
+                                        <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px]">
+                                            학년 및 구역 설정
+                                        </div>
+                                        <span class="flex items-center gap-1.5 pr-2 pb-1.5 text-[11px] font-semibold text-stone">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></span>
+                                            복도감독은 복도구역 수 만큼 배정됩니다.
+                                        </span>
+                                    </div>
+                                    <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1">
+                                        <div class="overflow-x-auto flex-1">
+                                            <table class="w-full text-center text-[12.5px] border-collapse">
+                                                <thead class="bg-surface-100 text-text-main font-bold text-[12px]">
+                                                    <tr><th class="w-12 p-2 border border-line bg-surface-100">시험</th><th class="w-16 p-2 border border-line bg-surface-100">학년</th><th class="w-[18%] p-2 border border-line bg-surface-100">일반학급</th><th class="w-[18%] p-2 border border-line bg-surface-100">특수학급</th><th class="w-[18%] p-2 border border-line bg-surface-100">분리고사실</th><th class="w-[18%] p-2 border border-line bg-surface-100">복도구역</th></tr>
+                                                </thead>
+                                                <tbody class="bg-surface-0">
+                                                    <tr id="grade-row-1" class="grade-row-disabled">
+                                                        <td class="p-1 border border-line"><div class="flex justify-center"><div class="grade-toggle" id="grade-1" data-grade="1"></div></div></td>
+                                                        <td class="bg-surface-50 font-bold p-1 border border-line">1학년</td>
+                                                        <td class="p-1 border border-line"><input type="number" id="class-count-1" class="fld w-14 p-1 text-center hide-spin" min="1" max="20" value="1" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="sp-count-1" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="sep-count-1" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="hw-count-1" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
+                                                    </tr>
+                                                    <tr id="grade-row-2" class="grade-row-disabled">
+                                                        <td class="p-1 border border-line"><div class="flex justify-center"><div class="grade-toggle" id="grade-2" data-grade="2"></div></div></td>
+                                                        <td class="bg-surface-50 font-bold p-1 border border-line">2학년</td>
+                                                        <td class="p-1 border border-line"><input type="number" id="class-count-2" class="fld w-14 p-1 text-center hide-spin" min="1" max="20" value="1" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="sp-count-2" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="sep-count-2" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="hw-count-2" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
+                                                    </tr>
+                                                    <tr id="grade-row-3" class="grade-row-disabled">
+                                                        <td class="p-1 border border-line"><div class="flex justify-center"><div class="grade-toggle" id="grade-3" data-grade="3"></div></div></td>
+                                                        <td class="bg-surface-50 font-bold p-1 border border-line">3학년</td>
+                                                        <td class="p-1 border border-line"><input type="number" id="class-count-3" class="fld w-14 p-1 text-center hide-spin" min="1" max="20" value="1" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="sp-count-3" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="sep-count-3" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="hw-count-3" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2행: 교실별 배정 인원 (좌 50%) & 시험 과목 (우 50%) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-10 items-start">
+
+                                <!-- 교실별 배정 인원 카드 -->
+                                <div class="flex flex-col">
+                                    <div class="flex items-end justify-between -mb-[1px] relative z-10">
+                                        <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px]">
+                                            교실별 배정 인원
+                                        </div>
+                                        <span class="flex items-center gap-1.5 pr-2 pb-1.5 text-[11px] font-semibold text-stone">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></span>
+                                            수업(자습)은 1인 감독으로 자동 배정됩니다.
+                                        </span>
+                                    </div>
+                                    <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm">
+                                        <div class="overflow-x-auto">
+                                        <table class="w-full text-center text-[12.5px] border-collapse table-fixed" id="rules-invig-table">
+                                            <thead class="bg-surface-100 text-text-main font-bold text-[12px]">
+                                                <tr><th class="w-16 p-2 border border-line bg-surface-100">학년</th><th class="p-2 border border-line bg-surface-100">일반학급</th><th class="p-2 border border-line bg-surface-100">특수학급</th><th class="p-2 border border-line bg-surface-100">분리고사실</th></tr>
+                                            </thead>
+                                            <tbody id="rules-invig-body" class="bg-surface-0"></tbody>
+                                        </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 시험 과목 카드 -->
+                                <div class="flex flex-col h-full">
+                                    <div class="flex items-end justify-between -mb-[1px] relative z-10">
+                                        <div class="inline-flex items-center bg-[#1E293B] text-white px-4 py-1.5 rounded-t-lg font-bold text-[13px]">
+                                            시험 과목
+                                        </div>
+                                        <span class="flex items-center gap-1.5 pr-2 pb-1.5 text-[11px] font-semibold text-stone">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0"></span>
+                                            과목명이 '수업'인 경우 자습 시간으로 자동 인식합니다
+                                        </span>
+                                    </div>
+                                    <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1 p-4">
+                                        <div class="flex gap-2 mb-3">
+                                            <input type="text" id="new-subject" class="fld flex-1 px-3 py-2 text-[13px] font-bold" placeholder="시험 과목명 입력">
+                                            <button id="btn-add-subject" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">+추가</button>
+                                        </div>
+                                        <div id="subject-list" class="flex flex-wrap gap-1.5 min-h-[32px]"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            <!-- 배정 규칙 설정 모달 -->
+            <div id="rules-modal" tabindex="0" class="hidden fixed inset-0 bg-ink/40 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
+              <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-xl w-[860px] max-w-[calc(var(--vw)*94)] max-h-[calc(var(--vh)*88)] flex flex-col overflow-hidden animate-fade-in">
+                <div class="px-5 py-3 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
+                    <h2 class="font-semibold text-[15px] flex items-center gap-2 text-white">
+                        <svg class="w-4 h-4 text-white"><use href="#i-sliders"/></svg> 배정 규칙 설정
+                    </h2>
+                </div>
+                <div class="flex-1 overflow-auto p-5">
+                    <div class="grid grid-cols-2 gap-5 w-full">
+
+                        <div class="bg-surface-0 rounded-xl border border-coral/30 overflow-hidden">
+                            <div class="px-4 py-2.5 bg-coral/10 border-b border-coral/25 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-coral"><use href="#i-alert"/></svg>
+                                <h3 class="font-semibold text-[13.5px] text-text-main">배정 금지 규칙</h3>
+                            </div>
+                            <div class="p-4 space-y-3">
+                                <div class="flex items-center justify-between"><label class="font-bold text-[13px]">담당교과 시간 배정 금지</label><input type="checkbox" id="rule-subject" class="w-4 h-4 accent-coral cursor-pointer"></div>
+                                <div class="flex items-center justify-between"><label class="font-bold text-[13px]">담임학급 시간 배정 금지</label><input type="checkbox" id="rule-homeroom" class="w-4 h-4 accent-coral cursor-pointer"></div>
+                                <div class="flex items-center justify-between"><label class="font-bold text-[13px]">복도감독 연속 배정 금지</label><input type="checkbox" id="rule-hallconsec" class="w-4 h-4 accent-coral cursor-pointer"></div>
+                                <div class="flex items-center justify-between"><label class="font-bold text-[13px]">동일학급 연속 배정 금지</label><input type="checkbox" id="rule-sameclass" class="w-4 h-4 accent-coral cursor-pointer"></div>
+                                <div class="flex items-center justify-between"><label class="font-bold text-[13px]">수업감독(자습) 연속 배정 금지</label><input type="checkbox" id="rule-classconsec" class="w-4 h-4 accent-coral cursor-pointer"></div>
+                            </div>
+                        </div>
+
+                        <div id="equity-card" class="bg-surface-0 rounded-xl border border-brand-200 overflow-hidden">
+                            <div class="px-4 py-2.5 bg-brand-50 border-b border-brand-200 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-brand-600"><use href="#i-sliders"/></svg>
+                                <h3 class="font-semibold text-[13.5px] text-text-main">감독 형평성 조절</h3>
+                            </div>
+                            <div class="p-4">
+                                <div class="mb-4 pb-4 border-b border-surface-200">
+                                    <label class="block font-bold text-[13px] mb-2.5">감독별 피로도 설정 (가장 어려움:5, 가장 쉬움:1)</label>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div class="flex items-center justify-between bg-surface-50 px-2 py-1.5 rounded-lg border border-surface-200"><span class="text-[12px] font-bold">정감독</span><input type="number" id="rule-f-main" class="fld w-11 text-center text-[12px] py-0.5 hide-spin" min="1" max="5" oninput="this.value=this.value.replace(/[^1-5]/g,'').slice(0,1)" value="5"></div>
+                                        <div class="flex items-center justify-between bg-surface-50 px-2 py-1.5 rounded-lg border border-surface-200"><span class="text-[12px] font-bold">부감독</span><input type="number" id="rule-f-sub" class="fld w-11 text-center text-[12px] py-0.5 hide-spin" min="1" max="5" oninput="this.value=this.value.replace(/[^1-5]/g,'').slice(0,1)" value="3"></div>
+                                        <div class="flex items-center justify-between bg-surface-50 px-2 py-1.5 rounded-lg border border-surface-200"><span class="text-[12px] font-bold">수업감독</span><input type="number" id="rule-f-class" class="fld w-11 text-center text-[12px] py-0.5 hide-spin" min="1" max="5" oninput="this.value=this.value.replace(/[^1-5]/g,'').slice(0,1)" value="1"></div>
+                                        <div class="flex items-center justify-between bg-surface-50 px-2 py-1.5 rounded-lg border border-surface-200"><span class="text-[12px] font-bold">복도감독</span><input type="number" id="rule-f-hall" class="fld w-11 text-center text-[12px] py-0.5 hide-spin" min="1" max="5" oninput="this.value=this.value.replace(/[^1-5]/g,'').slice(0,1)" value="2"></div>
+                                        <div class="flex items-center justify-between bg-surface-50 px-2 py-1.5 rounded-lg border border-surface-200"><span class="text-[12px] font-bold">분리감독</span><input type="number" id="rule-f-sep" class="fld w-11 text-center text-[12px] py-0.5 hide-spin" min="1" max="5" oninput="this.value=this.value.replace(/[^1-5]/g,'').slice(0,1)" value="4"></div>
+                                        <div class="flex items-center justify-between bg-surface-50 px-2 py-1.5 rounded-lg border border-surface-200"><span class="text-[12px] font-bold">특수감독</span><input type="number" id="rule-f-sp" class="fld w-11 text-center text-[12px] py-0.5 hide-spin" min="1" max="5" oninput="this.value=this.value.replace(/[^1-5]/g,'').slice(0,1)" value="4"></div>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between gap-2"><label class="font-bold text-[13px]">일일 최대 연속감독 시간</label>
+                                        <select id="rule-maxconsec" class="fld px-2 py-1.5 text-[12.5px] font-bold cursor-pointer">
+                                            <option value="2">2시간</option>
+                                            <option value="3">3시간</option>
+                                            <option value="99" selected>제한없음</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2"><label class="font-bold text-[13px]">일일 최대 감독시간 편차</label>
+                                        <select id="rule-maxdiff" class="fld px-2 py-1.5 text-[12.5px] font-bold cursor-pointer">
+                                            <option value="1">1시간</option>
+                                            <option value="2">2시간</option>
+                                            <option value="3">3시간</option>
+                                            <option value="99" selected>제한없음</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2"><label class="font-bold text-[13px]">우선 배정 기준</label>
+                                        <select id="rule-bal-strategy" class="fld px-2 py-1.5 text-[12.5px] font-bold cursor-pointer">
+                                            <option value="FATIGUE" selected>누적 피로도 공평하게 우선 (권장)</option>
+                                            <option value="COUNT">총 감독 횟수 공평하게 우선</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-5 py-3 bg-surface-50 border-t border-surface-100 flex justify-end gap-2 flex-shrink-0">
+                    <button onclick="closeRulesModal()" class="px-4 py-1.5 border border-surface-300 bg-surface-0 hover:bg-surface-50 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">취소 (Esc)</button>
+                    <button id="btn-rules-run" class="px-5 py-1.5 bg-brand-600 hover:bg-brand-700 text-brand-text font-semibold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors inline-flex items-center gap-1.5"><svg class="w-4 h-4"><use href="#i-zap"/></svg> 배정 실행</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 감독 명단 -->
+            <section id="tab-teachers" class="tab-content hidden h-full flex flex-col">
+                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0">
+                    <h2 class="font-semibold text-[15px] flex items-center gap-2 text-white">
+                        <svg class="w-4 h-4 text-white"><use href="#i-clipboard-check"/></svg> 감독 명단
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="btn-add-teacher" class="inline-flex items-center justify-center gap-1.5 w-[125px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
+                            <svg class="w-3.5 h-3.5"><use href="#i-plus"/></svg> 명단 추가
+                        </button>
+                        <button id="btn-upload-csv" class="inline-flex items-center justify-center gap-1.5 w-[125px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
+                            <svg class="w-3.5 h-3.5"><use href="#i-upload"/></svg> 명단 올리기
+                        </button>
+                        <button id="btn-download-template" class="inline-flex items-center justify-center gap-1.5 w-[125px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
+                            <svg class="w-3.5 h-3.5"><use href="#i-download"/></svg> 양식 내려받기
+                        </button>
+                        <button id="btn-clear-teachers" class="inline-flex items-center justify-center gap-1.5 w-[125px] h-9 bg-[#F04A4A] hover:bg-[#D93838] text-white font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors border-0">
+                            <svg class="w-3.5 h-3.5 text-white"><use href="#i-trash"/></svg> 명단 초기화
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-auto pb-4">
+                    <table class="w-full text-center table-fixed text-[13px]">
+                        <thead class="bg-[#F1F5F9] text-text-main font-bold text-[13px] sticky top-0 z-20">
+                            <tr>
+                                <th class="w-10">순</th>
+                                <th class="w-20">성명</th>
+                                <th class="w-24">담당교과</th>
+                                <th class="w-16">담임</th>
+                                <th class="w-20 min-w-[72px]">정감독<br><input type="checkbox" id="chk-all-main" onchange="toggleAllRoles('isMain', this.checked)" class="mt-1 chk-custom"></th>
+                                <th class="w-20 min-w-[72px]">부감독<br><input type="checkbox" id="chk-all-sub" onchange="toggleAllRoles('isSub', this.checked)" class="mt-1 chk-custom"></th>
+                                <th class="w-20 min-w-[72px]">수업1<br><input type="checkbox" id="chk-all-c1" onchange="toggleAllRoles('isClass1', this.checked)" class="mt-1 chk-custom"></th>
+                                <th class="w-20 min-w-[72px]">수업2<br><input type="checkbox" id="chk-all-c2" onchange="toggleAllRoles('isClass2', this.checked)" class="mt-1 chk-custom"></th>
+                                <th class="w-20 min-w-[72px]">수업3<br><input type="checkbox" id="chk-all-c3" onchange="toggleAllRoles('isClass3', this.checked)" class="mt-1 chk-custom"></th>
+                                <th class="w-20 min-w-[72px]">복도감독<br><input type="checkbox" id="chk-all-hall" onchange="toggleAllRoles('isHallway', this.checked)" class="mt-1 chk-custom"></th>
+                                <th class="w-20 min-w-[72px]">분리감독<br><input type="checkbox" id="chk-all-sep" onchange="toggleAllRoles('isSeparated', this.checked)" class="mt-1 chk-custom"></th>
+                                <th class="w-20 min-w-[72px]">특수감독<br><input type="checkbox" id="chk-all-sp" onchange="toggleAllRoles('isSpecial', this.checked)" class="mt-1 chk-custom"></th>
+                                <th class="w-36">참고사항</th>
+                                <th class="w-10">삭제</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacher-list-body" class="bg-surface-0"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 결시 관리 -->
+            <section id="tab-absences" class="tab-content hidden h-full flex flex-col">
+                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0">
+                    <h2 class="font-semibold text-[15px] flex items-center gap-2 text-white">
+                        <svg class="w-4 h-4 text-white"><use href="#i-clipboard-list"/></svg> 결시 관리
+                    </h2>
+                    <button onclick="clearAllAbsences()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F04A4A] hover:bg-[#D93838] text-white font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors border-0">
+                        <svg class="w-3.5 h-3.5 text-white"><use href="#i-trash"/></svg> 결시 초기화
+                    </button>
+                </div>
+                <div class="bg-surface-50 px-5 py-3.5 border-b border-surface-200 flex-shrink-0 flex items-center gap-4 flex-wrap" id="brush-toolbar"></div>
+                <div class="flex-1 overflow-auto pb-4 min-h-0">
+                    <div class="w-full min-w-full">
+                        <table class="w-full min-w-full text-center whitespace-nowrap text-[14px] border-collapse" id="absence-table">
+                            <thead id="absence-list-head" class="bg-[#F1F5F9] text-text-main font-bold text-[14px] sticky top-0 z-20"></thead>
+                            <tbody id="absence-list-body" class="bg-surface-0" onmouseleave="isDragging=false;isRightDragging=false;"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 배정 결과 -->
+            <section id="tab-result" class="tab-content hidden h-full flex flex-col">
+                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0 gap-4">
+                    <div class="flex items-center gap-4 min-w-0">
+                        <h2 class="font-semibold text-[15px] flex items-center gap-2 flex-shrink-0 text-white">
+                            <svg class="w-4 h-4 text-white"><use href="#i-check-circle"/></svg> 배정 결과
+                        </h2>
+                        <div class="flex bg-surface-100 p-1 rounded-lg border border-surface-200 flex-shrink-0">
+                            <button class="result-sub-btn bg-brand-600 text-brand-text shadow-sm px-3 py-1 rounded-md font-bold text-[13px] transition-all cursor-pointer" data-target="result-teacher">교사별</button>
+                            <button class="result-sub-btn bg-transparent text-stone hover:text-text-main px-3 py-1 rounded-md font-bold text-[13px] transition-all cursor-pointer" data-target="result-class">학급별</button>
+                        </div>
+                        <span class="text-[15px] font-bold text-white flex items-center gap-1.5 min-w-0 ml-4">
+                            <svg class="w-4 h-4 flex-shrink-0 text-white"><use href="#i-swap"/></svg>
+                            <span class="truncate">셀 우클릭 또는 드래그로 동일 교시 내 교체</span>
+                        </span>
+                    </div>
+                    <button onclick="undo()" title="되돌리기 (Ctrl+Z)" class="inline-flex items-center justify-center w-9 h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 rounded-lg cursor-pointer transition-colors flex-shrink-0">
+                        <svg class="w-4 h-4"><use href="#i-undo"/></svg>
+                    </button>
+                    <button onclick="redo()" title="다시 실행 (Ctrl+Y)" class="inline-flex items-center justify-center w-9 h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 rounded-lg cursor-pointer transition-colors flex-shrink-0">
+                        <svg class="w-4 h-4"><use href="#i-redo"/></svg>
+                    </button>
+                    <button id="btn-export-excel" class="hidden inline-flex items-center justify-center gap-1.5 w-[125px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors flex-shrink-0">
+                        <svg class="w-3.5 h-3.5"><use href="#i-download"/></svg> 결과 내려받기
+                    </button>
+                </div>
+                <div class="flex-1 overflow-auto pb-4 min-h-0">
+                    <div class="w-full min-w-full h-full">
+                        <div id="result-teacher" class="result-view w-full"></div>
+                        <div id="result-class" class="result-view hidden w-full"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 배정 검증 -->
+            <section id="tab-validate" class="tab-content hidden h-full flex flex-col">
+                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0">
+                    <h2 class="font-semibold text-[15px] flex items-center gap-2 text-white">
+                        <svg class="w-4 h-4 text-white"><use href="#i-search"/></svg> 배정 검증
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="btn-show-events" onclick="openEventModal()" class="hidden inline-flex items-center justify-center gap-1.5 h-9 px-3 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors flex-shrink-0">
+                            <svg class="w-3.5 h-3.5 text-white"><use href="#i-clipboard-list"/></svg> 배정 중 발생한 이벤트
+                        </button>
+                        <button onclick="runRevalidation()" class="inline-flex items-center justify-center gap-1.5 h-9 px-3 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors flex-shrink-0">
+                            <svg class="w-3.5 h-3.5 text-white"><use href="#i-refresh"/></svg> 재검증 실행
+                        </button>
+                    </div>
+                </div>
+                <div id="validate-container" class="flex-1 overflow-auto pb-4 min-h-0"></div>
+            </section>
+            </div>
+            <!-- ── [상단 메인 프레임 패널 끝] ── -->
+
+            <!-- ── 학년별 시험 과목 카드 (기초 설정 탭에서만 표시) ── -->
+            <div id="grade-cards-frame" class="bg-surface-0 rounded-2xl border border-line card-elev overflow-hidden flex flex-col flex-shrink-0 h-[260px]">
+                <div class="px-5 py-5 overflow-auto bg-surface-0 flex-1 flex items-stretch">
+                    <div class="max-w-[1070px] w-full mx-auto flex flex-col">
+                        <div id="subject-tables-container" class="flex-1"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- ── [우측 콘텐츠 패널 묶음 끝] ── -->
+    </div>
+
+    <!-- ── 토스트 ─────────────────────────────────────────────────────── -->
+    <div id="toast-notification"
+         class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-text-main text-white rounded-full shadow-xl z-[9999] text-[13.5px] font-bold flex items-center space-x-2 transition-all duration-300 translate-y-10 opacity-0 pointer-events-none">
+    </div>
+
+    <!-- ── 모달 ──────────────────────────────────────────────────────── -->
+    <div id="event-modal" tabindex="0" class="hidden fixed inset-0 bg-ink/40 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
+        <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-xl w-[720px] max-w-[calc(var(--vw)*92)] max-h-[calc(var(--vh)*80)] flex flex-col overflow-hidden animate-fade-in">
+            <div class="px-5 py-3 border-b border-surface-200 flex items-center gap-2 flex-shrink-0">
+                <svg class="w-4 h-4 text-brand-500"><use href="#i-clipboard-list"/></svg>
+                <h3 class="font-semibold text-[14px]">배정 작업 중 발생한 이벤트</h3>
+            </div>
+            <div id="event-modal-content" class="flex-1 overflow-auto text-[13px] leading-relaxed p-5"></div>
+            <div class="px-5 py-3 bg-surface-50 border-t border-surface-100 flex justify-end flex-shrink-0">
+                <button onclick="closeEventModal()" class="px-5 py-1.5 bg-brand-600 hover:bg-brand-700 text-brand-text font-semibold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">확인 (Esc)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="swap-modal" tabindex="0" class="hidden fixed inset-0 bg-ink/40 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
+        <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-2xl w-[510px] max-w-[calc(var(--vw)*92)] overflow-hidden flex flex-col animate-fade-in">
+            <div class="px-5 py-3.5 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
+                <svg class="w-4 h-4 text-white"><use href="#i-swap"/></svg>
+                <h3 class="font-bold text-[14.5px]">감독 교체 확인</h3>
+            </div>
+            <div class="p-6 flex flex-col space-y-4">
+                <div id="swap-modal-msg" class="text-[14.5px] font-bold text-text-main leading-[1.8] text-center py-4 px-2"></div>
+            </div>
+            <div class="px-5 py-3.5 bg-surface-50 border-t border-surface-100 flex justify-end gap-2.5 flex-shrink-0">
+                <button onclick="executePendingSwap()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">교체 실행</button>
+                <button onclick="closeSwapModal()" class="px-4 py-2 border border-surface-300 bg-surface-0 hover:bg-surface-100 font-bold text-text-main rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rightclick-swap-modal" tabindex="0" class="hidden fixed inset-0 bg-ink/40 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
+        <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-2xl w-[510px] max-w-[calc(var(--vw)*92)] overflow-hidden flex flex-col animate-fade-in">
+            <div class="px-5 py-3.5 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
+                <svg class="w-4 h-4 text-white"><use href="#i-swap"/></svg>
+                <h3 class="font-bold text-[14.5px]">감독 교체 (우클릭)</h3>
+            </div>
+            <div class="p-6 flex flex-col space-y-5">
+                <div id="rc-swap-info" class="text-[14.5px] font-bold text-text-main leading-[1.8] text-center p-4 bg-surface-50 rounded-xl border border-surface-200"></div>
+                <div>
+                    <label class="block text-[12.5px] font-bold text-stone mb-2">교체할 대상 교사 선택 (현재 동일 교시만 선택 가능)</label>
+                    <select id="rc-swap-target" class="fld w-full px-3 py-2.5 font-bold text-[13.5px] cursor-pointer rounded-lg border border-line bg-surface-0 focus:bg-white"></select>
+                </div>
+            </div>
+            <div class="px-5 py-3.5 bg-surface-50 border-t border-surface-100 flex justify-end gap-2.5 flex-shrink-0">
+                <button onclick="executeRcSwap()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">교체 실행</button>
+                <button onclick="closeRcSwapModal()" class="px-4 py-2 border border-surface-300 bg-surface-0 hover:bg-surface-100 font-bold text-text-main rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" tabindex="0" class="hidden fixed inset-0 bg-ink/40 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
+        <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-xl w-[510px] max-w-[calc(var(--vw)*92)] overflow-hidden p-5 flex flex-col space-y-4 animate-fade-in">
+            <h3 id="confirm-modal-title" class="font-semibold text-[15px] flex items-center justify-center gap-2">
+                <svg class="w-4 h-4 text-amber"><use href="#i-alert"/></svg> <span>확인</span>
+            </h3>
+            <p id="confirm-modal-msg" class="text-[14px] font-bold text-text-main/80 leading-relaxed text-center py-2"></p>
+            <div class="flex justify-center gap-2 pt-2">
+                <button id="confirm-modal-btn" onclick="executeConfirm()" class="px-4 py-1.5 bg-coral hover:brightness-95 text-white font-semibold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">확인</button>
+                <button onclick="closeConfirmModal()" class="px-4 py-1.5 border border-surface-300 bg-surface-0 hover:bg-surface-50 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ES 모듈(type="module")을 쓰지 않는다: pywebview 가 이 파일을 file:// 로 열기 때문에
+         모듈 스크립트는 불투명 오리진 CORS 로 차단된다. 클래식 스크립트를 의존 순서대로 싣는다.
+         state → labels → ui → 각 화면 → shell(배선/부트스트랩) 순서를 지킬 것. -->
+    <script src="flatpickr.min.js"></script>
+    <script src="flatpickr-ko.js"></script>
+    <script src="state.js"></script>
+    <script src="labels.js"></script>
+    <script src="ui.js"></script>
+    <script src="tab-setup.js"></script>
+    <script src="tab-teachers.js"></script>
+    <script src="tab-result.js"></script>
+    <script src="tab-validate.js"></script>
+    <script src="shell.js"></script>
+</body>
+</html>

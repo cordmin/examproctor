@@ -1,0 +1,10 @@
+build/
+dist/
+# 앱 실행 중 자동 갱신되는 런타임 상태 파일 (저장/불러오기 때마다 덮어써짐)
+timetable_data.json
+__pycache__/
+*.pyc
+~$*.xlsx
+Output/
+/*.json
+*.xlsx

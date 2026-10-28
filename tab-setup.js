@@ -1,0 +1,238 @@
+// 기본 설정 · 시험 교과 · 배정 규칙 화면.
+
+window.renderConfigTab = function() {
+    document.getElementById('exam-name').value = appData.config.examName || "";
+    [1, 2, 3].forEach(grade => {
+        const toggle = document.getElementById(`grade-${grade}`);
+        const row = document.getElementById(`grade-row-${grade}`);
+        const cIn = document.getElementById(`class-count-${grade}`), spIn = document.getElementById(`sp-count-${grade}`), sepIn = document.getElementById(`sep-count-${grade}`), hwIn = document.getElementById(`hw-count-${grade}`);
+        if (appData.config.grades.includes(grade)) {
+            toggle.classList.add('active'); row.classList.remove('grade-row-disabled');
+            cIn.disabled = spIn.disabled = sepIn.disabled = hwIn.disabled = false;
+            cIn.value = appData.config.classes[grade] || 1; spIn.value = appData.config.special[grade] || 0; sepIn.value = appData.config.separated[grade] || 0; hwIn.value = appData.config.hallways[grade] || 0;
+        } else { toggle.classList.remove('active'); row.classList.add('grade-row-disabled'); cIn.disabled = spIn.disabled = sepIn.disabled = hwIn.disabled = true; }
+    });
+    renderSubjects(); renderDates();
+    if (window.renderSubjectsTab) renderSubjectsTab();
+    if (window.renderRulesTab) renderRulesTab();
+};
+
+window.renderSubjects = function() {
+    const container = document.getElementById('subject-list'); container.innerHTML = ""; 
+    appData.config.subjects.forEach(subject => {
+        const b = document.createElement('div'); b.className = "flex items-center gap-1 px-3 py-1 bg-surface-0 border border-line rounded-full text-[12px] font-bold shadow-sm";
+        b.innerHTML = `<span>${subject}</span><button class="text-coral ml-1 flex items-center x-btn" onclick="removeSubject('${subject}')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>`; container.appendChild(b);
+    });
+};
+
+window.renderDates = function() {
+    const container = document.getElementById('date-list'); container.innerHTML = "";
+    appData.config.examDates.forEach(dateObj => {
+        const b = document.createElement('div'); b.className = "flex items-center gap-1 px-3 py-1 bg-surface-0 border border-line rounded-full text-[12px] font-bold shadow-sm";
+        b.innerHTML = `<span>${formatBeautifulDate(dateObj.date)} (${dateObj.periods}교시)</span><button class="text-coral ml-1 flex items-center x-btn" onclick="removeDate('${dateObj.date}')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>`; container.appendChild(b);
+    });
+};
+
+window.renderSubjectsTab = function() {
+    const container = document.getElementById('subject-tables-container'); container.innerHTML = "";
+    if (appData.periods.length === 0) { container.innerHTML = `<div class="p-12 text-center text-pebble font-bold bg-surface-50 border border-surface-200 rounded-xl">기초 설정 값을 입력하세요</div>`; return; }
+
+    const { periodsByDate, dates } = groupPeriodsByDate();
+    const maxPeriods = Math.max(...dates.map(d => periodsByDate[d].length));
+
+    let html = '<div style="display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 20px !important; width: 100% !important; min-height: 100% !important; align-items: stretch !important;">';
+    [1, 2, 3].forEach(grade => {
+        const isSelected = appData.config.grades.includes(grade);
+
+        html += `<div class="flex flex-col h-full"><div class="inline-flex items-center bg-[#1E293B] text-white px-3.5 py-1.5 rounded-t-lg font-bold text-[12.5px] self-start z-10 -mb-[1px]"><span>${grade}학년</span></div><div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1 min-h-[140px]">`;
+
+        if (!isSelected) {
+            html += `<div class="flex-1 flex items-center justify-center p-8 bg-surface-50 text-pebble font-bold text-[13px]">시험 없음</div></div></div>`;
+        } else {
+            html += `<div class="overflow-x-auto flex-1"><table class="w-full h-full text-[12.5px] text-center table-fixed"><thead class="bg-surface-100 text-text-main font-bold text-[12px]"><tr><th class="py-2.5 px-1.5 w-14">교시</th>`;
+            dates.forEach((date, dIdx) => html += `<th class="py-2.5 px-1.5 text-text-main">${formatBeautifulDate(date)}</th>`);
+            html += `</tr></thead><tbody class="bg-surface-0">`;
+
+            for(let i=0; i<maxPeriods; i++) {
+                const isLastRow = (i === maxPeriods - 1);
+                const borderTdClass = isLastRow ? 'py-2 px-1 align-middle bg-surface-0 border-t border-r border-line' : 'py-2 px-1 align-middle bg-surface-0 border border-line';
+                const borderHeadTdClass = isLastRow ? 'py-2.5 px-1 font-bold bg-surface-50 text-[12px] border-t border-r border-line' : 'py-2.5 px-1 font-bold bg-surface-50 text-[12px] border border-line';
+                const borderEmptyTdClass = isLastRow ? 'py-2.5 px-1 bg-surface-50 text-pebble border-t border-r border-line' : 'py-2.5 px-1 bg-surface-50 text-pebble border border-line';
+
+                html += `<tr class="hover:bg-surface-50"><td class="${borderHeadTdClass}">${i+1}교시</td>`;
+                dates.forEach((date, dIdx) => {
+                    const p = periodsByDate[date][i];
+                    if (p) {
+                        const saved = (appData.classSubjects[p.id] || {})[grade] || "";
+                        let opts = `<option value="">선택</option>`;
+                        let has = false;
+                        appData.config.subjects.forEach(s => { opts += `<option value="${s}" ${saved===s?'selected':''}>${s}</option>`; if(saved===s) has=true; });
+                        if(saved && !has) opts += `<option value="${saved}" selected>${saved}</option>`;
+                        
+                        html += `<td class="${borderTdClass}"><select class="w-full py-1 px-1 text-[12.5px] font-bold outline-none cursor-pointer bg-transparent text-center [text-align-last:center]" onchange="updateGradeSubject('${p.id}', '${grade}', this.value)">${opts}</select></td>`;
+                    } else html += `<td class="${borderEmptyTdClass}">-</td>`;
+                });
+                html += `</tr>`;
+            }
+            html += `</tbody></table></div></div></div>`;
+        }
+    });
+    html += '</div>';
+    container.innerHTML = html;
+};
+
+window.handleNotesKey = function(e, idx, tabName) {
+    if(e.key === 'ArrowUp') { e.preventDefault(); let el = document.getElementById(`note-${tabName}-${idx-1}`); if(el) { el.focus(); el.select(); } }
+    if(e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); let el = document.getElementById(`note-${tabName}-${idx+1}`); if(el) { el.focus(); el.select(); } }
+};
+
+window.handleNotesPaste = function(e, idx, tabName) {
+    e.preventDefault(); let paste = (e.clipboardData || window.clipboardData).getData('text'); let lines = paste.split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+        let input = document.getElementById(`note-${tabName}-${idx + i}`);
+        if (input && lines[i] !== undefined) { input.value = lines[i].trim(); updateTeacher(input.getAttribute('data-tid'), 'notes', input.value, false); }
+    }
+};
+
+function syncMasterCheckboxes() {
+    const roles = ['isMain', 'isSub', 'isClass1', 'isClass2', 'isClass3', 'isHallway', 'isSeparated', 'isSpecial'];
+    if(appData.teachers.length === 0) return;
+
+    const activeGrades = appData.config.grades || [];
+    const totalHallways = [1,2,3].reduce((sum, g) => sum + (activeGrades.includes(g) ? (appData.config.hallways[g] || 0) : 0), 0);
+    const totalSeparated = [1,2,3].reduce((sum, g) => sum + (activeGrades.includes(g) ? (appData.config.separated[g] || 0) : 0), 0);
+    const totalSpecial = [1,2,3].reduce((sum, g) => sum + (activeGrades.includes(g) ? (appData.config.special[g] || 0) : 0), 0);
+
+    const disabledMap = {
+        isClass1: !activeGrades.includes(1),
+        isClass2: !activeGrades.includes(2),
+        isClass3: !activeGrades.includes(3),
+        isHallway: totalHallways === 0,
+        isSeparated: totalSeparated === 0,
+        isSpecial: totalSpecial === 0
+    };
+
+    roles.forEach(role => {
+        let chkId = role.startsWith('isClass') ? 'chk-all-c' + role.slice(-1) : `chk-all-${role.replace('is','').toLowerCase().substring(0,4)}`;
+        const chk = document.getElementById(chkId);
+        if(chk) {
+            if (disabledMap[role]) {
+                chk.disabled = true;
+                chk.checked = false;
+            } else {
+                chk.disabled = false;
+                const allChecked = appData.teachers.every(t => t[role] !== false); 
+                chk.checked = allChecked;
+            }
+        }
+    });
+}
+
+window.renderRulesTab = function() {
+    const rules = appData.config.rules || {};
+    const invigs = appData.config.invigCounts || {};
+    const tb = document.getElementById('rules-invig-body');
+    let rows = "";
+    [1, 2, 3].forEach(g => {
+        const isActive = appData.config.grades.includes(g);
+        const hasSp = (appData.config.special[g] || 0) > 0;
+        const hasSep = (appData.config.separated[g] || 0) > 0;
+
+        let iv = invigs[g] || { class: 2, special: 1, separated: 0 };
+        
+        let currentStyle = "single";
+        if ((iv.class || 1) === 0) {
+            currentStyle = "none";
+        } else if ((iv.class || 1) === 2) {
+            currentStyle = "double";
+        } else {
+            currentStyle = "single";
+        }
+
+        const disabledClass = isActive ? '' : 'grade-row-disabled';
+        const disabledAttr = isActive ? '' : 'disabled';
+        const spDisabledAttr = (isActive && hasSp) ? '' : 'disabled';
+        const sepDisabledAttr = (isActive && hasSep) ? '' : 'disabled';
+
+        const spVal = (isActive && hasSp) ? (iv.special !== undefined ? iv.special : 1) : 0;
+        const sepVal = (isActive && hasSep) ? (iv.separated !== undefined ? iv.separated : 0) : 0;
+
+        const isLastRow = (g === 3);
+        const tdBorderClass = isLastRow ? 'p-1.5 border-t border-r border-line' : 'p-1.5 border border-line';
+        const tdFirstBorderClass = isLastRow ? 'p-1.5 border-t border-r border-line font-bold' : 'p-1.5 border border-line font-bold';
+
+        let trHtml = `<tr class="bg-surface-0 hover:bg-surface-50 ${disabledClass}"><td class="${tdFirstBorderClass}">${g}학년</td>
+                <td class="${tdBorderClass}">
+                    <div class="flex flex-col items-center justify-center">
+                        <select class="fld p-1 text-[12px] font-bold cursor-pointer" id="iv-style-${g}" ${disabledAttr}>
+                            <option value="none" ${currentStyle==='none'?'selected':''}>없음</option>
+                            <option value="single" ${currentStyle==='single'?'selected':''}>정감독 (1인)</option>
+                            <option value="double" ${currentStyle==='double'?'selected':''}>정+부감독 (2인)</option>
+                        </select>
+                    </div>
+                </td>
+                <td class="${tdBorderClass}"><select class="fld p-1 text-[12px] font-bold cursor-pointer" id="iv-sp-${g}" ${spDisabledAttr}><option value="0" ${spVal==0?'selected':''}>없음</option><option value="1" ${spVal==1?'selected':''}>정감독 (1인)</option><option value="2" ${spVal==2?'selected':''}>정+부감독 (2인)</option></select></td>
+                <td class="${tdBorderClass}"><select class="fld p-1 text-[12px] font-bold cursor-pointer" id="iv-sep-${g}" ${sepDisabledAttr}><option value="0" ${sepVal==0?'selected':''}>없음</option><option value="1" ${sepVal==1?'selected':''}>정감독 (1인)</option><option value="2" ${sepVal==2?'selected':''}>정+부감독 (2인)</option></select></td>`;
+        rows += trHtml + `</tr>`;
+    });
+    tb.innerHTML = rows;
+    if (document.getElementById('rule-homeroom')) {
+        document.getElementById('rule-homeroom').checked = rules.excludeHomeroom !== false;
+        document.getElementById('rule-subject').checked = rules.excludeSubject !== false;
+        document.getElementById('rule-sameclass').checked = rules.excludeSameClass !== false;
+        document.getElementById('rule-classconsec').checked = rules.excludeClassConsecutive !== false;
+        document.getElementById('rule-hallconsec').checked = rules.excludeHallwayConsecutive !== false;
+        document.getElementById('rule-maxconsec').value = rules.maxConsecutive || 99;
+        
+        let maxDiffVal = rules.maxDailyDiff;
+        if (maxDiffVal === 0) maxDiffVal = 1;
+        document.getElementById('rule-maxdiff').value = maxDiffVal || 99;
+
+        document.getElementById('rule-f-main').value = rules.fatigueMain || 5;
+        document.getElementById('rule-f-sub').value = rules.fatigueSub || 3;
+        document.getElementById('rule-f-class').value = rules.fatigueClass || 1;
+        document.getElementById('rule-f-hall').value = rules.fatigueHall || 2;
+        document.getElementById('rule-f-sep').value = rules.fatigueSep || 4;
+        document.getElementById('rule-f-sp').value = rules.fatigueSp || 4;
+        document.getElementById('rule-bal-strategy').value = rules.balanceStrategy || 'FATIGUE';
+    }
+};
+
+window.onStyleChange = function(g) {};
+
+function saveRules() {
+    if(!appData.config.rules) appData.config.rules = {};
+    if(!appData.config.invigCounts) appData.config.invigCounts = {};
+    appData.config.grades.forEach(g => {
+        const styleElem = document.getElementById(`iv-style-${g}`);
+        const spElem = document.getElementById(`iv-sp-${g}`);
+        const sepElem = document.getElementById(`iv-sep-${g}`);
+        if (styleElem && spElem && sepElem) {
+            const style = styleElem.value;
+            let classCount = 0;
+            if (style === 'single') classCount = 1;
+            else if (style === 'double') classCount = 2;
+            appData.config.invigCounts[g] = { 
+                class: classCount, 
+                special: parseInt(spElem.value), 
+                separated: parseInt(sepElem.value) 
+            };
+        }
+    });
+    if (document.getElementById('rule-homeroom')) {
+        appData.config.rules.excludeHomeroom = document.getElementById('rule-homeroom').checked;
+        appData.config.rules.excludeSubject = document.getElementById('rule-subject').checked;
+        appData.config.rules.excludeSameClass = document.getElementById('rule-sameclass').checked;
+        appData.config.rules.excludeClassConsecutive = document.getElementById('rule-classconsec').checked;
+        appData.config.rules.excludeHallwayConsecutive = document.getElementById('rule-hallconsec').checked;
+        appData.config.rules.maxConsecutive = parseInt(document.getElementById('rule-maxconsec').value) || 99;
+        appData.config.rules.maxDailyDiff = parseInt(document.getElementById('rule-maxdiff').value) || 99;
+        appData.config.rules.fatigueMain = parseInt(document.getElementById('rule-f-main').value) || 5;
+        appData.config.rules.fatigueSub = parseInt(document.getElementById('rule-f-sub').value) || 3;
+        appData.config.rules.fatigueClass = parseInt(document.getElementById('rule-f-class').value) || 1;
+        appData.config.rules.fatigueHall = parseInt(document.getElementById('rule-f-hall').value) || 2;
+        appData.config.rules.fatigueSep = parseInt(document.getElementById('rule-f-sep').value) || 4;
+        appData.config.rules.fatigueSp = parseInt(document.getElementById('rule-f-sp').value) || 4;
+        appData.config.rules.balanceStrategy = document.getElementById('rule-bal-strategy').value || 'FATIGUE';
+    }
+}

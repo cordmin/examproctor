@@ -1,0 +1,368 @@
+// 창 골격과 배선.
+// 
+// 타이틀바/리사이즈(프레임리스 창), 사이드바 내비게이션, 탭 전환,
+// 전역 버튼 배선, 초기 데이터 로드. 다른 파일들이 정의한 렌더 함수를
+// 쓰므로 가장 마지막에 로드한다.
+
+document.addEventListener('mouseup', () => { isDragging = false; isRightDragging = false; });
+
+// ── 사이드바 내비게이션 ────────────────────────────────────────────────
+const NAV_ITEMS = [
+    { target: 'tab-config',   label: '기초 설정', icon: 'settings' },
+    { target: 'tab-teachers', label: '감독 명단', icon: 'clipboard-check' },
+    { target: 'tab-absences', label: '결시 관리', icon: 'clipboard-list' },
+    { action: 'run',          label: '자동 배정', icon: 'zap' },   // 탭이 아니라 규칙 창을 연다
+    { target: 'tab-result',   label: '배정 결과', icon: 'check-circle' },
+    { target: 'tab-validate', label: '배정 검증', icon: 'search' },
+];
+
+let activeTarget = 'tab-config';
+
+// 탭을 열 때 다시 그려야 하는 화면들
+const TAB_RENDERERS = {
+    'tab-config':   () => { if (window.renderConfigTab) renderConfigTab(); if (window.renderSubjectsTab) renderSubjectsTab(); },
+    'tab-teachers': () => renderTeachers(),
+    'tab-absences': () => renderAbsencesTab(),
+    'tab-result':   () => renderResultTab(),
+    'tab-validate': () => renderValidateTab(),
+};
+
+window.renderSidebar = function() {
+    document.getElementById('sidebar-nav').innerHTML = NAV_ITEMS.map(item => {
+        if (item.action) return `
+            <button data-action="${item.action}"
+                    class="w-full flex items-center justify-center px-3 py-3.5 rounded-xl transition-all font-bold text-[13.5px] cursor-pointer bg-brand-600 hover:bg-brand-500 text-brand-text">
+                <div class="inline-flex items-center space-x-2 -translate-x-[8px]">
+                    ${icon(item.icon, 'w-4 h-4 flex-shrink-0 text-[#FCD34D]')}
+                    <span>${item.label}</span>
+                </div>
+            </button>`;
+        const isActive = item.target === activeTarget;
+        return `
+            <button data-target="${item.target}"
+                    class="w-full flex items-center justify-center px-3 py-3.5 rounded-xl transition-colors font-semibold text-[13.5px] cursor-pointer ${
+                        isActive ? 'bg-[#1E293B] text-white font-bold' : 'text-text-main hover:bg-surface-100'}">
+                <div class="inline-flex items-center space-x-2 -translate-x-[8px]">
+                    ${icon(item.icon, `w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-stone'}`)}
+                    <span>${item.label}</span>
+                </div>
+            </button>`;
+    }).join('');
+};
+
+window.showTab = function(target) {
+    activeTarget = target;
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+    document.getElementById(target).classList.remove('hidden');
+    const gcf = document.getElementById('grade-cards-frame');
+    if (gcf) gcf.classList.toggle('hidden', target !== 'tab-config');
+    renderSidebar();
+    if (TAB_RENDERERS[target]) TAB_RENDERERS[target]();
+};
+
+document.getElementById('sidebar-nav').addEventListener('click', (e) => {
+    const tabBtn = e.target.closest('[data-target]');
+    if (tabBtn) showTab(tabBtn.getAttribute('data-target'));
+    if (e.target.closest('[data-action="run"]')) openRulesModal();
+});
+
+renderSidebar();
+
+// ── 배정 결과 하위 전환 (교사별 / 학급·구역별) ────────────────────────
+const RESULT_BTN_ON  = 'result-sub-btn bg-brand-600 text-brand-text shadow-sm px-3 py-1 rounded-md font-bold text-[12.5px] transition-all cursor-pointer';
+const RESULT_BTN_OFF = 'result-sub-btn bg-transparent text-stone hover:text-text-main px-3 py-1 rounded-md font-bold text-[12.5px] transition-all cursor-pointer';
+
+document.querySelectorAll('.result-sub-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.result-sub-btn').forEach(b => b.className = RESULT_BTN_OFF);
+        e.currentTarget.className = RESULT_BTN_ON;
+        currentResultView = e.currentTarget.getAttribute('data-target');
+        document.querySelectorAll('.result-view').forEach(view => view.classList.add('hidden'));
+        document.getElementById(currentResultView).classList.remove('hidden');
+    });
+});
+
+// ── 프레임리스 창 제어 ─────────────────────────────────────────────────
+const winApi = () => window.pywebview && window.pywebview.api;
+
+document.getElementById('win-min').addEventListener('click', () => winApi() && winApi().minimize_window());
+document.getElementById('win-max').addEventListener('click', () => winApi() && winApi().toggle_maximize());
+document.getElementById('win-close').addEventListener('click', () => winApi() && winApi().close_window());
+document.getElementById('titlebar').addEventListener('dblclick', (e) => {
+    if (e.target.closest('button')) return;
+    if (winApi()) winApi().toggle_maximize();
+});
+
+// ── 화면 크기 맞춤 ──────────────────────────────────────────────────
+// 화면은 BASE_W x BASE_H 기준으로 짜여 있다. 창 크기에 맞춰 전체를 같은 비율로
+// 키우거나 줄인다. Windows 배율(125%, 150% …)은 WebView2 가 이미 반영한 값이 innerWidth 다.
+const BASE_W = 1280, BASE_H = 800, ZOOM_MIN = 0.8, ZOOM_MAX = 2;
+// 창 최소 크기 = 최소 배율일 때 기준 크기. main.py 의 min_size 와 맞춘다.
+const MIN_W = BASE_W * ZOOM_MIN, MIN_H = BASE_H * ZOOM_MIN;
+function fitZoom() {
+    const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.min(innerWidth / BASE_W, innerHeight / BASE_H)));
+    const root = document.documentElement;
+    root.style.zoom = z;
+    root.style.setProperty('--vw', innerWidth / z / 100 + 'px');
+    root.style.setProperty('--vh', innerHeight / z / 100 + 'px');
+}
+fitZoom();
+window.addEventListener('resize', fitZoom);
+
+// 프레임리스라 OS 가 그려주는 리사이즈 테두리가 없다. 가장자리에 투명 핸들을 깐다.
+function mountResizeHandles() {
+    const T = 5;
+    const edges = [
+        ['n',  { top: 0, left: T, right: T, height: T, cursor: 'ns-resize' }],
+        ['s',  { bottom: 0, left: T, right: T, height: T, cursor: 'ns-resize' }],
+        ['w',  { left: 0, top: T, bottom: T, width: T, cursor: 'ew-resize' }],
+        ['e',  { right: 0, top: T, bottom: T, width: T, cursor: 'ew-resize' }],
+        ['nw', { top: 0, left: 0, width: T*2, height: T*2, cursor: 'nwse-resize' }],
+        ['ne', { top: 0, right: 0, width: T*2, height: T*2, cursor: 'nesw-resize' }],
+        ['sw', { bottom: 0, left: 0, width: T*2, height: T*2, cursor: 'nesw-resize' }],
+        ['se', { bottom: 0, right: 0, width: T*2, height: T*2, cursor: 'nwse-resize' }],
+    ];
+    edges.forEach(([dir, style]) => {
+        const el = document.createElement('div');
+        el.style.position = 'fixed';
+        el.style.zIndex = '9999';
+        Object.entries(style).forEach(([k, v]) => el.style[k] = typeof v === 'number' ? v + 'px' : v);
+        el.addEventListener('mousedown', (e) => startResize(dir, e));
+        document.body.appendChild(el);
+    });
+}
+
+function startResize(dir, e) {
+    e.preventDefault();
+    const sx = e.screenX, sy = e.screenY;
+    winApi().get_bounds().then(b => {
+        const { x, y, w, h } = b;
+        const onMove = (ev) => {
+            let nx = x, ny = y, nw = w, nh = h;
+            let dx = ev.screenX - sx, dy = ev.screenY - sy;
+            if (dir.includes('e')) { const m = Math.max(0, w - MIN_W); if (dx < -m) dx = -m; nw = w + dx; }
+            if (dir.includes('s')) { const m = Math.max(0, h - MIN_H); if (dy < -m) dy = -m; nh = h + dy; }
+            if (dir.includes('w')) { const m = Math.max(0, w - MIN_W); if (dx > m) dx = m; nw = w - dx; nx = x + dx; }
+            if (dir.includes('n')) { const m = Math.max(0, h - MIN_H); if (dy > m) dy = m; nh = h - dy; ny = y + dy; }
+            winApi().set_bounds(Math.round(nx), Math.round(ny), Math.round(nw), Math.round(nh));
+        };
+        const onUp = () => {
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onUp);
+        };
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+    });
+}
+
+function sanitizeAppData(data) {
+    if (!data) return;
+    if (!data.config) data.config = {};
+    if (!data.config.rules) {
+        data.config.rules = { 
+            excludeHomeroom: true, excludeSubject: true, excludeSameClass: true, 
+            excludeClassConsecutive: true, excludeHallwayConsecutive: true, 
+            maxConsecutive: 99, maxDailyDiff: 99, 
+            fatigueMain: 5, fatigueSub: 3, fatigueClass: 1, fatigueHall: 2, fatigueSep: 4, fatigueSp: 4,
+            balanceStrategy: 'FATIGUE'
+        };
+    }
+    if (!data.config.invigCounts) data.config.invigCounts = {};
+    if (!data.config.grades) data.config.grades = [];
+    if (!data.config.classes) data.config.classes = {};
+    if (!data.config.special) data.config.special = {};
+    if (!data.config.separated) data.config.separated = {};
+    if (!data.config.hallways) data.config.hallways = {};
+    if (!data.config.subjects || data.config.subjects.length === 0) {
+        data.config.subjects = ["수업", "국어", "영어", "수학", "사회", "역사", "과학"];
+    }
+    if (!data.teachers) data.teachers = [];
+    if (!data.periods) data.periods = [];
+    if (!data.classSubjects) data.classSubjects = {};
+    if (!data.assignments) data.assignments = {};
+    if (!data.validation) data.validation = {};
+
+    data.teachers.forEach(t => {
+        if (t.isClass1 === undefined) {
+            let defaultClass = (t.isClass !== undefined) ? t.isClass : true;
+            t.isClass1 = defaultClass;
+            t.isClass2 = defaultClass;
+            t.isClass3 = defaultClass;
+        }
+    });
+}
+
+window.addEventListener('pywebviewready', function() {
+    mountResizeHandles();
+    window.pywebview.api.get_initial_data().then(data => {
+        if(data) appData = data;
+        sanitizeAppData(appData);
+        renderConfigTab(); renderSubjectsTab(); renderTeachers(); renderAbsencesTab(); renderResultTab(); renderRulesTab();
+    });
+    // 켜자마자(작업 전) 확인하므로 설치하느라 창이 닫혀도 잃을 작업이 없다.
+    window.pywebview.api.check_update().then(res => {
+        if (!res.available) return;
+        showToast(`새 버전(${res.version})을 설치합니다.\n잠시 후 프로그램이 다시 켜집니다.`, "success");
+        window.pywebview.api.install_update(res.version).then(r => {
+            if (!r.success) showToast("업데이트 실패: " + r.error, "error");
+        });
+    });
+});
+
+document.getElementById('btn-global-save').addEventListener('click', () => {
+    appData.config.examName = document.getElementById('exam-name').value;
+    saveRules();
+    const d = new Date(); const yy = String(d.getFullYear()).slice(-2); const mm = String(d.getMonth()+1).padStart(2,'0'); const dd = String(d.getDate()).padStart(2,'0');
+    const filename = `시험감독배정결과및데이터(${yy}.${mm}.${dd}).json`;
+    const pureData = { config: appData.config, teachers: appData.teachers, periods: appData.periods, classSubjects: appData.classSubjects, assignments: appData.assignments, baseAssignments: appData.baseAssignments, validation: appData.validation };
+    window.pywebview.api.save_data_dialog(pureData, filename).then(res => { if(res.success) showToast("데이터 전체 저장 완료!", "success"); });
+});
+
+document.getElementById('btn-global-load').addEventListener('click', () => {
+    window.pywebview.api.load_data_dialog().then(res => {
+        if(res.success && res.data) { 
+            appData = res.data; 
+            sanitizeAppData(appData);
+            undoStack.length = redoStack.length = 0;
+            renderConfigTab(); renderSubjectsTab(); renderTeachers(); renderAbsencesTab(); renderResultTab(); renderRulesTab(); 
+            showToast("데이터 불러오기 완료!", "success"); 
+        } 
+        else if (!res.canceled) showToast("불러오기 실패: " + res.error, "error");
+    }); 
+});
+
+
+
+// ── 되돌리기 / 다시 실행 (수동 교체, 결시 입력) ──────────────────────
+const undoSnapshot = () => JSON.stringify({ a: appData.assignments, abs: appData.teachers.map(t => [t.id, t.absences || {}]) });
+window.pushUndo = function() {
+    undoStack.push(undoSnapshot());
+    if (undoStack.length > 50) undoStack.shift();
+    redoStack.length = 0;
+};
+function restoreSnapshot(snap) {
+    const { a, abs } = JSON.parse(snap);
+    const assignChanged = JSON.stringify(a) !== JSON.stringify(appData.assignments);
+    appData.assignments = a;
+    const absById = Object.fromEntries(abs);
+    appData.teachers.forEach(t => { if (absById[t.id]) t.absences = absById[t.id]; });
+    renderAbsencesTab(); renderResultTab();
+    if (assignChanged) runRevalidation();
+}
+window.undo = function() {
+    if (!undoStack.length) return showToast("되돌릴 작업이 없습니다.", "error");
+    redoStack.push(undoSnapshot()); restoreSnapshot(undoStack.pop());
+};
+window.redo = function() {
+    if (!redoStack.length) return showToast("다시 실행할 작업이 없습니다.", "error");
+    undoStack.push(undoSnapshot()); restoreSnapshot(redoStack.pop());
+};
+
+document.addEventListener('keydown', (e) => {
+    // 입력칸에서는 브라우저 기본 되돌리기를 쓴다
+    if (e.ctrlKey && !e.target.closest('input, textarea, select')) {
+        const k = e.key.toLowerCase();
+        if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
+        if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); redo(); return; }
+    }
+    const sm = document.getElementById('swap-modal');
+    if(sm && !sm.classList.contains('hidden')) {
+        if(e.key === 'Escape') closeSwapModal();
+        return;
+    }
+    const cm = document.getElementById('confirm-modal');
+    if(cm && !cm.classList.contains('hidden')) {
+        if(e.key === 'Escape') closeConfirmModal();
+        return;
+    }
+    const rc = document.getElementById('rightclick-swap-modal');
+    if(rc && !rc.classList.contains('hidden')) {
+        if(e.key === 'Escape') closeRcSwapModal();
+        return;
+    }
+    const rm = document.getElementById('rules-modal');
+    if(rm && !rm.classList.contains('hidden')) {
+        if(e.key === 'Escape') closeRulesModal();
+        return;
+    }
+});
+
+window.openEventModal = function() { const m = document.getElementById('event-modal'); if(m) { m.classList.remove('hidden'); m.focus(); } };
+window.closeEventModal = function() { const m = document.getElementById('event-modal'); if(m) m.classList.add('hidden'); };
+window.deleteTeacher = function(id) { openConfirmModal("명단 삭제 확인", "선택한 교사를 명단에서 삭제하시겠습니까?", "삭제", () => { appData.teachers = appData.teachers.filter(t=>t.id!==id); renderTeachers(); renderAbsencesTab(); }); };
+window.updateTeacher = function(id, f, v, doRender=true) { const t = appData.teachers.find(x=>x.id===id); if(t) { t[f] = (f==='maxPeriods')?parseInt(v)||0:v; if(f.startsWith('is')) syncMasterCheckboxes(); if(doRender && f!=='notes') { renderTeachers(); renderAbsencesTab(); } } };
+window.removeSubject = function(s) { appData.config.subjects = appData.config.subjects.filter(x=>x!==s); renderSubjects(); renderSubjectsTab(); renderTeachers(); };
+window.autoSyncPeriods = function() {
+    appData.periods = [];
+    appData.config.examDates.forEach(d => {
+        for(let i=1; i<=d.periods; i++) {
+            appData.periods.push({id:`p_${d.date}_${i}`, date:d.date, name:`${i}교시`});
+        }
+    });
+    if (window.renderSubjectsTab) renderSubjectsTab();
+    if (window.renderTeachers) renderTeachers();
+    if (window.renderAbsencesTab) renderAbsencesTab();
+};
+
+window.removeDate = function(d) { 
+    appData.config.examDates = appData.config.examDates.filter(x=>x.date!==d); 
+    renderDates(); 
+    autoSyncPeriods();
+};
+window.updateGradeSubject = function(pid, g, s) { if(!appData.classSubjects[pid]) appData.classSubjects[pid]={}; appData.classSubjects[pid][g]=s; renderSubjectsTab(); };
+document.getElementById('btn-upload-csv').addEventListener('click', () => { window.pywebview.api.upload_excel().then(res => { if (res.success) { res.teachers.forEach((t, i) => appData.teachers.push({ id:'T'+Date.now()+i, absences:{}, ...t })); renderTeachers(); renderAbsencesTab(); showToast(`${res.teachers.length}명 추가 완료!`, "success"); } else if (!res.canceled) showToast("업로드 오류: \n" + res.error, "error"); }); });
+document.getElementById('btn-download-template').addEventListener('click', () => { window.pywebview.api.download_template().then(res => { if(res.success) showToast(`양식 저장 완료!\n${res.path}`, "success"); }); });
+document.getElementById('btn-clear-teachers').addEventListener('click', () => { openConfirmModal("명단 전체 초기화", "등록된 모든 교사 명단을 삭제하시겠습니까?", "전체 삭제", () => { appData.teachers = []; renderTeachers(); renderAbsencesTab(); showToast("명단이 삭제되었습니다.", "success"); }); });
+document.querySelectorAll('.grade-toggle').forEach(toggle => { toggle.addEventListener('click', () => {
+    const g = parseInt(toggle.dataset.grade), row = document.getElementById(`grade-row-${g}`);
+    const cIn = document.getElementById(`class-count-${g}`), hwIn = document.getElementById(`hw-count-${g}`), sepIn = document.getElementById(`sep-count-${g}`), spIn = document.getElementById(`sp-count-${g}`);
+    const isActive = toggle.classList.toggle('active');
+    if(isActive) { row.classList.remove('grade-row-disabled'); cIn.disabled = hwIn.disabled = sepIn.disabled = spIn.disabled = false; if(!appData.config.grades.includes(g)) { appData.config.grades.push(g); appData.config.grades.sort((a, b) => a - b); } appData.config.classes[g]=parseInt(cIn.value)||1; appData.config.hallways[g]=parseInt(hwIn.value)||0; appData.config.separated[g]=parseInt(sepIn.value)||0; appData.config.special[g]=parseInt(spIn.value)||0; } 
+    else { row.classList.add('grade-row-disabled'); cIn.disabled = hwIn.disabled = sepIn.disabled = spIn.disabled = true; appData.config.grades = appData.config.grades.filter(x => x !== g); }
+    renderRulesTab();
+    renderSubjectsTab();
+    renderTeachers();
+})});
+[1, 2, 3].forEach(g => {
+    document.getElementById(`class-count-${g}`).addEventListener('input', (e) => { if(appData.config.grades.includes(g)) { appData.config.classes[g] = parseInt(e.target.value)||1; renderTeachers(); } });
+    document.getElementById(`hw-count-${g}`).addEventListener('input', (e) => { if(appData.config.grades.includes(g)) { appData.config.hallways[g] = parseInt(e.target.value)||0; renderTeachers(); } });
+    document.getElementById(`sep-count-${g}`).addEventListener('input', (e) => { if(appData.config.grades.includes(g)) { appData.config.separated[g] = parseInt(e.target.value)||0; renderRulesTab(); renderTeachers(); } });
+    document.getElementById(`sp-count-${g}`).addEventListener('input', (e) => { if(appData.config.grades.includes(g)) { appData.config.special[g] = parseInt(e.target.value)||0; renderRulesTab(); renderTeachers(); } });
+});
+document.getElementById('btn-add-subject').addEventListener('click', () => { const i = document.getElementById('new-subject'), v = i.value.trim(); if(v && !appData.config.subjects.includes(v)) { appData.config.subjects.push(v); i.value = ""; renderSubjects(); renderSubjectsTab(); renderTeachers(); } });
+const fpDate = flatpickr('#new-date', { locale: 'ko', dateFormat: 'Y-m-d', altInput: true, altFormat: 'n월 j일 (D)', altInputClass: 'fld pl-8 pr-3 py-2 text-[13px] font-bold cursor-pointer text-center', disableMobile: true, monthSelectorType: 'static',
+    onDayCreate: (dObj, dStr, fp, dayElem) => { const wd = dayElem.dateObj.getDay(); if (dayElem.classList.contains('selected')) return; if (wd === 0) dayElem.style.color = '#E11D48'; else if (wd === 6) dayElem.style.color = '#2563EB'; } });
+
+if (fpDate && fpDate.altInput) {
+    let dateBtnWasOpen = false;
+    fpDate.altInput.addEventListener('mousedown', () => {
+        dateBtnWasOpen = fpDate.isOpen;
+    });
+    fpDate.altInput.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (dateBtnWasOpen) {
+            fpDate.close();
+        } else {
+            fpDate.open();
+        }
+    });
+}
+
+document.getElementById('btn-add-date').addEventListener('click', () => { const d = document.getElementById('new-date').value, p = parseInt(document.getElementById('daily-periods').value)||3; if(d && !appData.config.examDates.find(x=>x.date===d)) { appData.config.examDates.push({date:d, periods:p}); appData.config.examDates.sort((a,b)=>a.date.localeCompare(b.date)); renderDates(); autoSyncPeriods(); fpDate.clear(); } });
+const btnGen = document.getElementById('btn-generate-periods');
+if(btnGen) {
+    btnGen.addEventListener('click', () => { if(appData.config.examDates.length===0) return showToast("날짜를 추가해주세요.", "error"); autoSyncPeriods(); showToast("기초 시간표 동기화 완료!", "success"); });
+}
+document.getElementById('btn-add-teacher').addEventListener('click', () => { appData.teachers.push({ id:'T'+Date.now(), name:"", category:"교사", isMain:true, isSub:true, isClass1:true, isClass2:true, isClass3:true, isHallway:false, isSeparated:false, isSpecial:false, homeroom:"", subject:"", notes:"", absences:{}, maxPeriods: 0 }); renderTeachers(); renderAbsencesTab(); });
+function openRulesModal() { renderRulesTab(); const m = document.getElementById('rules-modal'); if(m) { m.classList.remove('hidden'); m.focus(); } }
+window.closeRulesModal = function() { const m = document.getElementById('rules-modal'); if(m) m.classList.add('hidden'); };
+document.getElementById('btn-rules-run').addEventListener('click', () => {
+    appData.config.examName = document.getElementById('exam-name').value; saveRules();
+    closeRulesModal();
+    window.pywebview.api.run_algorithm(appData).then(res => {
+        if(res.success) { appData.assignments = res.assignments; appData.baseAssignments = JSON.parse(JSON.stringify(res.assignments)); undoStack.length = redoStack.length = 0; appData.validation = res.validation; showToast("배정 실행 완료!", "success"); renderValidateTab(); showTab('tab-result'); }
+        else { if(res.error_type === "CAPACITY") { appData.validation = res.validation; showToast("현재 상황으로는 배정 할 수 없습니다. 배정 검증 메뉴에서 사유를 확인하세요.", "error"); showTab('tab-validate'); } else showToast("오류 발생:\n" + res.error, "error"); }
+    });
+});
+document.getElementById('btn-export-excel').addEventListener('click', () => { const d = new Date(), yy = String(d.getFullYear()).slice(-2), mm = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0'); const filename = `${appData.config.examName || "미지정고사"}(${yy}.${mm}.${dd}).xlsx`; window.pywebview.api.export_excel(appData, filename).then(res => { if(res.success) showToast(`엑셀 저장 완료!\n${res.path}`, "success"); else showToast("저장 실패: " + res.error, "error"); }); });
+window.toggleAllRoles = function(role, checked) { appData.teachers.forEach(t => { t[role] = checked; }); renderTeachers(); renderAbsencesTab(); };

@@ -1,0 +1,45 @@
+# vX.Y.Z 태그를 올리면 exe 와 설치 파일을 만들어 GitHub 릴리스에 올린다.
+# 설치된 프로그램은 켤 때 이 릴리스를 보고 스스로 업데이트한다.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 태그와 APP_VERSION 이 다르면 설치 후에도 옛 버전으로 보여 업데이트가 무한 반복된다.
+      - name: Check version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}".TrimStart('v')
+          if (-not (Select-String -Path main.py -SimpleMatch "APP_VERSION = '$tag'")) {
+            throw "main.py 의 APP_VERSION 이 태그($tag)와 다릅니다."
+          }
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build exe
+        run: |
+          pip install pywebview openpyxl pyinstaller
+          pyinstaller 시험감독배정시스템.spec
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) { choco install innosetup -y --no-progress }
+          $tag = "${{ github.ref_name }}".TrimStart('v')
+          iscc "/DMyAppVersion=$tag" installer.iss
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: Output/ExamProctorSetup.exe
