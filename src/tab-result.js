@@ -137,7 +137,7 @@ function reportSwapBlocked(t1, t2, [v1, v2]) {
 window.renderResultTab = function() {
     const tContainer = document.getElementById('result-teacher'), cContainer = document.getElementById('result-class'), btnExport = document.getElementById('btn-export-excel');
     if(!appData.assignments || Object.keys(appData.assignments).length === 0) {
-        tContainer.innerHTML = cContainer.innerHTML = `<div class="p-12 text-center text-pebble font-bold bg-surface-50 rounded-xl border border-dashed border-surface-300 flex flex-col items-center justify-center gap-3 min-h-[240px]">${icon('zap', 'w-7 h-7 text-pebble')}<span>사이드바의 '배정 실행' 버튼을 눌러주세요.</span></div>`;
+        tContainer.innerHTML = cContainer.innerHTML = `<div class="p-12 text-center text-pebble font-bold bg-surface-50 rounded-xl border border-dashed border-surface-300 flex flex-col items-center justify-center gap-3 min-h-[240px]">${icon('play', 'w-7 h-7 text-pebble')}<span>사이드바의 '배정 실행' 버튼을 눌러주세요.</span></div>`;
         btnExport.classList.add('hidden'); return;
     }
     btnExport.classList.remove('hidden');
