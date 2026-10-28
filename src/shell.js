@@ -113,6 +113,20 @@ function fitZoom() {
 fitZoom();
 window.addEventListener('resize', fitZoom);
 
+// 고정 머리글이 있는 표의 스크롤 영역에 머리글 높이(--thead-h)를 알려 준다.
+// 세로 스크롤 막대가 머리글 옆이 아니라 첫 데이터 행부터 시작하게 하려는 것.
+// 표는 화면마다 수시로 다시 그려지므로 DOM 변화와 창 크기 변화 때마다 다시 잰다.
+function syncScrollHeads() {
+    document.querySelectorAll('thead').forEach(head => {
+        const box = head.closest('.overflow-auto, .overflow-y-auto');
+        if (box) box.style.setProperty('--thead-h', head.offsetHeight + 'px');
+    });
+}
+let scrollHeadTimer;
+const queueScrollHeads = () => { clearTimeout(scrollHeadTimer); scrollHeadTimer = setTimeout(syncScrollHeads, 50); };
+new MutationObserver(queueScrollHeads).observe(document.body, { childList: true, subtree: true });
+window.addEventListener('resize', queueScrollHeads);
+
 // 프레임리스라 OS 가 그려주는 리사이즈 테두리가 없다. 가장자리에 투명 핸들을 깐다.
 function mountResizeHandles() {
     const T = 5;

@@ -314,6 +314,10 @@
             pointer-events: auto;
         }
 
+        /* 기초 설정 카드 간격: 창이 넓어지면 카드 사이 간격과 좌우 여백을 같은 값(--g)으로 함께 넓힌다.
+           카드 2칸이 합쳐 1050px 을 넘게 남는 폭을 좌·가운데·우 세 곳에 똑같이 나눈다. 위·아래 패널이 같은 값을 써서 가장자리가 맞는다. */
+        #tab-config, #grade-cards-frame { container-type: inline-size; }
+        .even-gap { --g: max(24px, calc((100cqw - 1050px) / 3)); }
         #subject-tables-container { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
         #subject-tables-container > div {
             margin-bottom: 0 !important;
@@ -330,8 +334,9 @@
             border: 2px solid transparent;
             background-clip: padding-box;
         }
+        /* 표 머리글(고정 행) 높이만큼 세로 스크롤 막대를 아래에서 시작한다. --thead-h 는 shell.js 가 채운다. */
+        ::-webkit-scrollbar-track:vertical { margin-top: var(--thead-h, 0px); }
         ::-webkit-scrollbar-thumb:hover { background-color: rgba(100, 116, 139, 0.8); }
-        * { scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, 0.5) transparent; }
 
         /* ── 애니메이션 ──────────────────────────────────────────── */
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
@@ -597,12 +602,12 @@
                         </h2>
                     </div>
 
-                    <div class="flex-1 overflow-auto bg-surface-0 p-6">
+                    <div class="even-gap flex-1 overflow-auto bg-surface-0 py-6 px-[var(--g)]">
                         <input type="hidden" id="exam-name" value="">
 
-                        <div class="max-w-[1070px] w-full mx-auto min-h-full flex flex-col gap-10">
+                        <div class="w-full min-h-full flex flex-col gap-10">
                             <!-- 1행: 고사일정 (좌) & 시험 과목 (우) -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-10 flex-auto">
+                            <div class="grid grid-cols-2 gap-x-[var(--g)] gap-y-10 flex-auto">
 
                                 <!-- 고사 일정 및 교시 설정 카드 -->
                                 <div class="flex flex-col h-full">
@@ -645,7 +650,7 @@
                             </div>
 
                             <!-- 2행: 학년 및 시험장소 (좌) & 교실별 배정 인원 (우). 두 카드 높이를 맞추고 표가 카드를 꽉 채운다. -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-10 flex-auto">
+                            <div class="grid grid-cols-2 gap-x-[var(--g)] gap-y-10 flex-auto">
 
                                 <!-- 학년 및 시험장소 카드 (카드 자체가 표) -->
                                 <div class="flex flex-col h-full">
@@ -921,8 +926,8 @@
 
             <!-- ── 학년별 시험 과목 카드 (기초 설정 탭에서만 표시) ── -->
             <div id="grade-cards-frame" class="bg-surface-0 rounded-2xl border border-line card-elev overflow-hidden flex flex-col flex-shrink-0 h-[260px]">
-                <div class="px-5 py-5 overflow-auto bg-surface-0 flex-1 flex items-stretch">
-                    <div class="max-w-[1070px] w-full mx-auto flex flex-col">
+                <div class="even-gap py-5 px-[var(--g)] overflow-auto bg-surface-0 flex-1 flex items-stretch">
+                    <div class="w-full flex flex-col">
                         <div id="subject-tables-container" class="flex-1"></div>
                     </div>
                 </div>

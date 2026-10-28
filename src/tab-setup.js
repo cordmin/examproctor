@@ -40,7 +40,7 @@ window.renderSubjectsTab = function() {
     const { periodsByDate, dates } = groupPeriodsByDate();
     const maxPeriods = Math.max(...dates.map(d => periodsByDate[d].length));
 
-    let html = '<div style="display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 20px !important; width: 100% !important; min-height: 100% !important; align-items: stretch !important;">';
+    let html = '<div style="display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; row-gap: 20px !important; column-gap: var(--g) !important; width: 100% !important; min-height: 100% !important; align-items: stretch !important;">';
     [1, 2, 3].forEach(grade => {
         const isSelected = appData.config.grades.includes(grade);
 
