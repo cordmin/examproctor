@@ -306,7 +306,7 @@ function syncSplitTableHeader(scroll, header, viewport = null) {
     const headerTable = header.querySelector('table');
     if (!bodyTable || !headerTable || !scroll.clientWidth) return;
     syncEmptyTable(scroll, bodyTable);
-    bodyTable.classList.remove('teacher-grid-body');
+    bodyTable.classList.remove('split-grid-body');
     [bodyTable, headerTable].forEach(table => {
         table.classList.add('aligned-table');
         table.querySelectorAll('.border-r-2').forEach(cell => cell.classList.add('border-thick'));
@@ -372,16 +372,16 @@ function syncSplitTableHeader(scroll, header, viewport = null) {
         head.dataset.gridPlaced = 'true';
     }
     header.style.paddingRight = `${scroll.offsetWidth - scroll.clientWidth}px`;
-    if (header.id === 'teacher-list-header') {
+    if (header.id === 'teacher-list-header' || header.classList.contains('result-table-header')) {
         // 같은 좌표라도 table 셀과 grid 셀은 소수 배율에서 선을 다르게 그린다.
         // 본문도 헤더와 동일한 grid 트랙을 사용해 두 렌더링 방식을 통일한다.
-        bodyTable.style.setProperty('--teacher-columns', gridColumns);
-        bodyTable.classList.add('teacher-grid-body');
+        bodyTable.style.setProperty('--split-columns', gridColumns);
+        bodyTable.classList.add('split-grid-body');
         const visibleColumns = columns.map((column, index) => column.classList.contains('hidden') ? -1 : index + 1).filter(index => index > 0);
         bodyTable.querySelectorAll('tbody tr').forEach(row => [...row.cells].forEach((cell, index) => {
             cell.style.gridColumn = cell.colSpan > 1 ? '1 / -1' : String(visibleColumns[index]);
         }));
-        header.scrollLeft = scroll.scrollLeft;
+        if (header.id === 'teacher-list-header') header.scrollLeft = scroll.scrollLeft;
     }
     if (viewport) viewport.scrollLeft = scroll.scrollLeft;
 }

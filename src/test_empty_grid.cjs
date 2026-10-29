@@ -6,12 +6,12 @@ const {chromium}=require('playwright');
 (async()=>{
  const browser=await chromium.launch({channel:'msedge',headless:true});
  try{
-  for(const deviceScaleFactor of [1,1.25,1.5]){
+  for(const deviceScaleFactor of [1,1.25,1.5,2]){
    const page=await browser.newPage({viewport:{width:1280,height:800},deviceScaleFactor});
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto(pathToFileURL(path.join(__dirname,'index.html')).href);
    await page.evaluate(()=>{sanitizeAppData(appData);renderConfigTab();renderTeachers();renderAbsencesTab();renderResultTab();renderValidateTab();});
-   for(const [width,height] of [[1024,640],[1280,800],[1600,1000]]){
+   for(const [width,height] of [[1024,640],[1280,800],[1365,850],[1500,900],[1536,864],[1600,1000],[2544,1376]]){
     await page.setViewportSize({width,height});
     for(const [target,selector] of [['tab-teachers','#teacher-list-scroll'],['tab-absences','#absence-table-scroll'],['tab-result','#result-teacher .result-table-scroll'],['tab-validate','#stats-scroll']]){
      await page.evaluate(target=>showTab(target),target);
@@ -24,6 +24,14 @@ const {chromium}=require('playwright');
      assert.ok(Math.max(...geometry.heights)-Math.min(...geometry.heights)<2,`${target}: equal blank rows`);
      if(target==='tab-absences') assert.equal(await page.locator('#absence-list-head tr:last-child th').evaluate(cell=>getComputedStyle(cell).borderRightWidth),await page.locator('#absence-list-head th').first().evaluate(cell=>getComputedStyle(cell).borderRightWidth));
      if(target==='tab-result') assert.equal(await page.locator('#result-teacher .result-table-header .border-thick').count(),0);
+     if(target==='tab-result') {
+      const offsets=await page.locator('#result-teacher').evaluate(container=>{
+       const head=container.querySelector('thead'), cells=[...container.querySelector('tbody tr').cells];
+       const heads=[...head.rows[0].cells].slice(0,2).concat([...head.rows[1].cells]);
+       return heads.map((cell,index)=>Math.abs(cell.getBoundingClientRect().right-cells[index].getBoundingClientRect().right));
+      });
+      assert.ok(offsets.every(offset=>offset<.05),`Empty result column offsets: ${offsets}`);
+     }
      if(deviceScaleFactor===1 && width===1280) await page.screenshot({path:path.join(__dirname,`../artifacts/grid-${target}.png`)});
     }
    }
@@ -36,6 +44,6 @@ const {chromium}=require('playwright');
    assert.deepEqual(errors,[]);
    await page.close();
   }
-  console.log('PASS: full-height empty grids on 4 pages at 3 sizes x 3 pixel ratios; equal rows; continuous absence header; uniform empty result borders; real data unchanged');
+  console.log('PASS: full-height empty grids on 4 pages at 7 sizes x 4 pixel ratios; equal rows; continuous absence header; uniform empty result borders; real data unchanged');
  }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});
