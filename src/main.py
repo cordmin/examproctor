@@ -37,7 +37,7 @@ XLSX_TYPES = ('Excel 파일 (*.xlsx)', '모든 파일 (*.*)')
 JSON_TYPES = ('JSON 파일 (*.json)', '모든 파일 (*.*)')
 
 # 앞 두 자리(1.0)만 손으로 고친다. 마지막 자리는 GitHub Actions(release.yml)가 빌드할 때 실행 번호로 채운다.
-APP_VERSION = '1.0.6'
+APP_VERSION = '1.1.0'
 # 업데이트를 받을 GitHub 공개 저장소 'owner/repo'. 비어 있으면 업데이트 확인을 건너뛴다 (켤 때 최신 릴리스와 비교).
 UPDATE_REPO = 'cordmin/examproctor'
 # 릴리스에 올리는 설치 파일 이름. installer.iss 의 OutputBaseFilename 과 같아야 한다.

@@ -1,4 +1,4 @@
-# main 에 프로그램(src) 변경을 푸시하면 버전을 자동으로 올려 exe 와 설치 파일을 만들고 GitHub 릴리스에 올린다.
+# main 에 프로그램(src) 변경을 푸시하면 APP_VERSION 그대로 빌드하고 GitHub 릴리스에 올린다.
 # 설치된 프로그램은 켤 때 최신 릴리스를 보고, 새 버전이면 업데이트할지 묻는다 (main.py check_update).
 name: release
 
@@ -22,17 +22,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 버전 = main.py APP_VERSION 의 앞 두 자리 + 이 작업의 실행 번호 (예: 1.0.0 → 1.0.7).
-      # 앞 두 자리를 올리고 싶으면 main.py 의 APP_VERSION 만 고치면 된다.
+      # APP_VERSION 전체를 변경 성격에 맞게 지정한다. 빌드 횟수는 버전에 쓰지 않는다.
+      # 오류 수정: patch / 호환되는 기능 추가: minor / 호환되지 않는 변경: major.
       - name: Set version
         shell: pwsh
         run: |
-          $m = Select-String -Path src/main.py -Pattern "APP_VERSION = '(\d+)\.(\d+)\.\d+'"
+          $m = Select-String -Path src/main.py -Pattern "^APP_VERSION = '(\d+\.\d+\.\d+)'$"
           if (-not $m) { throw "main.py 에서 APP_VERSION 을 찾지 못했습니다." }
-          $g = $m.Matches[0].Groups
-          $ver = "$($g[1].Value).$($g[2].Value).${{ github.run_number }}"
-          $src = Get-Content src/main.py -Raw -Encoding utf8
-          ($src -replace "APP_VERSION = '[^']*'", "APP_VERSION = '$ver'") | Set-Content src/main.py -Encoding utf8 -NoNewline
+          $ver = $m.Matches[0].Groups[1].Value
+          $existingTag = git ls-remote --tags origin "refs/tags/v$ver"
+          if ($LASTEXITCODE -ne 0) { throw "기존 릴리스 버전을 확인하지 못했습니다." }
+          if ($existingTag) { throw "v$ver 은 이미 배포됐습니다. 변경 성격에 맞게 APP_VERSION 을 올려 주세요." }
           "VERSION=$ver" >> $env:GITHUB_ENV
 
       - uses: actions/setup-python@v5
@@ -62,4 +62,5 @@ jobs:
           tag_name: v${{ env.VERSION }}
           name: v${{ env.VERSION }}
           target_commitish: ${{ github.sha }}
+          body_path: RELEASE_NOTES.md
           files: src/Output/ExamProctorSetup.exe

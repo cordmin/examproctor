@@ -56,5 +56,8 @@ def test_update_launch():
 
 
 if __name__ == '__main__':
+    assert main.version_tuple('v1.1.0') > main.version_tuple('v1.0.10')
+    assert main.version_tuple('v1.1.1') > main.version_tuple('v1.1.0')
+    assert main.version_tuple('v2.0.0') > main.version_tuple('v1.99.99')
     test_update_launch()
     print('PASS: save before close, independent installer environment, DLL path reset/restore, logging, forced close, failure keeps app open')
