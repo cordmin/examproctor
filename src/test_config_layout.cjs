@@ -34,7 +34,11 @@ const {chromium} = require('playwright');
   assert.equal(await limit.locator('.limit-value span').isVisible(),true);
   const centered = await limit.evaluate(el=>{
    const field=el.getBoundingClientRect(),value=el.querySelector('.limit-value').getBoundingClientRect();
-   return Math.abs(field.x+field.width/2-value.x-value.width/2)<.1;
+   const step=el.querySelector('.limit-step').getBoundingClientRect();
+   const zoom=parseFloat(document.documentElement.style.zoom)||1;
+   const left=field.left+parseFloat(getComputedStyle(el).borderLeftWidth)*zoom;
+   return Math.abs((left+step.left)/2-value.x-value.width/2)<.1
+       && Math.abs(field.y+field.height/2-value.y-value.height/2)<.1;
   });
   assert.equal(centered,true);
   await number.fill('1');await number.blur();
