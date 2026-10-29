@@ -29,6 +29,7 @@ $source = $source.Replace('SetupIconFile=icon.ico', ('SetupIconFile=' + $PSScrip
 $source = $source.Replace('LicenseFile=license.txt', ('LicenseFile=' + $PSScriptRoot + '\license.txt'))
 $source = $source.Replace('Source: "license.txt"', ('Source: "' + $PSScriptRoot + '\license.txt"'))
 $source = $source.Replace('Source: "motto-serif-LICENSE.txt"', ('Source: "' + $PSScriptRoot + '\motto-serif-LICENSE.txt"'))
+$source = $source.Replace('Source: "시험감독_배정결과(예시).json"', ('Source: "' + $PSScriptRoot + '\시험감독_배정결과(예시).json"'))
 $source = $source.Replace("ExpandConstant('{userappdata}\시험감독배정')", "'$folder'")
 $source = $source.Replace("ExpandConstant('{userappdata}\시험감독배정\update-progress.ps1')", "'$folder\update-progress.ps1'")
 $iss = Join-Path $folder 'smoke.iss'
@@ -55,7 +56,8 @@ try {
     if (-not $seenApp -or $notices.Count) { throw 'Notice did not remain until restart and close automatically' }
     $process.WaitForExit(5000) | Out-Null
     if ($process.ExitCode -ne 0) { throw "Installer exit code: $($process.ExitCode)" }
-    Write-Output 'PASS: actual silent installer starts notice, retains it during delayed restart, closes it after app window appears'
+    if (-not (Test-Path -LiteralPath (Join-Path $installDir '시험감독_배정결과(예시).json'))) { throw 'Installed example JSON is missing' }
+    Write-Output 'PASS: installed example JSON; actual silent installer starts notice, retains it during delayed restart, closes it after app window appears'
 } finally {
     Get-Process -ErrorAction SilentlyContinue | Where-Object { try { $_.Path -eq (Join-Path $installDir '시험감독배정시스템.exe') } catch { $false } } | Stop-Process
 }
