@@ -38,7 +38,7 @@ XLSX_TYPES = ('Excel 파일 (*.xlsx)', '모든 파일 (*.*)')
 JSON_TYPES = ('JSON 파일 (*.json)', '모든 파일 (*.*)')
 
 # 앞 두 자리(1.0)만 손으로 고친다. 마지막 자리는 GitHub Actions(release.yml)가 빌드할 때 실행 번호로 채운다.
-APP_VERSION = '1.2.0'
+APP_VERSION = '1.2.1'
 # 업데이트를 받을 GitHub 공개 저장소 'owner/repo'. 비어 있으면 업데이트 확인을 건너뛴다 (켤 때 최신 릴리스와 비교).
 UPDATE_REPO = 'cordmin/examproctor'
 # 릴리스에 올리는 설치 파일 이름. installer.iss 의 OutputBaseFilename 과 같아야 한다.
@@ -133,25 +133,25 @@ class Api:
 
     def _confirm_close(self):
         try:
-            state = self._win.evaluate_js('window.getCloseState ? window.getCloseState() : null')
-            if state and state['dirty']:
-                answer = ctypes.windll.user32.MessageBoxW(
-                    self._win.native.Handle.ToInt32(),
-                    '변경된 데이터가 있습니다. 저장하시겠습니까?', '시험감독 배정', 0x23)
-                if answer == 2:
-                    return
-                if answer == 6:
-                    result = self.save_data_dialog(state['data'], '시험감독_배정결과.json')
-                    if not result['success']:
-                        if not result.get('canceled'):
-                            ctypes.windll.user32.MessageBoxW(0, result['error'], '저장 실패', 0x10)
-                        return
-            self._allow_close = True
-            self.close_window()
+            # 닫기 여부는 앱 테마의 모달에서 선택한다. UI 스레드는 기다리지 않는다.
+            handled = self._win.evaluate_js('window.requestClose ? window.requestClose() : false')
+            if handled is False:  # 화면이 아직 로드되기 전에는 편집한 데이터가 없다.
+                self.finish_close(False)
         except Exception as e:
-            print(f"종료 전 저장 확인 실패: {e}")
-        finally:
             self._close_pending = False
+            print(f"종료 전 저장 확인 실패: {e}")
+
+    def cancel_close(self):
+        self._close_pending = False
+
+    def finish_close(self, save=False, data=None):
+        if save:
+            result = self.save_data_dialog(data, '시험감독_배정결과.json')
+            if not result['success']:
+                return result
+        self._allow_close = True
+        self.close_window()
+        return {"success": True}
 
     def load_window_state(self):
         try:

@@ -60,6 +60,15 @@ const {chromium} = require('playwright');
   assert.equal(await page.locator('.verify-review').count(),0);
   const cards=await page.locator('#subject-tables-container table').evaluateAll(tables=>tables.map(t=>t.getBoundingClientRect().x));
   assert.ok(cards[0] < cards[1] && cards[1] < cards[2], 'Three grade cards stay side by side');
+  const grids = await page.locator('.empty-grade-table').evaluateAll(tables => tables.map(table => ({
+   rows: [...table.tBodies[0].rows].map(row => row.getBoundingClientRect().height),
+   gap: table.parentElement.getBoundingClientRect().bottom - table.getBoundingClientRect().bottom,
+  })));
+  for (const grid of grids) {
+   assert.equal(grid.rows.length,3);
+   assert.ok(Math.max(...grid.rows)-Math.min(...grid.rows) < 1, 'Three equal-height rows');
+   assert.ok(grid.gap <= 2, 'Grid lines reach the card bottom');
+  }
   await page.evaluate(()=>{appData.teachers=[];renderValidateTab();});
   assert.equal(await page.locator('#stats-scroll tbody').textContent().then(x=>x.trim()),'');
   assert.equal(await page.locator('.verify-review').count(),0);

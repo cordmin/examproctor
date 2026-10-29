@@ -50,7 +50,7 @@ window.renderSubjectsTab = function() {
     if (appData.periods.length === 0) {
         container.innerHTML = `<div style="display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:24px !important;min-height:100% !important;width:100% !important">${[1,2,3].map(g => `
             <div class="flex flex-col"><div class="bg-[#1E293B] text-white px-3.5 py-1.5 rounded-t-lg font-bold text-[12.5px] self-start">${g}학년</div>
-            <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden flex-1"><table class="w-full table-fixed text-center text-[12.5px]"><thead class="bg-surface-100"><tr><th class="py-2.5 w-14 border-r border-line">교시</th><th>시험일</th></tr></thead><tbody>${emptyTableRows(2, 3)}</tbody></table></div></div>`).join('')}</div>`;
+            <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden flex-1 flex flex-col"><table class="empty-grade-table w-full h-full table-fixed text-center text-[12.5px]" style="height:100%"><thead class="bg-surface-100" style="height:40px"><tr><th class="py-2.5 w-14 border-r border-line">교시</th><th>시험일</th></tr></thead><tbody>${emptyTableRows(2, 3)}</tbody></table></div></div>`).join('')}</div>`;
         return;
     }
 

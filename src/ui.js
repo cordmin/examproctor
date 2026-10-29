@@ -78,13 +78,13 @@ function cellBorders(periodsByDate, dates, dIdx, pIdx) {
 
 
 function emptyTableRows(columns, rows = 6) {
-    return Array.from({length: rows}, () => `<tr aria-hidden="true">${'<td class="border border-line h-10">&nbsp;</td>'.repeat(columns)}</tr>`).join('');
+    return Array.from({length: rows}, () => `<tr aria-hidden="true" data-empty-row>${'<td class="border border-line h-10">&nbsp;</td>'.repeat(columns)}</tr>`).join('');
 }
 
 function build2RowDatePeriodHeaderParts(periodsByDate, dates, periodClass) {
     if (!dates.length) return {
-        row1: '<th class="p-2 border-b border-line bg-[#F1F5F9]">시험일</th>',
-        row2: '<th class="p-2 border-b border-line bg-[#F1F5F9]">교시</th>',
+        row1: '<th class="p-2 border-b border-r border-line bg-[#F1F5F9]">시험일</th>',
+        row2: '<th class="p-2 border-b border-r border-line bg-[#F1F5F9]">교시</th>',
     };
     let row1 = '';
     let row2 = '';
@@ -280,11 +280,28 @@ document.getElementById('assignment-failure-modal').addEventListener('keydown', 
 });
 
 // 두 표에 같은 정수 단위 열 너비를 적용해 확대 배율/colspan의 서로 다른 반올림을 피한다.
+// 빈 표는 화면 높이에 맞춰 실제 빈 셀을 채운다. 창 크기를 바꿔도 행 높이는 일정하게 유지한다.
+function syncEmptyTable(scroll, table) {
+    const first = table.tBodies[0]?.rows[0];
+    const empty = !!first?.hasAttribute('data-empty-row');
+    scroll.classList.toggle('empty-table-scroll', empty);
+    if (!empty) return;
+    const height = scroll.clientHeight;
+    if (!height) return;
+    const rows = Math.max(1, Math.floor(height / 40));
+    if (table.tBodies[0].rows.length !== rows) {
+        table.tBodies[0].innerHTML = emptyTableRows(first.cells.length, rows);
+    }
+    table.style.height = `${height}px`;
+    table.style.setProperty('--empty-row-height', `${height / rows}px`);
+}
+
 const splitTableWidths = new WeakMap();
 function syncSplitTableHeader(scroll, header, viewport = null) {
     const bodyTable = scroll.querySelector('table');
     const headerTable = header.querySelector('table');
     if (!bodyTable || !headerTable || !scroll.clientWidth) return;
+    syncEmptyTable(scroll, bodyTable);
     bodyTable.classList.remove('teacher-grid-body');
     [bodyTable, headerTable].forEach(table => {
         table.classList.add('aligned-table');
@@ -376,7 +393,8 @@ const TOUR_STEPS = [
     { el: '[data-target="tab-result"]',   title: '5. 배정 결과',  text: '선생님별·학급별 감독표를 봅니다. 칸을 끌어 놓거나 우클릭해서 선생님을 바꿀 수 있고, 엑셀로 내려받을 수 있습니다.' },
     { el: '[data-target="tab-validate"]', title: '6. 배정 검증',  text: '모든 규칙을 잘 지켰는지 확인합니다. 문제가 있으면 해결 방법과 바로 가기 버튼이 함께 나옵니다.' },
     { el: '#data-card',                   title: '7. 열기·저장', text: '작업한 내용을 파일로 저장하고, 다음에 다시 불러옵니다. 우측 상단에 도움말 버튼을 누르면 이 안내를 다시 볼 수 있습니다.' },
-    { el: '#app-version',                 title: '8. 프로그램 정보·업데이트', text: '버전 번호를 누르면 프로그램 정보와 업데이트 상태를 확인할 수 있습니다.' },
+    { el: '[data-action="reset"]',         title: '8. 전체 초기화', text: '현재 작업의 모든 입력값과 배정 결과를 지웁니다. 필요한 자료를 먼저 저장한 뒤 사용하세요.' },
+    { el: '#app-version',                 title: '9. 프로그램 정보·업데이트', text: '버전 번호를 누르면 프로그램 정보와 업데이트 상태를 확인할 수 있습니다.' },
 ];
 let tourIndex = 0;
 let tourHidden = false;   // 켤 때 shell.js 가 settings.json 에서 읽어 둔다

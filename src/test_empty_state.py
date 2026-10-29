@@ -22,22 +22,23 @@ def check():
         assert result['validation']['stats'] == original['validation']['stats']
         data['validation']['shortage'] = True
         assert not api.revalidate(data)['validation']['shortage']
-        for dirty, answer, saved, should_close in [
-            (False, 2, False, True), (True, 2, False, False),
-            (True, 7, False, True), (True, 6, False, False), (True, 6, True, True),
-        ]:
+        for save, saved, should_close in [(False, False, True), (True, False, False), (True, True, True)]:
             api._allow_close = False
             api._win = Mock()
-            api._win.evaluate_js.return_value = {'dirty': dirty, 'data': original}
             api.close_window = Mock()
             api.save_data_dialog = Mock(return_value={'success': saved, 'canceled': not saved})
-            message = Mock(return_value=answer)
-            with patch.object(main.ctypes, 'windll', SimpleNamespace(user32=SimpleNamespace(MessageBoxW=message))):
-                api._confirm_close()
-            assert api.close_window.called == should_close, (dirty, answer, saved)
-            assert api.save_data_dialog.called == (dirty and answer == 6)
-            if dirty and answer == 6:
+            api.finish_close(save, original)
+            assert api.close_window.called == should_close
+            assert api.save_data_dialog.called == save
+            if save:
                 assert api.save_data_dialog.call_args.args[0] == original
+        api._close_pending = True
+        api.cancel_close()
+        assert not api._close_pending
+        api._win.evaluate_js.return_value = True
+        api.close_window.reset_mock()
+        api._confirm_close()
+        api.close_window.assert_not_called()
         api._ask_open = Mock(return_value=None)
         api.load_data_dialog()
         assert api._ask_open.call_args.args[1] == str(Path(main.__file__).resolve().parent.parent)

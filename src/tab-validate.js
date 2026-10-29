@@ -192,6 +192,8 @@ window.renderValidateTab = function() {
           ${panel('clipboard-check', '교사별 감독 배정 횟수', statsTable, true)}
           ${panel('search', '배정 결과 검증', verifyHtml, false)}
         </div>`;
+    // 브라우저가 첫 프레임을 표시하기 전에 열 너비와 빈 행 높이를 확정한다.
+    syncStatsHeader();
 };
 
 // shell.js 의 syncScrollHeads 가 화면이 바뀔 때마다 부른다.

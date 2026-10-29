@@ -59,7 +59,7 @@ document.getElementById('sidebar-nav').addEventListener('click', (e) => {
     if (tabBtn) showTab(tabBtn.getAttribute('data-target'));
     if (e.target.closest('[data-action="run"]')) openRulesModal();
     if (e.target.closest('[data-action="reset"]')) {
-        openConfirmModal('전체 초기화', '<strong class="text-coral">현재 작업의 모든 자료가 지워집니다.</strong><br>기초 설정, 감독 명단, 결시 정보, 배정 결과 및 검증 내역을 모두 초기화합니다.<br><br>저장하지 않은 내용은 복구할 수 없습니다.<br>필요한 자료는 먼저 JSON 파일로 저장해 주세요.<br><span class="text-pebble text-[12px]">이미 저장한 JSON 파일은 삭제되지 않습니다.</span>', '전체 초기화', () => {
+        openConfirmModal('전체 초기화', '<p class="text-coral text-[15px] font-bold mb-2">현재 작업의 모든 자료가 지워집니다.</p><p class="mt-5 font-semibold text-text-main">저장하지 않은 데이터는 복구할 수 없으니 미리 저장해주세요</p>', '전체 초기화', () => {
             appData = createEmptyData();
             currentResultView = 'result-teacher';
             activeBrush = {type: 'ALL', target: '', fill: 'bg-coral text-white'};
@@ -106,6 +106,49 @@ window.markDataSaved = () => { savedSnapshot = JSON.stringify(appData); };
 window.getCloseState = function() {
     document.activeElement?.blur();
     return { dirty: savedSnapshot !== null && JSON.stringify(appData) !== savedSnapshot, data: appData };
+};
+window.requestClose = function() {
+    const state = getCloseState();
+    if (!state.dirty) { finishClose(false); return true; }
+    closeAppSelect(); closeRoleMenu();
+    const modal = document.getElementById('close-modal');
+    modal.classList.remove('hidden');
+    document.getElementById('close-cancel').focus();
+    return true;
+};
+window.cancelClose = function() {
+    const modal = document.getElementById('close-modal');
+    if (modal.dataset.busy === 'true') return;
+    modal.classList.add('hidden');
+    winApi()?.cancel_close();
+};
+window.finishClose = async function(save) {
+    const modal = document.getElementById('close-modal');
+    if (modal.dataset.busy === 'true') return;
+    modal.dataset.busy = 'true';
+    modal.querySelectorAll('button').forEach(button => button.disabled = true);
+    try {
+        const result = await winApi().finish_close(save, getCloseState().data);
+        if (!result.success && !result.canceled) showToast('저장 실패: ' + result.error, 'error');
+    } catch (error) {
+        showToast('종료하지 못했습니다: ' + (error.message || error), 'error');
+    } finally {
+        modal.dataset.busy = 'false';
+        modal.querySelectorAll('button').forEach(button => button.disabled = false);
+    }
+};
+document.getElementById('close-modal').addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancelClose(); }
+    if (event.key === 'Tab') {
+        const buttons = [...event.currentTarget.querySelectorAll('button:not(:disabled)')];
+        if (!buttons.length) { event.preventDefault(); return; }
+        if (event.shiftKey && document.activeElement === buttons[0]) { event.preventDefault(); buttons.at(-1).focus(); }
+        else if (!event.shiftKey && document.activeElement === buttons.at(-1)) { event.preventDefault(); buttons[0].focus(); }
+    }
+});
+window.closeUpdateModal = function() {
+    const modal = document.getElementById('update-modal');
+    if (modal.dataset.busy !== 'true') modal.classList.add('hidden');
 };
 document.getElementById('exam-name').addEventListener('input', e => { appData.config.examName = e.target.value; });
 
@@ -316,19 +359,20 @@ function askUpdate(res, startImmediately = false) {
     const m = document.getElementById('update-modal');
     if (m.dataset.busy === 'true') return;
     const confirm = document.getElementById('update-modal-ok');
+    const close = document.getElementById('update-modal-close');
     const later = document.getElementById('update-modal-later');
     const message = document.getElementById('update-modal-message');
     const progress = document.getElementById('update-download-progress');
     document.getElementById('update-from').textContent = res.current;
     document.getElementById('update-to').textContent = res.version;
-    confirm.disabled = later.disabled = false;
+    confirm.disabled = later.disabled = close.disabled = false;
     confirm.textContent = '업데이트'; later.textContent = '나중에';
     message.textContent = '새 버전이 나왔습니다. 지금 업데이트하시겠습니까?';
     progress.classList.add('hidden');
     confirm.onclick = async () => {
         if (m.dataset.busy === 'true') return;
         m.dataset.busy = 'true';
-        confirm.disabled = later.disabled = true;
+        confirm.disabled = later.disabled = close.disabled = true;
         confirm.textContent = '준비 중…';
         message.textContent = '업데이트 파일을 다운로드하고 있습니다.\n설치가 시작되면 별도 창에서 진행 상황을 안내합니다.';
         progress.classList.remove('hidden');
@@ -340,7 +384,7 @@ function askUpdate(res, startImmediately = false) {
             message.textContent = `업데이트를 시작하지 못했습니다.\n${error.message || error}`;
             progress.classList.add('hidden');
             m.dataset.busy = 'false';
-            confirm.disabled = later.disabled = false;
+            confirm.disabled = later.disabled = close.disabled = false;
             confirm.textContent = '다시 시도'; later.textContent = '닫기';
         }
     };
@@ -427,6 +471,7 @@ document.getElementById('btn-global-load').addEventListener('click', () => {
 
 
 document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('close-modal').classList.contains('hidden')) return;
     const sm = document.getElementById('swap-modal');
     if(sm && !sm.classList.contains('hidden')) {
         if(e.key === 'Escape') closeSwapModal();

@@ -156,6 +156,11 @@ function mountResultTable(container, html, periodsByDate, dates, periodTitle = p
     container.innerHTML = html;
     const table = container.querySelector('table');
     const head = table.tHead;
+    // 날짜 구분용 굵은 선은 실제 시험 교시가 있을 때만 사용한다.
+    if (!dates.length) head.querySelectorAll('.border-r-2').forEach(cell => {
+        cell.classList.remove('border-r-2', 'border-slate-300');
+        cell.classList.add('border-r', 'border-line');
+    });
     const periods = dates.flatMap(date => periodsByDate[date]);
     const fixedWidth = [...table.querySelector('colgroup').children].reduce((sum, col) => sum + (parseFloat(col.style.width) || 0), 0);
     table.style.minWidth = `${fixedWidth + periods.length * 56}px`;

@@ -302,9 +302,14 @@
         .grid-table-header colgroup { display: none; }
         .grid-table-header thead { display: grid; }
         .grid-table-header tr { display: contents; }
+        .grid-table-header thead tr + tr th:last-child:not(.border-thick) { border-right: 1px solid rgb(var(--line)) !important; }
         .grid-table-header th { display: flex; align-items: center; justify-content: center; min-width: 0 !important; width: auto !important; }
         .grid-table-header th.hidden { display: none; }
         #teacher-list-header { overflow: hidden; }
+        .empty-table-scroll { padding-bottom: 0 !important; }
+        .empty-table-scroll td { height: var(--empty-row-height) !important; }
+        .empty-table-scroll .teacher-grid-body tbody { height: 100%; }
+        .empty-table-scroll .teacher-grid-body tr { height: var(--empty-row-height); }
         .teacher-grid-body { display: block; }
         .teacher-grid-body colgroup { display: none; }
         .teacher-grid-body tbody { display: block; }
@@ -510,6 +515,12 @@
         .update-spinner { width: 16px; height: 16px; border: 2px solid #CBD5E1; border-top-color: #2563EB; border-radius: 50%; animation: updateSpin .8s linear infinite; }
         @keyframes updateSpin { to { transform: rotate(360deg); } }
         #update-modal button:disabled { opacity: .55; cursor: wait; }
+        .modal-header { position: relative; min-height: 48px; padding-right: 56px !important; }
+        .modal-header.justify-center { padding-left: 56px !important; }
+        .modal-header > .modal-close { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); }
+        .modal-close { width: 24px !important; height: 24px !important; }
+        .modal-close svg { width: 16px !important; height: 16px !important; }
+        .modal-close:disabled, #close-modal button:disabled { opacity: .55; cursor: wait; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
         .animate-fade-in { animation: fadeIn 0.15s ease-out forwards; }
 
@@ -1097,13 +1108,11 @@
             <!-- 배정 규칙 설정 모달 -->
             <div id="rules-modal" tabindex="0" class="hidden fixed inset-0 bg-[#0F172A]/60 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
               <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-xl w-[860px] max-w-[calc(var(--vw)*94)] max-h-[calc(var(--vh)*88)] flex flex-col overflow-hidden animate-fade-in">
-                <div class="px-5 py-3 bg-[#1E293B] text-white flex items-center justify-between gap-2 flex-shrink-0">
+                <div class="modal-header px-5 py-3 bg-[#1E293B] text-white flex items-center justify-between gap-2 flex-shrink-0">
                     <h2 class="font-semibold text-[15px] flex items-center gap-2 text-white">
                         <svg class="w-4 h-4 text-white"><use href="#i-sliders"/></svg> 규칙설정 및 배정실행
                     </h2>
-                    <button type="button" onclick="closeRulesModal()" title="닫기 (Esc)" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors">
-                        <svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg>
-                    </button>
+                    <button type="button" onclick="closeRulesModal()" title="닫기" aria-label="닫기" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors"><svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg></button>
                 </div>
                 <div class="flex-1 overflow-auto p-5">
                     <div class="grid grid-cols-2 gap-5 w-full">
@@ -1189,8 +1198,9 @@
 
     <div id="assignment-failure-modal" role="dialog" aria-modal="true" aria-labelledby="assignment-failure-title" tabindex="-1" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[20001] outline-none p-4">
         <div class="bg-surface-0 rounded-2xl border border-line shadow-xl w-[660px] max-w-[calc(var(--vw)*92)] max-h-[calc(var(--vh)*86)] flex flex-col overflow-hidden animate-fade-in">
-            <div class="px-5 py-3 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
+            <div class="modal-header px-5 py-3 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
                 <svg class="w-4 h-4"><use href="#i-alert"/></svg><h3 id="assignment-failure-title" class="font-bold text-[15px]">배정 실행 실패</h3>
+                <button type="button" onclick="closeAssignmentFailure()" title="닫기" aria-label="닫기" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors"><svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg></button>
             </div>
             <div class="p-5 overflow-auto flex-1 min-h-0">
                 <p id="assignment-failure-summary" class="text-[14px] font-bold leading-relaxed mb-4"></p>
@@ -1198,20 +1208,18 @@
                 <div id="assignment-failure-reasons" class="space-y-4"></div>
             </div>
             <div class="px-5 py-3 bg-surface-50 border-t border-line flex justify-end flex-shrink-0">
-                <button type="button" onclick="closeAssignmentFailure()" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px]">확인 (Esc)</button>
+                    <button type="button" onclick="closeAssignmentFailure()" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px]">확인 (Esc)</button>
             </div>
         </div>
     </div>
 
     <div id="event-modal" tabindex="0" class="hidden fixed inset-0 bg-[#0F172A]/60 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
         <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-xl w-[720px] max-w-[calc(var(--vw)*92)] max-h-[calc(var(--vh)*80)] flex flex-col overflow-hidden animate-fade-in">
-            <div class="px-5 py-3 bg-[#1E293B] text-white flex items-center justify-between gap-2 flex-shrink-0">
+            <div class="modal-header px-5 py-3 bg-[#1E293B] text-white flex items-center justify-between gap-2 flex-shrink-0">
                 <h3 class="font-semibold text-[15px] flex items-center gap-2 text-white">
                     <svg class="w-4 h-4 text-white"><use href="#i-clipboard-list"/></svg> 배정 작업 중 발생한 이벤트
                 </h3>
-                <button type="button" onclick="closeEventModal()" title="닫기" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors">
-                    <svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg>
-                </button>
+                <button type="button" onclick="closeEventModal()" title="닫기" aria-label="닫기" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors"><svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg></button>
             </div>
             <div id="event-modal-content" class="flex-1 overflow-auto text-[13px] leading-relaxed p-5"></div>
             <div class="px-5 py-3 bg-surface-50 border-t border-surface-100 flex justify-end flex-shrink-0">
@@ -1222,9 +1230,10 @@
 
     <div id="swap-modal" tabindex="0" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
         <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-2xl w-[510px] max-w-[calc(var(--vw)*92)] overflow-hidden flex flex-col animate-fade-in">
-            <div class="px-5 py-3.5 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
+            <div class="modal-header px-5 py-3.5 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
                 <svg class="w-4 h-4 text-white"><use href="#i-swap"/></svg>
                 <h3 class="font-bold text-[14.5px]">감독 교체 확인</h3>
+                <button type="button" onclick="closeSwapModal()" title="닫기" aria-label="닫기" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors"><svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg></button>
             </div>
             <div class="p-6 flex flex-col space-y-4">
                 <div id="swap-modal-msg" class="text-[14.5px] font-bold text-text-main leading-[1.8] text-center py-4 px-2"></div>
@@ -1238,9 +1247,10 @@
 
     <div id="rightclick-swap-modal" tabindex="0" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
         <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-2xl w-[510px] max-w-[calc(var(--vw)*92)] overflow-hidden flex flex-col animate-fade-in">
-            <div class="px-5 py-3.5 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
+            <div class="modal-header px-5 py-3.5 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
                 <svg class="w-4 h-4 text-white"><use href="#i-swap"/></svg>
                 <h3 class="font-bold text-[14.5px]">감독 교체 (우클릭)</h3>
+                <button type="button" onclick="closeRcSwapModal()" title="닫기" aria-label="닫기" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors"><svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg></button>
             </div>
             <div class="p-6 flex flex-col space-y-5">
                 <div id="rc-swap-info" class="text-[14.5px] font-bold text-text-main leading-[1.8] text-center p-4 bg-surface-50 rounded-xl border border-surface-200"></div>
@@ -1261,7 +1271,7 @@
     <div id="about-modal" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[10000] p-4" role="dialog" aria-modal="true" aria-labelledby="about-title" tabindex="-1" onkeydown="if(event.key==='Escape') closeAboutModal(); if(event.key==='Tab') { const items=[...this.querySelectorAll('button:not(:disabled)')]; if(event.shiftKey && document.activeElement===items[0]) {event.preventDefault();items.at(-1).focus();} else if(!event.shiftKey && document.activeElement===items.at(-1)) {event.preventDefault();items[0].focus();} }">
         <div class="about-panel bg-surface-0 rounded-2xl border border-line overflow-hidden">
             <div class="about-hero">
-                <button type="button" onclick="closeAboutModal()" aria-label="닫기" class="about-close modal-close cursor-pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
+                <button type="button" onclick="closeAboutModal()" title="닫기" aria-label="닫기" class="about-close modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors"><svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg></button>
                 <img class="about-logo" src="icon.png" alt="">
                 <div class="about-name"><h2 id="about-title">시험감독 배정</h2><span id="about-version">확인 중…</span></div>
                 <p class="about-description">제작: 아산배방중학교 교사 이경민</p>
@@ -1273,11 +1283,12 @@
         </div>
     </div>
 
-    <div id="update-modal" tabindex="0" onkeydown="if (event.key === 'Escape' && this.dataset.busy !== 'true') this.classList.add('hidden')" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
+    <div id="update-modal" tabindex="0" onkeydown="if (event.key === 'Escape') closeUpdateModal()" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
         <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-2xl w-[400px] max-w-[calc(var(--vw)*92)] overflow-hidden flex flex-col animate-fade-in">
-            <div class="px-5 py-3.5 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
+            <div class="modal-header px-5 py-3.5 bg-[#1E293B] text-white flex items-center gap-2 flex-shrink-0">
                 <svg class="w-4 h-4 text-white"><use href="#i-download"/></svg>
                 <h3 class="font-bold text-[14.5px]">새 버전 업데이트</h3>
+                <button type="button" id="update-modal-close" onclick="closeUpdateModal()" title="닫기" aria-label="닫기" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors"><svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg></button>
             </div>
             <div class="p-6 flex flex-col gap-4">
                 <div class="text-[15px] font-bold text-text-main text-center p-3.5 bg-surface-50 rounded-xl border border-surface-200">
@@ -1288,20 +1299,40 @@
             </div>
             <div class="px-5 py-3.5 bg-surface-50 border-t border-surface-100 flex justify-end gap-2.5 flex-shrink-0">
                 <button id="update-modal-ok" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">업데이트</button>
-                <button id="update-modal-later" onclick="document.getElementById('update-modal').classList.add('hidden')" class="px-4 py-2 border border-surface-300 bg-surface-0 hover:bg-surface-100 font-bold text-text-main rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">나중에</button>
+                <button id="update-modal-later" onclick="closeUpdateModal()" class="px-4 py-2 border border-surface-300 bg-surface-0 hover:bg-surface-100 font-bold text-text-main rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">나중에</button>
             </div>
         </div>
     </div>
 
-    <div id="confirm-modal" tabindex="0" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
-        <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-xl w-auto min-w-[340px] max-w-[calc(var(--vw)*92)] overflow-hidden px-8 py-5 flex flex-col space-y-4 animate-fade-in">
-            <h3 id="confirm-modal-title" class="font-semibold text-[15px] flex items-center justify-center gap-2">
-                <svg class="w-4 h-4 text-amber"><use href="#i-alert"/></svg> <span>확인</span>
-            </h3>
-            <p id="confirm-modal-msg" class="text-[14px] font-bold text-text-main/80 leading-relaxed text-center py-2"></p>
-            <div class="flex justify-center gap-2 pt-2">
-                <button id="confirm-modal-btn" onclick="executeConfirm()" class="px-4 py-1.5 bg-coral hover:brightness-95 text-white font-semibold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">확인</button>
-                <button id="confirm-modal-cancel" onclick="closeConfirmModal()" class="px-4 py-1.5 border border-surface-300 bg-surface-0 hover:bg-surface-50 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">취소</button>
+    <div id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" tabindex="0" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[10000] outline-none p-4">
+        <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-2xl w-[560px] max-w-[calc(var(--vw)*92)] overflow-hidden flex flex-col animate-fade-in">
+            <div class="modal-header px-5 py-3.5 bg-[#1E293B] text-white flex items-center justify-center gap-2 flex-shrink-0">
+                <svg class="w-4 h-4 text-white"><use href="#i-alert"/></svg>
+                <h3 id="confirm-modal-title" class="font-bold text-[14.5px]"><span>전체 초기화</span></h3>
+                <button type="button" onclick="closeConfirmModal()" title="닫기" aria-label="닫기" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors"><svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg></button>
+            </div>
+            <div id="confirm-modal-msg" class="px-6 py-6 text-[13px] text-text-main leading-relaxed text-center"></div>
+            <div class="px-5 py-3.5 bg-surface-50 border-t border-surface-100 flex justify-center gap-2.5 flex-shrink-0">
+                <button id="confirm-modal-btn" onclick="executeConfirm()" class="px-4 py-2 bg-coral hover:brightness-95 text-white font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">전체 초기화</button>
+                <button id="confirm-modal-cancel" onclick="closeConfirmModal()" class="px-4 py-2 border border-surface-300 bg-surface-0 hover:bg-surface-100 font-bold text-text-main rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="close-modal" role="dialog" aria-modal="true" aria-labelledby="close-modal-title" tabindex="-1" class="hidden fixed inset-0 bg-[#0F172A]/45 backdrop-blur-[2px] flex items-center justify-center z-[40000] outline-none p-4">
+        <div class="bg-surface-0 rounded-2xl border border-surface-200 shadow-2xl w-[560px] max-w-[calc(var(--vw)*92)] overflow-hidden flex flex-col animate-fade-in">
+            <div class="modal-header px-5 py-3.5 bg-[#1E293B] text-white flex items-center justify-center gap-2 flex-shrink-0">
+                <svg class="w-4 h-4"><use href="#i-save"/></svg><h3 id="close-modal-title" class="font-bold text-[14.5px]">저장 확인</h3>
+                <button type="button" onclick="cancelClose()" title="닫기" aria-label="닫기" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors"><svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg></button>
+            </div>
+            <div class="px-6 py-7 text-center leading-relaxed">
+                <p class="text-[15px] font-bold text-text-main">변경된 데이터가 있습니다.</p>
+                <p class="mt-2 text-[13px] text-stone">종료하기 전에 저장하시겠습니까?</p>
+            </div>
+            <div class="px-5 py-3.5 bg-surface-50 border-t border-surface-100 flex justify-center gap-2.5 flex-shrink-0">
+                <button id="close-save" type="button" onclick="finishClose(true)" class="px-4 py-2 bg-brand-600 text-brand-text font-bold rounded-lg text-[13px] shadow-sm cursor-pointer">저장 후 종료</button>
+                <button id="close-discard" type="button" onclick="finishClose(false)" class="px-4 py-2 border border-surface-300 bg-surface-0 font-bold text-text-main rounded-lg text-[13px] shadow-sm cursor-pointer">저장 없이 종료</button>
+                <button id="close-cancel" type="button" onclick="cancelClose()" class="px-4 py-2 border border-surface-300 bg-surface-0 font-bold text-text-main rounded-lg text-[13px] shadow-sm cursor-pointer">취소</button>
             </div>
         </div>
     </div>
@@ -1320,7 +1351,7 @@
                 <h3 id="tour-title" class="font-bold text-[14.5px] text-text-main"></h3>
                 <div class="flex items-center gap-2">
                     <span id="tour-step" class="text-[11.5px] font-bold text-pebble"></span>
-                    <button id="tour-skip" type="button" title="안내 닫기" class="w-5 h-5 flex items-center justify-center text-pebble hover:text-text-main rounded cursor-pointer"><svg class="w-3.5 h-3.5"><use href="#i-x"/></svg></button>
+                    <button id="tour-skip" type="button" title="안내 닫기" aria-label="안내 닫기" class="modal-close flex items-center justify-center text-pebble hover:text-white rounded-md cursor-pointer"><svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg></button>
                 </div>
             </div>
             <p id="tour-text" class="text-[13px] leading-relaxed text-stone"></p>
