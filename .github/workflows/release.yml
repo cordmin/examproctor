@@ -43,6 +43,7 @@ jobs:
         working-directory: src
         run: |
           pip install pywebview openpyxl pyinstaller
+          python test_clean_startup.py
           pyinstaller 시험감독배정시스템.spec
 
       - name: Build installer

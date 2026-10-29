@@ -368,21 +368,21 @@ function askUpdate(res, startImmediately = false) {
     confirm.disabled = later.disabled = close.disabled = false;
     confirm.textContent = '업데이트'; later.textContent = '나중에';
     message.textContent = '새 버전이 나왔습니다. 지금 업데이트하시겠습니까?';
-    progress.classList.add('hidden');
+    progress.classList.add('invisible');
     confirm.onclick = async () => {
         if (m.dataset.busy === 'true') return;
         m.dataset.busy = 'true';
         confirm.disabled = later.disabled = close.disabled = true;
         confirm.textContent = '준비 중…';
         message.textContent = '업데이트 파일을 다운로드하고 있습니다.\n설치가 시작되면 별도 창에서 진행 상황을 안내합니다.';
-        progress.classList.remove('hidden');
+        progress.classList.remove('invisible');
         try {
             const result = await window.pywebview.api.install_update(res.version, appData);
             if (!result.success) throw new Error(result.error || '설치를 시작하지 못했습니다.');
             message.textContent = '설치를 시작했습니다.\n별도 안내 창에서 설치와 재실행 상태를 확인해 주세요.';
         } catch (error) {
             message.textContent = `업데이트를 시작하지 못했습니다.\n${error.message || error}`;
-            progress.classList.add('hidden');
+            progress.classList.add('invisible');
             m.dataset.busy = 'false';
             confirm.disabled = later.disabled = close.disabled = false;
             confirm.textContent = '다시 시도'; later.textContent = '닫기';
@@ -421,7 +421,6 @@ window.checkAboutUpdate = async function() {
     button.disabled = true;
     aboutUpdate = null;
     button.textContent = '확인 중…';
-    status.classList.remove('hidden');
     status.textContent = '업데이트를 확인하고 있습니다…';
     try {
         if (!winApi()) throw new Error('프로그램 실행 환경에서 확인할 수 있습니다.');
@@ -438,7 +437,6 @@ window.checkAboutUpdate = async function() {
                 unconfigured: '업데이트 저장소 미설정',
                 error: '확인 실패 · 인터넷 연결을 확인하세요.',
             }[res.status] ?? '확인 실패 · 다시 시도해 주세요.';
-            status.classList.toggle('hidden', res.status === 'development');
         }
     } catch (error) {
         status.textContent = '확인 불가 · 프로그램에서 다시 확인하세요.';

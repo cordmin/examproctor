@@ -12,8 +12,10 @@
 그래서 도메인 모듈은 webview 없이도 단독 실행·검증이 가능하다.
 """
 import ctypes
+import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -34,11 +36,27 @@ EMPTY_DATA = {
     "teachers": [], "periods": [], "classSubjects": {}, "assignments": {}, "validation": {},
 }
 
+# 배포했던 기본 예시의 지문만 보관한다. 실제 더미 자료를 실행 파일에 포함하지 않는다.
+LEGACY_SAMPLE_DIGESTS = {
+    '9904f8dfe7587782b3f5777647808b3f96ce447fecd302e76b18d7a339df985e',
+    '11e9e005eb5a28a8774ac98471271cfc87d737110f916434bfd269dd2ccdfe91',
+}
+
+
+def legacy_sample_digest(data):
+    normalized = json.loads(json.dumps(data))
+    for counts in normalized.get('config', {}).get('invigCounts', {}).values():
+        # 이전 화면에서 강제로 적용하던 1인 감독 값의 차이만 정규화한다.
+        counts['special'] = counts['separated'] = 1
+    content = json.dumps(normalized, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+    return hashlib.sha256(content.encode('utf-8')).hexdigest()
+
+
 XLSX_TYPES = ('Excel 파일 (*.xlsx)', '모든 파일 (*.*)')
 JSON_TYPES = ('JSON 파일 (*.json)', '모든 파일 (*.*)')
 
 # 앞 두 자리(1.0)만 손으로 고친다. 마지막 자리는 GitHub Actions(release.yml)가 빌드할 때 실행 번호로 채운다.
-APP_VERSION = '1.2.2'
+APP_VERSION = '1.2.3'
 # 업데이트를 받을 GitHub 공개 저장소 'owner/repo'. 비어 있으면 업데이트 확인을 건너뛴다 (켤 때 최신 릴리스와 비교).
 UPDATE_REPO = 'cordmin/examproctor'
 # 릴리스에 올리는 설치 파일 이름. installer.iss 의 OutputBaseFilename 과 같아야 한다.
@@ -199,10 +217,21 @@ class Api:
     # ── 데이터 저장 / 불러오기 ───────────────────────────────────────
 
     def load_data(self):
+        data = json.loads(json.dumps(EMPTY_DATA))
         if os.path.exists(self.data_file):
-            with open(self.data_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        return json.loads(json.dumps(EMPTY_DATA))
+            with open(self.data_file, 'r', encoding='utf-8-sig') as f:
+                data = json.load(f)
+        migration_file = self.data_file + '.sample-migration.json'
+        if not os.path.exists(migration_file):
+            if legacy_sample_digest(data) in LEGACY_SAMPLE_DIGESTS:
+                backup = self.data_file + '.legacy-example.bak'
+                if not os.path.exists(backup):
+                    shutil.copy2(self.data_file, backup)
+                data = json.loads(json.dumps(EMPTY_DATA))
+                self._write_json(self.data_file, data)
+            # 한 번만 검사한다. 이후 사용자가 직접 연 예시는 자동 삭제하지 않는다.
+            self._write_json(migration_file, {'completed': True})
+        return data
 
     def _write_json(self, path, data):
         with open(path, 'w', encoding='utf-8') as f:

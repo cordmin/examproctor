@@ -504,9 +504,9 @@
         #about-version { font-size:10px; color:#BFD0EB; padding:4px 6px; border:1px solid #FFFFFF24; border-radius:5px; white-space:nowrap; }
         .about-description { font-size:11px; color:#AFBED5; margin:9px 0 0; white-space:nowrap; }
         .about-body { padding:20px 22px; background:rgb(var(--surface-50)); border-top:1px solid rgb(var(--line)); }
-        #about-update-status { font-size:12px; font-weight:700; color:#263C5C; margin:0; white-space:nowrap; }
+        #about-update-status { font-size:12px; font-weight:700; color:#263C5C; margin:0; white-space:nowrap; min-height:20px; display:flex; align-items:center; justify-content:center; }
         .about-actions { display:flex; gap:10px; margin-top:0; }
-        #about-update-status:not(.hidden) + .about-actions { margin-top:20px; }
+        #about-update-status + .about-actions { margin-top:16px; }
         .about-actions button { flex:1 1 0; width:0; height:36px; border-radius:7px; border:1px solid rgb(var(--surface-300)); background:rgb(var(--surface-0)); color:rgb(var(--text-main)); font-size:13px; font-weight:700; box-shadow:0 1px 2px #0F172A0D; white-space:nowrap; }
         #about-check { background:#1E293B; border-color:#1E293B; color:white; }
         #about-check:disabled { opacity:.55; cursor:wait; }
@@ -523,6 +523,7 @@
 
         .update-spinner { width: 16px; height: 16px; border: 2px solid #CBD5E1; border-top-color: #2563EB; border-radius: 50%; animation: updateSpin .8s linear infinite; }
         @keyframes updateSpin { to { transform: rotate(360deg); } }
+        #update-modal-message { height:72px; overflow-y:auto; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
         #update-modal button:disabled { opacity: .55; cursor: wait; }
         .modal-header { position: relative; min-height: 48px; padding-right: 56px !important; }
         .modal-header.justify-center { padding-left: 56px !important; }
@@ -1304,7 +1305,7 @@
                     <span id="update-from"></span> <span class="text-pebble mx-1">→</span> <span id="update-to" class="text-[#2563EB]"></span>
                 </div>
                 <p id="update-modal-message" class="text-[13.5px] font-bold text-text-main text-center leading-relaxed whitespace-pre-line" aria-live="polite">새 버전이 나왔습니다. 지금 업데이트하시겠습니까?</p>
-                <div id="update-download-progress" class="hidden flex items-center justify-center gap-2 text-[12.5px] text-stone" role="status"><span class="update-spinner" aria-hidden="true"></span>업데이트 파일을 준비하고 있습니다.</div>
+                <div id="update-download-progress" class="invisible flex items-center justify-center gap-2 text-[12.5px] text-stone" role="status"><span class="update-spinner" aria-hidden="true"></span>업데이트 파일을 준비하고 있습니다.</div>
             </div>
             <div class="px-5 py-3.5 bg-surface-50 border-t border-surface-100 flex justify-end gap-2.5 flex-shrink-0">
                 <button id="update-modal-ok" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">업데이트</button>
