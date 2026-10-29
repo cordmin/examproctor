@@ -76,7 +76,10 @@ const {chromium} = require('playwright');
    assert.ok(!(await page.locator('#about-update-status').textContent()).includes('최신 버전'));
   }
   await page.evaluate(()=>{window.pywebview.api.check_update=async()=>({available:true,version:'v1.0.8',current:'v1.0.7'});checkAboutUpdate()});
-  await page.locator('#about-install').waitFor();await page.locator('#about-install').click();assert.equal(await page.locator('#update-modal').isVisible(),true);
+  await page.waitForFunction(()=>document.getElementById('about-check').textContent==='업데이트 받기');
+  await page.evaluate(()=>{window.pywebview.api.install_update=async()=>({success:true})});
+  await page.locator('#about-check').click();assert.equal(await page.locator('#update-modal').isVisible(),true);
+  await page.waitForFunction(()=>document.getElementById('update-modal-message').textContent.includes('설치를 시작했습니다'));
   assert.deepEqual(errors,[]);
   console.log('PASS: persisted dropdowns, special single-only, conditional sub role, changing date columns, fixed titlebar dimensions, about/update states');
  } finally {await browser.close()}

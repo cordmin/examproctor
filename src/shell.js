@@ -282,7 +282,7 @@ window.addEventListener('pywebviewready', function() {
     });
 });
 
-function askUpdate(res) {
+function askUpdate(res, startImmediately = false) {
     const m = document.getElementById('update-modal');
     if (m.dataset.busy === 'true') return;
     const confirm = document.getElementById('update-modal-ok');
@@ -316,7 +316,16 @@ function askUpdate(res) {
     };
     m.classList.remove('hidden');
     m.focus();
+    if (startImmediately) confirm.click();
 }
+
+let aboutUpdate = null;
+window.runAboutUpdate = function() {
+    if (document.getElementById('about-check').disabled) return;
+    if (!aboutUpdate) return checkAboutUpdate();
+    closeAboutModal();
+    askUpdate(aboutUpdate, true);
+};
 
 window.closeAboutModal = function() {
     document.getElementById('about-modal').classList.add('hidden');
@@ -335,9 +344,9 @@ window.checkAboutUpdate = async function() {
     const button = document.getElementById('about-check');
     if (button.disabled) return;
     const status = document.getElementById('about-update-status');
-    const install = document.getElementById('about-install');
     button.disabled = true;
-    install.classList.add('hidden');
+    aboutUpdate = null;
+    button.textContent = '확인 중…';
     status.classList.remove('hidden');
     status.textContent = '업데이트를 확인하고 있습니다…';
     try {
@@ -347,8 +356,7 @@ window.checkAboutUpdate = async function() {
         const res = await winApi().check_update();
         if (res.available) {
             status.textContent = `새 버전 ${res.version} · 업데이트 가능`;
-            install.classList.remove('hidden');
-            install.onclick = () => { closeAboutModal(); askUpdate(res); };
+            aboutUpdate = res;
         } else {
             status.textContent = {
                 latest: '현재 최신 버전을 사용하고 있습니다.',
@@ -361,6 +369,7 @@ window.checkAboutUpdate = async function() {
     } catch (error) {
         status.textContent = '확인 불가 · 프로그램에서 다시 확인하세요.';
     } finally {
+        button.textContent = aboutUpdate ? '업데이트 받기' : '업데이트 확인';
         button.disabled = false;
     }
 };

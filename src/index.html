@@ -491,13 +491,10 @@
         #about-version { font-size:10px; color:#BFD0EB; padding:4px 6px; border:1px solid #FFFFFF24; border-radius:5px; white-space:nowrap; }
         .about-description { font-size:11px; color:#AFBED5; margin:9px 0 0; white-space:nowrap; }
         .about-body { padding:20px 22px; }
-        .about-update-note { margin:0; color:#526783; font-size:12px; white-space:nowrap; }
-        #about-update-status { font-size:11px; color:#526783; margin:9px 0 0; white-space:nowrap; }
-        .about-credit { font-size:11px; color:#506076; margin:17px 0; padding-top:15px; border-top:1px solid #E8EDF4; white-space:nowrap; }
-        .about-credit span { color:#8D9BAD; }
-        .about-actions { display:flex; gap:7px; }
+        #about-update-status { font-size:12px; font-weight:700; color:#263C5C; margin:0; white-space:nowrap; }
+        .about-actions { display:flex; gap:7px; margin-top:20px; }
         .about-actions button { flex:1; height:35px; border-radius:7px; border:1px solid #DBE2EC; color:#68768B; font-size:11px; white-space:nowrap; }
-        #about-check, #about-install { flex:2; background:#2A5088; border-color:#2A5088; color:white; font-weight:700; }
+        #about-check { flex:2; background:#2A5088; border-color:#2A5088; color:white; font-weight:700; }
         #about-check:disabled { opacity:.55; cursor:wait; }
         .limit-control { position:relative; height:32px; margin:0 2px; padding-right:19px; display:flex; align-items:center; justify-content:center; border:1px solid #DBE3ED; border-radius:7px; }
         .limit-control:focus-within { border-color:#6488BC; background:#F1F6FF; }
@@ -1267,13 +1264,11 @@
                 <button type="button" onclick="closeAboutModal()" aria-label="닫기" class="about-close modal-close cursor-pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
                 <img class="about-logo" src="icon.png" alt="">
                 <div class="about-name"><h2 id="about-title">시험감독 배정</h2><span id="about-version">확인 중…</span></div>
-                <p class="about-description">시험감독 자동 배정 · 배정 결과 검증</p>
+                <p class="about-description">제작: 아산배방중학교 교사 이경민</p>
             </div>
             <div class="about-body">
-                <p class="about-update-note">현재 버전에서 업데이트 내역을 확인합니다.</p>
                 <p id="about-update-status" role="status" aria-live="polite"></p>
-                <p class="about-credit"><span>제작: </span>아산배방중학교 교사 이경민</p>
-                <div class="about-actions"><button type="button" onclick="closeAboutModal()" class="cursor-pointer">닫기</button><button id="about-check" type="button" onclick="checkAboutUpdate()" class="cursor-pointer">업데이트 확인</button><button id="about-install" type="button" class="hidden cursor-pointer">업데이트 안내</button></div>
+                <div class="about-actions"><button type="button" onclick="closeAboutModal()" class="cursor-pointer">닫기</button><button id="about-check" type="button" onclick="runAboutUpdate()" class="cursor-pointer">업데이트 확인</button></div>
             </div>
         </div>
     </div>

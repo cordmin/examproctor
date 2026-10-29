@@ -26,6 +26,9 @@ $source = $source -replace '(?s)\[Icons\].*?(?=\[Run\])', ''
 $source = $source.Replace('Source: "dist\{#MyAppExe}"', ('Source: "' + $stub + '"'))
 $source = $source.Replace('Source: "update-progress.ps1"', ('Source: "' + $PSScriptRoot + '\update-progress.ps1"'))
 $source = $source.Replace('SetupIconFile=icon.ico', ('SetupIconFile=' + $PSScriptRoot + '\icon.ico'))
+$source = $source.Replace('LicenseFile=license.txt', ('LicenseFile=' + $PSScriptRoot + '\license.txt'))
+$source = $source.Replace('Source: "license.txt"', ('Source: "' + $PSScriptRoot + '\license.txt"'))
+$source = $source.Replace('Source: "motto-serif-LICENSE.txt"', ('Source: "' + $PSScriptRoot + '\motto-serif-LICENSE.txt"'))
 $source = $source.Replace("ExpandConstant('{userappdata}\시험감독배정')", "'$folder'")
 $source = $source.Replace("ExpandConstant('{userappdata}\시험감독배정\update-progress.ps1')", "'$folder\update-progress.ps1'")
 $iss = Join-Path $folder 'smoke.iss'

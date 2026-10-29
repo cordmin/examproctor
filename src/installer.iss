@@ -18,7 +18,8 @@ AppVersion={#MyAppVersion}
 DefaultDirName={autopf}\시험감독배정
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-DisableDirPage=yes
+DisableDirPage=no
+LicenseFile=license.txt
 PrivilegesRequired=lowest
 OutputDir=Output
 ; main.py 의 SETUP_ASSET 과 같아야 한다.
@@ -31,6 +32,10 @@ CloseApplications=force
 RestartApplications=no
 SetupLogging=yes
 WizardStyle=modern
+WizardSizePercent=100,100
+
+[Tasks]
+Name: "desktopicon"; Description: "바탕화면에 바로가기 만들기"; GroupDescription: "바로가기 설정:"; Flags: unchecked
 
 [Languages]
 Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
@@ -38,9 +43,11 @@ Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 [Files]
 Source: "update-progress.ps1"; Flags: dontcopy
 Source: "dist\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "motto-serif-LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: desktopicon
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"
 
 [Run]
