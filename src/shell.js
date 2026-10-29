@@ -38,7 +38,7 @@ window.renderSidebar = function() {
                     class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-colors text-[13.5px] cursor-pointer ${
                         isActive ? 'bg-[#2563EB] text-white font-bold' : 'text-white/90 font-semibold hover:bg-white/10'}">
                 ${icon(item.icon, `w-[18px] h-[18px] flex-shrink-0 ${isActive ? 'text-white' : 'text-white/75'}`)}
-                <span>${item.label}</span>
+                <span class="sidebar-menu-label">${item.label}</span>
             </button>`;
     }).join('');
 };

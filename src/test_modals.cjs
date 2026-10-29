@@ -3,6 +3,8 @@ const assert=require('node:assert/strict');const path=require('node:path');const
  const page=await browser.newPage({viewport:{width:1280,height:800},deviceScaleFactor:2});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(pathToFileURL(path.join(__dirname,'index.html')).href);
  await page.evaluate(()=>{sanitizeAppData(appData);renderConfigTab();markDataSaved();window.calls=[];window.pywebview={api:{cancel_close:async()=>calls.push('cancel'),finish_close:async(save,data)=>{calls.push({save,data:structuredClone(data)});return window.closeResult || {success:true};},set_setting:async()=>({success:true})}};});
+ assert.deepEqual(await page.locator('.about-actions button').allTextContents(),['업데이트 확인','닫기']);
+ const widths=await page.locator('.about-actions button').evaluateAll(buttons=>buttons.map(button=>getComputedStyle(button).flex));assert.equal(widths[0],widths[1]);
  const ids=['rules-modal','assignment-failure-modal','event-modal','swap-modal','rightclick-swap-modal','about-modal','update-modal','confirm-modal','close-modal','tour'];
  for(const id of ids){
   await page.evaluate(id=>{document.getElementById(id).classList.remove('hidden');if(id==='confirm-modal')confirmCallback=()=>{};},id);
