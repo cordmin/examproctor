@@ -3,7 +3,7 @@ const fs=require('node:fs');const path=require('node:path');const {pathToFileURL
 const {chromium}=require('playwright');
 (async()=>{const browser=await chromium.launch({channel:'msedge',headless:true});
 try {
- const data=JSON.parse(fs.readFileSync(path.join(__dirname,'../timetable_data.json'),'utf8'));
+ const data=JSON.parse(fs.readFileSync(path.join(__dirname,'시험감독_배정결과(예시).json'),'utf8'));
  for(const deviceScaleFactor of [1,1.25,1.5]){
   const context=await browser.newContext({deviceScaleFactor});const page=await context.newPage();
   await page.goto(pathToFileURL(path.join(__dirname,'index.html')).href);

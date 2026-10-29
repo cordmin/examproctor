@@ -202,7 +202,7 @@ const RESULT_BTN_OFF = 'result-sub-btn bg-transparent text-stone hover:text-text
 
 // 학년이 둘 이상이면 맨 오른쪽에 전체 학년을 한 표로 보는 '전체'(키 'all')를 둔다.
 function buildResultViews() {
-    const grades = [...appData.config.grades].sort((a, b) => a - b);
+    const grades = (appData.config.grades.length ? [...appData.config.grades] : [1,2,3]).sort((a, b) => a - b);
     if (grades.length > 1) grades.push('all');
     const views = [['result-teacher', '교사별'], ...grades.map(g => [`result-grade-${g}`, g === 'all' ? '전체' : `${g}학년`])];
     if (!views.some(([id]) => id === currentResultView)) currentResultView = 'result-teacher';
@@ -219,11 +219,7 @@ window.renderResultTab = function() {
     resultHeaderObserver.disconnect();
     const grades = buildResultViews();
     const tContainer = document.getElementById('result-teacher'), btnExport = document.getElementById('btn-export-excel');
-    if(!appData.assignments || Object.keys(appData.assignments).length === 0) {
-        document.querySelectorAll('#result-views .result-view').forEach(view => view.innerHTML = `<div class="p-12 text-center text-pebble font-bold bg-surface-50 rounded-xl border border-dashed border-surface-300 flex flex-col items-center justify-center gap-3 min-h-[240px]">${icon('play', 'w-7 h-7 text-pebble')}<span>사이드바의 '배정 실행' 버튼을 눌러주세요.</span></div>`);
-        btnExport.classList.add('hidden'); return;
-    }
-    btnExport.classList.remove('hidden');
+    btnExport.classList.toggle('hidden', !hasAssignmentResults());
     const { periodsByDate, dates } = groupPeriodsByDate();
     // 교사별 횟수 칸: 정·부·복·분·특·수 순서, 모든 교사가 0회인 칸은 뺀다 (excel.py 의 RESULT_ROLES 와 같다).
     const counts = appData.teachers.map(t => {
@@ -236,7 +232,7 @@ window.renderResultTab = function() {
     });
     const activeSubCols = [{ key: 'main', lbl: '정' }, { key: 'sub', lbl: '부' }, { key: 'hall', lbl: '복' },
                            { key: 'sep', lbl: '분' }, { key: 'sp', lbl: '특' }, { key: 'cls', lbl: '수' }]
-        .filter(item => counts.some(cnt => cnt[item.key]));
+        .filter(item => !hasAssignmentResults() || counts.some(cnt => cnt[item.key]));
     const countCols = activeSubCols.length + 1; // +1: 합
 
     const parts = build2RowDatePeriodHeaderParts(periodsByDate, dates, 'text-[13px] min-w-[72px] w-[72px]');
@@ -266,7 +262,7 @@ window.renderResultTab = function() {
         colgroupHtml += `<col style="width: 24px;">`;
     });
     colgroupHtml += `<col style="width: 26px;">`;
-    appData.periods.forEach(() => {
+    Array.from({length: Math.max(1, appData.periods.length)}).forEach(() => {
         colgroupHtml += `<col>`;
     });
     colgroupHtml += `</colgroup>`;
@@ -302,8 +298,10 @@ window.renderResultTab = function() {
                 tHtml += `<td ${swapAttrs} data-cell="${t.id}|${p.id}" class="py-2.5 px-1 border border-line ${txtSize} ${cellStyle} ${borders} ${changed} hover-swap overflow-hidden truncate">${assigned || '-'}</td>`;
             });
         });
+        if (!dates.length) tHtml += '<td class="border border-line"></td>';
         tHtml += `</tr>`;
     });
+    if (!appData.teachers.length) tHtml += emptyTableRows(2 + countCols + Math.max(1, appData.periods.length));
     mountResultTable(tContainer, tHtml + `</tbody></table>`, periodsByDate, dates);
 
     const cAssign = {}; 
@@ -311,7 +309,7 @@ window.renderResultTab = function() {
         const tobj = appData.teachers.find(tx => tx.id === tid);
         const pdict = appData.assignments[tid];
         Object.keys(pdict).forEach(pid => {
-            const lbl = pdict[pid]; if(!lbl) return;
+            const lbl = pdict[pid]; if(!lbl || !tobj || !appData.periods.some(p => p.id === pid)) return;
             const { area: cnm, role: rstr } = parseLabel(lbl);
             if(!cAssign[cnm]) cAssign[cnm] = {};
             if(!cAssign[cnm][pid]) cAssign[cnm][pid] = [];
@@ -337,11 +335,13 @@ window.renderResultTab = function() {
 
     // 학년별 보기: 그 학년 반·특수·분리·복도 자리만, 교시 머리글에 그 학년 과목을 괄호로 붙인다.
     // '전체'는 모든 학년 자리를 보이고, 학년마다 과목이 달라 머리글에는 교시만 쓴다.
-    const cColgroupHtml = `<colgroup><col style="width: 100px;">${'<col>'.repeat(appData.periods.length)}</colgroup>`;
+    const cColgroupHtml = `<colgroup><col style="width: 100px;">${'<col>'.repeat(Math.max(1, appData.periods.length))}</colgroup>`;
     grades.forEach(g => {
         const subjectOf = p => (appData.classSubjects[p.id] || {})[g] || '';
         const cParts = build2RowDatePeriodHeaderParts(periodsByDate, dates, 'text-[14px]');
         let cHtml = `<table class="w-full min-w-full table-fixed text-sm text-center whitespace-nowrap border-collapse">${cColgroupHtml}<thead class="bg-[#F1F5F9] text-text-main font-bold text-[13.5px] sticky top-0 z-20 shadow-sm"><tr><th rowspan="2" class="p-2 align-middle border-b border-r border-line text-[14px] bg-[#F1F5F9]">학급</th>${cParts.row1}</tr><tr>${cParts.row2}</tr></thead><tbody>`;
+        const areas = Object.keys(cAssign).filter(cnm => g === 'all' || gradeOf(cnm) === String(g));
+        if (!areas.length) cHtml += emptyTableRows(1 + Math.max(1, appData.periods.length));
         Object.keys(cAssign).filter(cnm => g === 'all' || gradeOf(cnm) === String(g)).sort(naturalSortKey).forEach(cnm => {
             cHtml += `<tr class="bg-surface-0"><td class="p-2 border border-line font-bold bg-surface-50 text-[14px]">${cnm}</td>`;
             dates.forEach((d, dIdx) => {
@@ -369,7 +369,7 @@ window.renderResultTab = function() {
 };
 
 window.runRevalidation = function() {
-    if(!appData.assignments || Object.keys(appData.assignments).length === 0) return;
+    if (!hasAssignmentResults()) { appData.validation = {}; renderValidateTab(); return; }
     showToast("최종 배정 결과를 재검증 중입니다...", "success");
     window.pywebview.api.revalidate(appData).then(res => {
         if(res.success) { appData.validation = res.validation; renderValidateTab(); showToast("재검증이 완료되었습니다!", "success"); }

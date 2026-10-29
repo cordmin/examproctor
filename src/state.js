@@ -8,10 +8,11 @@ const DEFAULT_RULES = Object.freeze({
     fatigueMain: 5, fatigueSub: 3, fatigueSp: 3, fatigueSep: 3, fatigueHall: 2, fatigueClass: 1,
 });
 
-let appData = {
+function createEmptyData() { return {
     config: { examName: "", grades: [], classes: {}, hallways: {}, separated: {}, special: {}, subjects: [], examDates: [], rules: {}, invigCounts: {} },
     teachers: [], periods: [], classSubjects: {}, assignments: {}, validation: {}
-};
+}; }
+let appData = createEmptyData();
 let currentResultView = 'result-teacher'; 
 let isDragging = false; let isRightDragging = false;
 let activeBrush = { type: 'ALL', target: '', fill: 'bg-coral text-white' };
@@ -22,3 +23,12 @@ let pendingSwapData = null;
 let rcSwapData = null;
 let confirmCallback = null;
 
+
+// Stale saved results must never appear when their teachers, periods or grades are gone.
+function hasAssignmentResults() {
+    return appData.config.grades.length > 0 && appData.teachers.some(t =>
+        appData.periods.some(p => {
+            const label = appData.assignments?.[t.id]?.[p.id];
+            return label && label !== '-';
+        }));
+}

@@ -82,7 +82,11 @@ window.renderTeachers = function() {
     const hiddenRole = { isSub: subDis, isClass1: c1Dis, isClass2: c2Dis, isClass3: c3Dis, isHallway: hwDis, isSeparated: sepDis, isSpecial: spDis };
     document.querySelectorAll('#tab-teachers [data-role]').forEach(el => el.classList.toggle('hidden', !!hiddenRole[el.dataset.role]));
 
-    if (appData.teachers.length === 0) { tbody.innerHTML = `<tr><td colspan="14" class="p-12 text-pebble font-bold bg-surface-50">명단이 없습니다.</td></tr>`; return; }
+    if (appData.teachers.length === 0) {
+        const columns = 7 + Object.values(hiddenRole).filter(hidden => !hidden).length;
+        tbody.innerHTML = emptyTableRows(columns);
+        return;
+    }
 
     let rows = "";
     appData.teachers.forEach((t, idx) => {
@@ -194,7 +198,7 @@ window.renderAbsencesTab = function() {
     setBrush(selectedBrush.dataset.type, selectedBrush.dataset.target || '', selectedBrush);
     refreshDropdowns();
 
-    const periodCount = dates.reduce((count, date) => count + periodsByDate[date].length, 0);
+    const periodCount = Math.max(1, dates.reduce((count, date) => count + periodsByDate[date].length, 0));
     const columns = '<col style="width:40px"><col style="width:100px"><col style="width:112px">' + '<col>'.repeat(periodCount) + '<col style="width:200px">';
     document.getElementById('absence-header-columns').innerHTML = columns;
     document.getElementById('absence-body-columns').innerHTML = columns;
@@ -218,9 +222,9 @@ window.renderAbsencesTab = function() {
     }
 
     if (!tbody) return;
-    if (appData.teachers.length === 0) { 
-        tbody.innerHTML = `<tr><td colspan="${periodCount + 4}" class="p-12 text-pebble font-bold bg-surface-50 text-center">명단이 없습니다.</td></tr>`;
-        return; 
+    if (appData.teachers.length === 0) {
+        tbody.innerHTML = emptyTableRows(periodCount + 4);
+        return;
     }
 
     let rows = "";
@@ -257,6 +261,7 @@ window.renderAbsencesTab = function() {
             });
         });
         
+        if (!dates.length) rHtml += '<td class="border border-line"></td>';
         rHtml += `<td class="p-1.5 border border-line border-edge text-[13px] text-left font-medium bg-surface-0 text-text-main overflow-hidden truncate" title="${t.notes||''}">${t.notes||''}</td>`;
         rows += rHtml + `</tr>`;
     });

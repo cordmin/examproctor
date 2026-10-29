@@ -11,6 +11,7 @@ const { chromium } = require('playwright');
         await page.goto(pathToFileURL(path.join(__dirname, 'index.html')).href);
         await page.evaluate(() => {
             sanitizeAppData(appData);
+            appData.config.subjects = ["자습", "국어", "영어", "수학", "사회", "역사", "과학"];
             appData.config.grades = [1, 2, 3];
             appData.periods = [{ id: 'p1', date: '2026-10-28', name: '1교시' }];
             renderSubjects(); renderSubjectsTab();
@@ -56,7 +57,7 @@ const { chromium } = require('playwright');
         await page.evaluate(() => {
             const oldData = { config: { subjects: ['수업', '국어'] } };
             sanitizeAppData(oldData);
-            if (oldData.config.subjects.join(',') !== '자습,수업,국어') throw Error('Existing subjects must be preserved');
+            if (oldData.config.subjects.join(',') !== '수업,국어') throw Error('Existing subjects must be preserved');
         });
         assert.deepEqual(errors, []);
         console.log('PASS: pinned grey subject, no deletion/duplicates, optional grade selections, existing data');

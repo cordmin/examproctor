@@ -4,13 +4,12 @@ window.renderValidateTab = function() {
     const vContainer = document.getElementById('validate-container');
     const btnEvents = document.getElementById('btn-show-events');
 
-    if(!appData.validation || Object.keys(appData.validation).length === 0) {
-        vContainer.innerHTML = `<div class="p-12 text-center text-pebble font-bold mt-10">배정을 먼저 실행해주세요.</div>`;
-        if(btnEvents) btnEvents.classList.add('hidden');
-        return;
-    }
-
-    const v = appData.validation;
+    const hasResults = hasAssignmentResults();
+    const v = hasResults || (appData.teachers.length && appData.periods.length && appData.config.grades.length && appData.validation?.shortage)
+        ? appData.validation : {};
+    const ready = hasResults && Array.isArray(v.stats);
+    const stats = ready ? v.stats.filter(s => appData.teachers.some(t => t.id === s.id || t.name === s.name)) : [];
+    document.getElementById('event-modal-content').innerHTML = '';
 
     // 인력 부족으로 아예 배정이 불가능한 경우
     if (v.shortage) {
@@ -41,7 +40,7 @@ window.renderValidateTab = function() {
         return;
     }
 
-    if(btnEvents) btnEvents.classList.remove('hidden');
+    if(btnEvents) btnEvents.classList.toggle('hidden', !ready);
 
     // split: 감독 명단처럼 머리글 표와 본문 스크롤을 나눈 표 (본문이 직접 스크롤한다)
     const panel = (iconName, title, body, split = false) => `
@@ -115,21 +114,21 @@ window.renderValidateTab = function() {
         <table class="w-full text-center text-sm whitespace-nowrap table-fixed" style="min-width: ${tableWidth}px;">
           ${statsColgroup}
           <tbody class="bg-surface-0">
-            ${v.stats.map((s, i) => `
+            ${stats.map((s, i) => `
               <tr class="hover:bg-surface-50 bg-surface-0 transition-colors">
                 <td class="py-2.5 px-1 border border-line bg-surface-50 font-bold text-[13px]">${i+1}</td>
                 <td class="py-2.5 px-1 border border-line font-bold text-[14.5px]">${s.name}</td>
                 ${roleCols.map(([, , key]) => `<td class="py-2.5 px-1 border border-line text-stone font-semibold text-sm">${s[key] || ''}</td>`).join('')}
                 <td class="py-2.5 px-1 border border-line font-semibold text-coral bg-coral/10 text-sm">${s.total}</td>
                 <td class="py-2.5 px-1 border border-line font-semibold text-brand-700 bg-brand-50/50 text-sm">${s.workload || 0}</td>
-              </tr>`).join('')}
+              </tr>`).join('') || emptyTableRows(colWidths.length)}
           </tbody>
         </table>
       </div>`;
 
     let verifyHtml;
-    if (!v.verify) {
-        verifyHtml = `<div class="text-pebble text-[13px] text-center py-10 font-bold">배정을 다시 실행하면 정밀 규칙 검사가 갱신됩니다.</div>`;
+    if (!ready || !v.verify) {
+        verifyHtml = `<div class="text-pebble text-[13px] text-center py-10 font-bold">배정을 실행하면 검증 결과가 표시됩니다.</div>`;
     } else {
         const allPass = v.verify.all_pass;
         const passed = v.verify.checks.filter(check => check.pass).length;
@@ -181,9 +180,9 @@ window.renderValidateTab = function() {
     }
 
     document.getElementById('event-modal-content').innerHTML =
-        (v.logs && v.logs.length > 0)
+        (ready && v.logs && v.logs.length > 0)
             ? `<ul class="space-y-2 list-disc pl-5">${v.logs.map(l => `<li class="font-bold text-[12.5px]">${l}</li>`).join('')}</ul>`
-            : `<div class="text-emerald-700 font-semibold text-center py-16 text-[14px] flex flex-col items-center gap-3">
+            : !ready ? '' : `<div class="text-emerald-700 font-semibold text-center py-16 text-[14px] flex flex-col items-center gap-3">
                  ${icon('check-circle', 'w-8 h-8 text-emerald-600')} 모든 권장 규칙을 만족하며 배정되었습니다.
                </div>`;
 

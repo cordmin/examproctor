@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');const fs=require('node:fs');const pat
 (async()=>{const browser=await chromium.launch({channel:'msedge',headless:true});try{
  const page=await browser.newPage({viewport:{width:1600,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(pathToFileURL(path.join(__dirname,'index.html')).href);
- const data=JSON.parse(fs.readFileSync(path.join(__dirname,'../timetable_data.json'),'utf8'));
+ const data=JSON.parse(fs.readFileSync(path.join(__dirname,'시험감독_배정결과(예시).json'),'utf8'));
  await page.evaluate(data=>{appData=data;sanitizeAppData(appData);showTab('tab-validate')},data);
  assert.equal(await page.locator('.verify-row').count(),11);
  assert.equal(await page.locator('.verify-review').count(),1);
@@ -18,7 +18,7 @@ const assert=require('node:assert/strict');const fs=require('node:fs');const pat
  await page.waitForFunction(()=>!document.getElementById('about-check').disabled);
  assert.ok((await page.locator('#titlebar').textContent()).includes('시험감독 배정'));
  assert.ok(!(await page.locator('#titlebar').textContent()).includes('프로그램'));
- assert.equal(await page.locator('.about-credit').textContent(),'제작: 아산배방중학교 교사 이경민');
+ assert.equal(await page.locator('.about-description').textContent(),'제작: 아산배방중학교 교사 이경민');
  for(const status of ['latest','development','unconfigured','error','new']){
   await page.evaluate(status=>{window.pywebview.api.check_update=async()=>status==='new'?{available:true,version:'v1.0.8'}:{available:false,status};checkAboutUpdate()},status);
   await page.waitForFunction(()=>!document.getElementById('about-check').disabled);

@@ -9,7 +9,7 @@ const { chromium } = require('playwright');
         const page = await browser.newPage({viewport:{width:1600,height:1000}});
         const errors=[]; page.on('pageerror',e=>errors.push(e.message));
         await page.goto(pathToFileURL(path.join(__dirname,'index.html')).href);
-        const data=JSON.parse(fs.readFileSync(path.join(__dirname,'../timetable_data.json'),'utf8'));
+        const data=JSON.parse(fs.readFileSync(path.join(__dirname,'시험감독_배정결과(예시).json'),'utf8'));
         await page.evaluate(data=>{appData=data;sanitizeAppData(appData);showTab('tab-config');},data);
         const menu=page.locator('#grade-subject-menu');
         const grade=await page.locator('#subject-tables-container').boundingBox();

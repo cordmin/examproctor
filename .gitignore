@@ -11,3 +11,5 @@ Output/
 
 # Generated design previews and UI verification captures
 /artifacts/
+
+!/시험감독_배정결과(예시).json

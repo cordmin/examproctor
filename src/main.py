@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import traceback
+from threading import Thread
 import urllib.request
 
 import webview
@@ -28,7 +29,7 @@ from scheduler import run_algorithm
 from validator import summarize
 
 EMPTY_DATA = {
-    "config": {"grades": [], "classes": {}, "special": {}, "separated": {}, "hallways": {},
+    "config": {"examName": "", "grades": [], "classes": {}, "special": {}, "separated": {}, "hallways": {},
                "subjects": [], "examDates": [], "rules": {}, "invigCounts": {}},
     "teachers": [], "periods": [], "classSubjects": {}, "assignments": {}, "validation": {},
 }
@@ -37,7 +38,7 @@ XLSX_TYPES = ('Excel 파일 (*.xlsx)', '모든 파일 (*.*)')
 JSON_TYPES = ('JSON 파일 (*.json)', '모든 파일 (*.*)')
 
 # 앞 두 자리(1.0)만 손으로 고친다. 마지막 자리는 GitHub Actions(release.yml)가 빌드할 때 실행 번호로 채운다.
-APP_VERSION = '1.1.0'
+APP_VERSION = '1.2.0'
 # 업데이트를 받을 GitHub 공개 저장소 'owner/repo'. 비어 있으면 업데이트 확인을 건너뛴다 (켤 때 최신 릴리스와 비교).
 UPDATE_REPO = 'cordmin/examproctor'
 # 릴리스에 올리는 설치 파일 이름. installer.iss 의 OutputBaseFilename 과 같아야 한다.
@@ -64,6 +65,8 @@ class Api:
         self.settings_file = os.path.join(os.path.dirname(os.path.abspath(self.data_file)), 'settings.json')
         self._win = None        # webview.create_window() 결과. 창 제어에 쓴다.
         self._maximized = False
+        self._allow_close = False
+        self._close_pending = False
         self._normal_bounds = None   # 최대화 직전 위치·크기. 복원할 때 쓴다.
 
     # ── 프레임리스 창 제어 ────────────────────────────────────────────
@@ -84,6 +87,16 @@ class Api:
             self._normal_bounds = (self._win.x, self._win.y, self._win.width, self._win.height)
             self._apply_bounds(*self._work_area())
             self._maximized = True
+
+        self._sync_maximize_button()
+        return self._maximized
+
+    def _sync_maximize_button(self):
+        if self._win:
+            self._win.evaluate_js(f"window.setMaximized && window.setMaximized({json.dumps(self._maximized)})")
+
+    def is_maximized(self):
+        return self._maximized
 
     # 테두리 없는 창은 OS 최대화(WindowState)를 쓰면 창이 화면 모서리에서 밀려 열리고
     # 작업 표시줄까지 덮는다. 그래서 작업 영역(작업 표시줄 뺀 화면) 크기로 직접 맞춘다.
@@ -107,6 +120,38 @@ class Api:
         if self._win:
             self.save_window_state()
             self._win.destroy()
+
+    def on_closing(self):
+        if self._allow_close:
+            self.save_window_state()
+            return
+        # Windows 닫기 이벤트에서 JS 응답을 기다리면 UI 스레드가 멈춘다.
+        if not self._close_pending:
+            self._close_pending = True
+            Thread(target=self._confirm_close, daemon=True).start()
+        return False
+
+    def _confirm_close(self):
+        try:
+            state = self._win.evaluate_js('window.getCloseState ? window.getCloseState() : null')
+            if state and state['dirty']:
+                answer = ctypes.windll.user32.MessageBoxW(
+                    self._win.native.Handle.ToInt32(),
+                    '변경된 데이터가 있습니다. 저장하시겠습니까?', '시험감독 배정', 0x23)
+                if answer == 2:
+                    return
+                if answer == 6:
+                    result = self.save_data_dialog(state['data'], '시험감독_배정결과.json')
+                    if not result['success']:
+                        if not result.get('canceled'):
+                            ctypes.windll.user32.MessageBoxW(0, result['error'], '저장 실패', 0x10)
+                        return
+            self._allow_close = True
+            self.close_window()
+        except Exception as e:
+            print(f"종료 전 저장 확인 실패: {e}")
+        finally:
+            self._close_pending = False
 
     def load_window_state(self):
         try:
@@ -139,6 +184,7 @@ class Api:
         self._win.resize(int(w), int(h))
         # 직접 크기를 바꿨으면 최대화 상태가 아니다 (더블클릭 토글 동기화)
         self._maximized = False
+        self._sync_maximize_button()
 
     # ── 파일 대화상자 ────────────────────────────────────────────────
 
@@ -146,19 +192,17 @@ class Api:
         return webview.windows[0].create_file_dialog(
             webview.SAVE_DIALOG, save_filename=filename, file_types=file_types)
 
-    def _ask_open(self, file_types):
+    def _ask_open(self, file_types, directory=""):
         return webview.windows[0].create_file_dialog(
-            webview.OPEN_DIALOG, allow_multiple=False, file_types=file_types)
+            webview.OPEN_DIALOG, directory=directory, allow_multiple=False, file_types=file_types)
 
     # ── 데이터 저장 / 불러오기 ───────────────────────────────────────
 
     def load_data(self):
-        # 저장된 작업이 없으면(처음 설치) 무엇을 어떻게 넣는지 보이도록 예시 값으로 시작한다.
-        for path in (self.data_file, self.get_resource_path('sample_data.json')):
-            if os.path.exists(path):
-                with open(path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-        return json.loads(json.dumps(EMPTY_DATA))   # 매 호출마다 새 사본
+        if os.path.exists(self.data_file):
+            with open(self.data_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return json.loads(json.dumps(EMPTY_DATA))
 
     def _write_json(self, path, data):
         with open(path, 'w', encoding='utf-8') as f:
@@ -198,7 +242,8 @@ class Api:
             return {"success": False, "error": str(e)}
 
     def load_data_dialog(self):
-        result = self._ask_open(JSON_TYPES)
+        directory = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        result = self._ask_open(JSON_TYPES, directory)
         if not result:
             return {"success": False, "canceled": True}
         try:
@@ -254,6 +299,15 @@ class Api:
         """수동 교체 후 통계와 검증을 다시 계산한다."""
         try:
             self.data = appData
+            teachers = appData.get('teachers', [])
+            periods = appData.get('periods', [])
+            assignments = appData.get('assignments', {})
+            if not appData.get('config', {}).get('grades') or not any(
+                assignments.get(t['id'], {}).get(p['id']) not in (None, '', '-')
+                for t in teachers for p in periods
+            ):
+                self.data['validation'] = {}
+                return {"success": True, "validation": {}}
             prev = appData.get('validation', {})
             self.data['validation'] = summarize(
                 appData.get('teachers', []),
@@ -262,7 +316,7 @@ class Api:
                 appData.get('classSubjects', {}),
                 appData.get('config', {}).get('rules', {}),
                 prev.get('logs', []),
-                shortage=prev.get('shortage', False),
+                shortage=False,  # 현재 배정을 다시 검사하므로 이전 실행 실패 상태를 물려받지 않는다.
             )
             return {"success": True, "validation": self.data['validation']}
         except Exception as e:
@@ -334,6 +388,7 @@ class Api:
             finally:
                 if sys.platform == 'win32' and bundle_dir:
                     ctypes.windll.kernel32.SetDllDirectoryW(ctypes.c_wchar_p(bundle_dir))
+            self._allow_close = True
             self.close_window()
             return {"success": True}
         except Exception as e:
@@ -377,7 +432,7 @@ if __name__ == '__main__':
     # easy_drag=False: 창 전체가 아니라 .pywebview-drag-region 만 드래그 대상이 된다.
     #                  (True 면 표 위에서 드래그할 때 창이 따라 움직인다)
     api._win = webview.create_window(
-        '시험감독 배정 프로그램',
+        '시험감독 배정',
         api.get_resource_path('index.html'),
         js_api=api,
         width=win_w, height=win_h,
@@ -386,7 +441,7 @@ if __name__ == '__main__':
         frameless=True,
         easy_drag=False,
     )
-    api._win.events.closing += api.save_window_state   # Alt+F4, 작업 표시줄에서 닫기
+    api._win.events.closing += api.on_closing   # Alt+F4, 작업 표시줄에서 닫기
 
     # create_window 의 크기는 테두리를 없애면서 조금 줄어든다. 그대로 두면 켤 때마다
     # 창이 작아지므로, 창이 뜬 뒤 저장된 크기를 다시 정확히 맞춘다.

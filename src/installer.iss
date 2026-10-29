@@ -7,7 +7,7 @@
 #ifndef MyAppVersion
   #define MyAppVersion "0.0.0"
 #endif
-#define MyAppName "시험감독 배정 프로그램"
+#define MyAppName "시험감독 배정"
 #define MyAppExe "시험감독배정시스템.exe"
 
 [Setup]
@@ -45,6 +45,8 @@ Source: "update-progress.ps1"; Flags: dontcopy
 Source: "dist\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "motto-serif-LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
+
+Source: "시험감독_배정결과(예시).json"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: desktopicon

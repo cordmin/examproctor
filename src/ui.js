@@ -77,7 +77,15 @@ function cellBorders(periodsByDate, dates, dIdx, pIdx) {
 
 
 
+function emptyTableRows(columns, rows = 6) {
+    return Array.from({length: rows}, () => `<tr aria-hidden="true">${'<td class="border border-line h-10">&nbsp;</td>'.repeat(columns)}</tr>`).join('');
+}
+
 function build2RowDatePeriodHeaderParts(periodsByDate, dates, periodClass) {
+    if (!dates.length) return {
+        row1: '<th class="p-2 border-b border-line bg-[#F1F5F9]">시험일</th>',
+        row2: '<th class="p-2 border-b border-line bg-[#F1F5F9]">교시</th>',
+    };
     let row1 = '';
     let row2 = '';
     dates.forEach((d, dIdx) => {

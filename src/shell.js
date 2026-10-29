@@ -1,5 +1,5 @@
 // 창 골격과 배선.
-// 
+//
 // 타이틀바/리사이즈(프레임리스 창), 사이드바 내비게이션, 탭 전환,
 // 전역 버튼 배선, 초기 데이터 로드. 다른 파일들이 정의한 렌더 함수를
 // 쓰므로 가장 마지막에 로드한다.
@@ -8,6 +8,7 @@ document.addEventListener('mouseup', () => { isDragging = false; isRightDragging
 
 // ── 사이드바 내비게이션 ────────────────────────────────────────────────
 const NAV_ITEMS = [
+    { action: 'reset',        label: '전체 초기화', icon: 'refresh' },
     { target: 'tab-config',   label: '기초 설정', icon: 'settings' },
     { target: 'tab-teachers', label: '감독 명단', icon: 'users' },
     { target: 'tab-absences', label: '결시 관리', icon: 'clipboard-list' },
@@ -57,6 +58,20 @@ document.getElementById('sidebar-nav').addEventListener('click', (e) => {
     const tabBtn = e.target.closest('[data-target]');
     if (tabBtn) showTab(tabBtn.getAttribute('data-target'));
     if (e.target.closest('[data-action="run"]')) openRulesModal();
+    if (e.target.closest('[data-action="reset"]')) {
+        openConfirmModal('전체 초기화', '<strong class="text-coral">현재 작업의 모든 자료가 지워집니다.</strong><br>기초 설정, 감독 명단, 결시 정보, 배정 결과 및 검증 내역을 모두 초기화합니다.<br><br>저장하지 않은 내용은 복구할 수 없습니다.<br>필요한 자료는 먼저 JSON 파일로 저장해 주세요.<br><span class="text-pebble text-[12px]">이미 저장한 JSON 파일은 삭제되지 않습니다.</span>', '전체 초기화', () => {
+            appData = createEmptyData();
+            currentResultView = 'result-teacher';
+            activeBrush = {type: 'ALL', target: '', fill: 'bg-coral text-white'};
+            closeAppSelect(); closeRoleMenu(); closeSwapModal(); closeRcSwapModal();
+            fpDate.clear();
+            document.getElementById('new-subject').value = '';
+            document.getElementById('daily-periods').value = '';
+            renderConfigTab(); renderTeachers(); renderAbsencesTab(); renderResultTab(); renderValidateTab();
+            showTab('tab-config');
+            showToast('전체 초기화가 완료되었습니다.', 'success');
+        });
+    }
 });
 
 renderSidebar();
@@ -78,6 +93,22 @@ document.getElementById('result-view-btns').addEventListener('click', (e) => {
 const winApi = () => window.pywebview && window.pywebview.api;
 
 document.getElementById('win-min').addEventListener('click', () => winApi() && winApi().minimize_window());
+window.setMaximized = function(maximized) {
+    const button = document.getElementById('win-max');
+    button.title = maximized ? '이전 크기로' : '최대화';
+    button.setAttribute('aria-label', button.title);
+    button.innerHTML = maximized
+        ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 8V4h12v12h-4"/><rect x="4" y="8" width="12" height="12"/></svg>'
+        : '<svg style="width:14.6px;height:14.6px"><use href="#i-square"/></svg>';
+};
+let savedSnapshot = null;
+window.markDataSaved = () => { savedSnapshot = JSON.stringify(appData); };
+window.getCloseState = function() {
+    document.activeElement?.blur();
+    return { dirty: savedSnapshot !== null && JSON.stringify(appData) !== savedSnapshot, data: appData };
+};
+document.getElementById('exam-name').addEventListener('input', e => { appData.config.examName = e.target.value; });
+
 document.getElementById('win-max').addEventListener('click', () => winApi() && winApi().toggle_maximize());
 document.getElementById('win-close').addEventListener('click', () => winApi() && winApi().close_window());
 document.getElementById('titlebar').addEventListener('dblclick', (e) => {
@@ -228,7 +259,7 @@ function startResize(dir, e) {
 function sanitizeAppData(data) {
     if (!data) return;
     if (!data.config) data.config = {};
-    data.config.rules = {...DEFAULT_RULES, ...data.config.rules};
+    if (!data.config.rules) data.config.rules = {};
     if (!data.config.invigCounts) data.config.invigCounts = {};
     Object.values(data.config.invigCounts).forEach(counts => { counts.special = counts.separated = 1; });
     if (!data.config.grades) data.config.grades = [];
@@ -236,10 +267,8 @@ function sanitizeAppData(data) {
     if (!data.config.special) data.config.special = {};
     if (!data.config.separated) data.config.separated = {};
     if (!data.config.hallways) data.config.hallways = {};
-    if (!data.config.subjects || data.config.subjects.length === 0) {
-        data.config.subjects = ["자습", "국어", "영어", "수학", "사회", "역사", "과학"];
-    }
-    data.config.subjects = ['자습', ...data.config.subjects.filter(subject => subject !== '자습')];
+    if (!data.config.subjects) data.config.subjects = [];
+    if (!data.config.examDates) data.config.examDates = [];
     if (!data.teachers) data.teachers = [];
     if (!data.periods) data.periods = [];
     if (!data.classSubjects) data.classSubjects = {};
@@ -258,10 +287,11 @@ function sanitizeAppData(data) {
 
 window.addEventListener('pywebviewready', function() {
     mountResizeHandles();
+    winApi().is_maximized().then(setMaximized);
     window.pywebview.api.get_initial_data().then(data => {
         if(data) appData = data;
         sanitizeAppData(appData);
-        renderConfigTab(); renderSubjectsTab(); renderTeachers(); renderAbsencesTab(); renderResultTab(); renderRulesTab();
+        renderConfigTab(); renderSubjectsTab(); renderTeachers(); renderAbsencesTab(); renderResultTab(); renderRulesTab(); renderValidateTab(); markDataSaved();
     });
     // 켤 때마다 가이드 투어를 띄운다. '다시 보지 않기'를 체크했으면 띄우지 않는다.
     window.pywebview.api.get_settings().then(settings => {
@@ -376,23 +406,22 @@ window.checkAboutUpdate = async function() {
 
 document.getElementById('btn-global-save').addEventListener('click', () => {
     appData.config.examName = document.getElementById('exam-name').value;
-    saveRules();
     const d = new Date(); const yy = String(d.getFullYear()).slice(-2); const mm = String(d.getMonth()+1).padStart(2,'0'); const dd = String(d.getDate()).padStart(2,'0');
     const filename = `시험감독배정결과및데이터(${yy}.${mm}.${dd}).json`;
     const pureData = { config: appData.config, teachers: appData.teachers, periods: appData.periods, classSubjects: appData.classSubjects, assignments: appData.assignments, baseAssignments: appData.baseAssignments, validation: appData.validation };
-    window.pywebview.api.save_data_dialog(pureData, filename).then(res => { if(res.success) showToast("데이터 전체 저장 완료!", "success"); });
+    window.pywebview.api.save_data_dialog(pureData, filename).then(res => { if(res.success) { markDataSaved(); showToast("데이터 전체 저장 완료!", "success"); } else if (!res.canceled) showToast("저장 실패: " + res.error, "error"); });
 });
 
 document.getElementById('btn-global-load').addEventListener('click', () => {
     window.pywebview.api.load_data_dialog().then(res => {
-        if(res.success && res.data) { 
-            appData = res.data; 
+        if(res.success && res.data) {
+            appData = res.data;
             sanitizeAppData(appData);
-            renderConfigTab(); renderSubjectsTab(); renderTeachers(); renderAbsencesTab(); renderResultTab(); renderRulesTab(); 
-            showToast("데이터 불러오기 완료!", "success"); 
-        } 
+            renderConfigTab(); renderSubjectsTab(); renderTeachers(); renderAbsencesTab(); renderResultTab(); renderRulesTab(); renderValidateTab(); markDataSaved();
+            showToast("데이터 불러오기 완료!", "success");
+        }
         else if (!res.canceled) showToast("불러오기 실패: " + res.error, "error");
-    }); 
+    });
 });
 
 
@@ -432,14 +461,21 @@ window.autoSyncPeriods = function() {
             appData.periods.push({id:`p_${d.date}_${i}`, date:d.date, name:`${i}교시`});
         }
     });
+    const ids = new Set(appData.periods.map(p => p.id));
+    Object.keys(appData.classSubjects).forEach(id => { if (!ids.has(id)) delete appData.classSubjects[id]; });
+    appData.teachers.forEach(t => Object.keys(t.absences || {}).forEach(id => { if (!ids.has(id)) delete t.absences[id]; }));
+    [appData.assignments, appData.baseAssignments].filter(Boolean).forEach(assignments => {
+        Object.values(assignments).forEach(slots => Object.keys(slots).forEach(id => { if (!ids.has(id)) delete slots[id]; }));
+    });
+    appData.validation = {};
     if (window.renderSubjectsTab) renderSubjectsTab();
     if (window.renderTeachers) renderTeachers();
     if (window.renderAbsencesTab) renderAbsencesTab();
 };
 
-window.removeDate = function(d) { 
-    appData.config.examDates = appData.config.examDates.filter(x=>x.date!==d); 
-    renderDates(); 
+window.removeDate = function(d) {
+    appData.config.examDates = appData.config.examDates.filter(x=>x.date!==d);
+    renderDates();
     autoSyncPeriods();
 };
 window.updateGradeSubject = function(pid, g, s) { if(!appData.classSubjects[pid]) appData.classSubjects[pid]={}; appData.classSubjects[pid][g]=s; renderSubjectsTab(); };
@@ -450,17 +486,31 @@ document.querySelectorAll('.grade-toggle').forEach(toggle => { toggle.addEventLi
     const g = parseInt(toggle.dataset.grade), row = document.getElementById(`grade-row-${g}`);
     const cIn = document.getElementById(`class-count-${g}`), hwIn = document.getElementById(`hw-count-${g}`), sepIn = document.getElementById(`sep-count-${g}`), spIn = document.getElementById(`sp-count-${g}`);
     const isActive = toggle.classList.toggle('active');
-    if(isActive) { row.classList.remove('grade-row-disabled'); cIn.disabled = hwIn.disabled = sepIn.disabled = spIn.disabled = false; if(!appData.config.grades.includes(g)) { appData.config.grades.push(g); appData.config.grades.sort((a, b) => a - b); } appData.config.classes[g]=parseInt(cIn.value)||1; appData.config.hallways[g]=parseInt(hwIn.value)||0; appData.config.separated[g]=parseInt(sepIn.value)||0; appData.config.special[g]=parseInt(spIn.value)||0; } 
+    if(isActive) { row.classList.remove('grade-row-disabled'); cIn.disabled = hwIn.disabled = sepIn.disabled = spIn.disabled = false; if(!appData.config.grades.includes(g)) { appData.config.grades.push(g); appData.config.grades.sort((a, b) => a - b); }  }
     else { row.classList.add('grade-row-disabled'); cIn.disabled = hwIn.disabled = sepIn.disabled = spIn.disabled = true; appData.config.grades = appData.config.grades.filter(x => x !== g); }
     renderRulesTab();
     renderSubjectsTab();
     renderTeachers();
 })});
 [1, 2, 3].forEach(g => {
-    document.getElementById(`class-count-${g}`).addEventListener('input', (e) => { if(appData.config.grades.includes(g)) { appData.config.classes[g] = parseInt(e.target.value)||1; renderTeachers(); } });
-    document.getElementById(`hw-count-${g}`).addEventListener('input', (e) => { if(appData.config.grades.includes(g)) { appData.config.hallways[g] = parseInt(e.target.value)||0; renderTeachers(); } });
-    document.getElementById(`sep-count-${g}`).addEventListener('input', (e) => { if(appData.config.grades.includes(g)) { appData.config.separated[g] = parseInt(e.target.value)||0; renderRulesTab(); renderTeachers(); } });
-    document.getElementById(`sp-count-${g}`).addEventListener('input', (e) => { if(appData.config.grades.includes(g)) { appData.config.special[g] = parseInt(e.target.value)||0; renderRulesTab(); renderTeachers(); } });
+    Object.entries({class: 'classes', hw: 'hallways', sep: 'separated', sp: 'special'}).forEach(([prefix, key]) => {
+        const input = document.getElementById(`${prefix}-count-${g}`);
+        input.type = 'text';
+        input.inputMode = 'numeric';
+        const valid = value => /^(0|[1-9]\d*)$/.test(value) && Number(value) >= Number(input.min) && Number(value) <= Number(input.max);
+        input.addEventListener('beforeinput', e => {
+            if (!e.data || e.isComposing) return;
+            const next = input.value.slice(0, input.selectionStart) + e.data + input.value.slice(input.selectionEnd);
+            if (!valid(next)) e.preventDefault();
+        });
+        input.addEventListener('input', () => {
+            if (!appData.config.grades.includes(g)) return;
+            if (input.value === '') { delete appData.config[key][g]; }
+            else if (!valid(input.value)) { input.value = appData.config[key][g] ?? ''; return; }
+            else appData.config[key][g] = Number(input.value);
+            renderRulesTab(); renderTeachers();
+        });
+    });
 });
 document.getElementById('btn-add-subject').addEventListener('click', () => { const i = document.getElementById('new-subject'), v = i.value.trim(); if(v && !appData.config.subjects.includes(v)) { appData.config.subjects.push(v); i.value = ""; renderSubjects(); renderSubjectsTab(); renderTeachers(); } });
 // static: 달력을 입력칸 옆에 붙여 띄운다. 화면 확대(zoom) 아래에서 flatpickr 가 직접
@@ -533,7 +583,17 @@ if (fpDate && fpDate.altInput) {
     });
 }
 
-document.getElementById('btn-add-date').addEventListener('click', () => { const d = document.getElementById('new-date').value, p = parseInt(document.getElementById('daily-periods').value)||3; if(d && !appData.config.examDates.find(x=>x.date===d)) { appData.config.examDates.push({date:d, periods:p}); appData.config.examDates.sort((a,b)=>a.date.localeCompare(b.date)); renderDates(); autoSyncPeriods(); fpDate.clear(); } });
+document.getElementById('btn-add-date').addEventListener('click', () => {
+    const d = document.getElementById('new-date').value;
+    const value = document.getElementById('daily-periods').value;
+    if (!d) return showToast('시험 날짜를 선택해 주세요.', 'error');
+    if (!/^[1-7]$/.test(value)) return showToast('교시는 1~7 사이의 정수로 입력해 주세요.', 'error');
+    if (!appData.config.examDates.some(x => x.date === d)) {
+        appData.config.examDates.push({date: d, periods: Number(value)});
+        appData.config.examDates.sort((a,b) => a.date.localeCompare(b.date));
+        renderDates(); autoSyncPeriods(); fpDate.clear();
+    }
+});
 const btnGen = document.getElementById('btn-generate-periods');
 if(btnGen) {
     btnGen.addEventListener('click', () => { if(appData.config.examDates.length===0) return showToast("날짜를 추가해주세요.", "error"); autoSyncPeriods(); showToast("기초 시간표 동기화 완료!", "success"); });

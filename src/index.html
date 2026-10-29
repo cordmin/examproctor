@@ -817,7 +817,7 @@
                                                 <svg class="absolute left-2.5 w-4 h-4 text-stone pointer-events-none z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0V11.25A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
                                                 <input type="text" id="new-date" class="fld pl-8 pr-3 py-2 text-[13px] font-bold cursor-pointer text-center" placeholder="날짜 선택" readonly>
                                             </div>
-                                            <input type="number" id="daily-periods" class="fld hide-spin w-16 px-2 py-2 text-[13px] font-bold text-center" min="1" max="7" value="3">
+                                            <input type="number" id="daily-periods" class="fld hide-spin w-16 px-2 py-2 text-[13px] font-bold text-center" min="1" max="7" value="">
                                             <span class="font-bold text-[12.5px] text-stone">교시까지 시험</span>
                                             <button id="btn-add-date" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">+추가</button>
                                         </div>
@@ -871,26 +871,26 @@
                                                     <tr id="grade-row-1" class="grade-row-disabled">
                                                         <td class="p-1 border border-line"><div class="flex justify-center"><div class="grade-toggle" id="grade-1" data-grade="1"></div></div></td>
                                                         <td class="bg-surface-50 font-bold p-1 border border-line">1학년</td>
-                                                        <td class="p-1 border border-line"><input type="number" id="class-count-1" class="fld w-14 p-1 text-center hide-spin" min="1" max="20" value="1" disabled></td>
-                                                        <td class="p-1 border border-line"><input type="number" id="sp-count-1" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
-                                                        <td class="p-1 border border-line"><input type="number" id="sep-count-1" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
-                                                        <td class="p-1 border border-line"><input type="number" id="hw-count-1" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="class-count-1" class="fld w-14 p-1 text-center hide-spin" min="1" max="20" value="" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="sp-count-1" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="sep-count-1" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="hw-count-1" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="" disabled></td>
                                                     </tr>
                                                     <tr id="grade-row-2" class="grade-row-disabled">
                                                         <td class="p-1 border border-line"><div class="flex justify-center"><div class="grade-toggle" id="grade-2" data-grade="2"></div></div></td>
                                                         <td class="bg-surface-50 font-bold p-1 border border-line">2학년</td>
-                                                        <td class="p-1 border border-line"><input type="number" id="class-count-2" class="fld w-14 p-1 text-center hide-spin" min="1" max="20" value="1" disabled></td>
-                                                        <td class="p-1 border border-line"><input type="number" id="sp-count-2" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
-                                                        <td class="p-1 border border-line"><input type="number" id="sep-count-2" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
-                                                        <td class="p-1 border border-line"><input type="number" id="hw-count-2" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="class-count-2" class="fld w-14 p-1 text-center hide-spin" min="1" max="20" value="" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="sp-count-2" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="sep-count-2" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="hw-count-2" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="" disabled></td>
                                                     </tr>
                                                     <tr id="grade-row-3" class="grade-row-disabled">
                                                         <td class="p-1 border border-line"><div class="flex justify-center"><div class="grade-toggle" id="grade-3" data-grade="3"></div></div></td>
                                                         <td class="bg-surface-50 font-bold p-1 border border-line">3학년</td>
-                                                        <td class="p-1 border border-line"><input type="number" id="class-count-3" class="fld w-14 p-1 text-center hide-spin" min="1" max="20" value="1" disabled></td>
-                                                        <td class="p-1 border border-line"><input type="number" id="sp-count-3" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
-                                                        <td class="p-1 border border-line"><input type="number" id="sep-count-3" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
-                                                        <td class="p-1 border border-line"><input type="number" id="hw-count-3" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="0" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="class-count-3" class="fld w-14 p-1 text-center hide-spin" min="1" max="20" value="" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="sp-count-3" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="sep-count-3" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="" disabled></td>
+                                                        <td class="p-1 border border-line"><input type="number" id="hw-count-3" class="fld w-14 p-1 text-center hide-spin" min="0" max="10" value="" disabled></td>
                                                     </tr>
                                                 </tbody>
                                             </table>
