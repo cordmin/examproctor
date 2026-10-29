@@ -32,6 +32,7 @@ const {chromium}=require('playwright');
    await page.waitForTimeout(100);
    assert.equal(await page.locator('#teacher-list-body tr').count(),sample.teachers.length);
    assert.equal(await page.locator('#teacher-list-scroll.empty-table-scroll').count(),0);
+   assert.equal(await page.locator('#teacher-list-scroll table').evaluate(table=>table.style.height),'');
    assert.deepEqual(errors,[]);
    await page.close();
   }

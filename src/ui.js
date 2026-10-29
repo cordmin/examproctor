@@ -285,7 +285,11 @@ function syncEmptyTable(scroll, table) {
     const first = table.tBodies[0]?.rows[0];
     const empty = !!first?.hasAttribute('data-empty-row');
     scroll.classList.toggle('empty-table-scroll', empty);
-    if (!empty) return;
+    if (!empty) {
+        table.style.removeProperty('height');
+        table.style.removeProperty('--empty-row-height');
+        return;
+    }
     const height = scroll.clientHeight;
     if (!height) return;
     const rows = Math.max(1, Math.floor(height / 40));
