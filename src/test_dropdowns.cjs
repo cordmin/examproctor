@@ -62,6 +62,17 @@ const { chromium } = require('playwright');
         }).map(button => button.id));
         assert.deepEqual(overlaps, [], 'Dropdown labels must fit beside the arrow');
         await page.screenshot({path:path.join(require('node:os').tmpdir(),'exam-dropdown-layout.png')});
+        for (const [width, height] of [[1024, 768], [1280, 720], [1280, 900], [1366, 768], [1600, 1000], [1920, 1080]]) {
+            await page.setViewportSize({ width, height });
+            await page.evaluate(() => fitZoom());
+            const gaps = await page.locator('.grade-subject-btn').evaluateAll(buttons => buttons.map(button => {
+                const cell = button.closest('td').getBoundingClientRect();
+                const box = button.getBoundingClientRect();
+                const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+                return [(box.left - cell.left) / zoom, (cell.right - box.right) / zoom];
+            }));
+            assert.ok(gaps.every(([left, right]) => left >= 3 && right >= 3 && Math.abs(left - right) < 1), JSON.stringify({ width, height, gaps }));
+        }
         assert.deepEqual(errors,[]);
         console.log('PASS: card order, shared dropdowns, selected shade, blue border, disabled controls, rules, absence selection');
     } finally {await browser.close();}

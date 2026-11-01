@@ -28,7 +28,19 @@ def check():
         # Deliberately opening an example after a clean installation must survive restart.
         write_saved(folder, samples[0])
         assert installed_api(folder).get_initial_data() == samples[0]
-    for sample in samples:
+    # 현재 제공하는 예시는 기본 수업 값으로 정리됐으므로, 과거 배포본을 복원해 검사한다.
+    legacy_example = copy.deepcopy(samples[1])
+    legacy_example['config']['subjects'].insert(0, '수업')
+    for subjects in legacy_example['classSubjects'].values():
+        for grade, subject in subjects.items():
+            if subject == '자습':
+                subjects[grade] = '수업'
+    assert main.legacy_sample_digest(legacy_example) in main.LEGACY_SAMPLE_DIGESTS
+    with TemporaryDirectory() as folder:
+        target = write_saved(folder, samples[1])
+        assert installed_api(folder).get_initial_data() == samples[1]
+        assert not Path(str(target) + '.legacy-example.bak').exists()
+    for sample in [samples[0], legacy_example]:
         for normalized in [False, True]:
             with TemporaryDirectory() as folder:
                 legacy = copy.deepcopy(sample)

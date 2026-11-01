@@ -28,7 +28,9 @@ window.renderSubjects = function() {
             b.classList.replace('bg-surface-0', 'bg-surface-200');
             b.style.paddingLeft = b.style.paddingRight = 'calc(1rem + 7.25px)';
             b.classList.add('justify-center');
-            b.textContent = subjectLabel(subject);
+            b.id = 'class-subject-badge';
+            b.dataset.pageHint = '자습으로 활용 가능';
+            b.innerHTML = `<span>${subjectLabel(subject)}</span>`;
             container.appendChild(b);
             return;
         }

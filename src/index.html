@@ -61,6 +61,25 @@
     </script>
 
     <style>
+        .page-hint {
+            position: fixed;
+            z-index: 9999;
+            width: max-content;
+            white-space: nowrap;
+            pointer-events: none;
+            border: 0;
+            background: transparent;
+            color: #1E293B;
+            padding: 8px 12px;
+            font-size: 12px;
+            line-height: 1.6;
+            font-weight: 700;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+        .page-hint.is-fading { opacity: 0; }
+        .page-hint > svg { position: absolute; left: 0; top: -8px; width: 100%; height: calc(100% + 8px); overflow: visible; filter: drop-shadow(0 3px 5px #0000000d); }
+        .page-hint > span { position: relative; }
         .btn-tooltip-wrapper {
             position: relative;
         }
@@ -207,7 +226,7 @@
         #stats-header thead, #stats-header th { position: static !important; background-image: none; }
         #stats-header th.group { position: relative !important; }
         #stats-scroll tbody > tr:first-child > td { border-top-width: 0 !important; }
-        #absence-table-header { background: #F1F5F9; border-bottom: 1px solid rgb(var(--line)); }
+        #absence-table-header { background: #F1F5F9; border-bottom: 1px solid rgb(var(--line)); transform: translateZ(0); }
         #absence-header-viewport { overflow: hidden; background: #F1F5F9; }
         #absence-table-header table, #absence-list-head, #absence-list-head tr { background: #F1F5F9; }
         #absence-list-head th { position: static !important; background-image: none; border-bottom-width: 1px !important; }
@@ -246,7 +265,13 @@
         /* 개별 버튼의 위치 보정 transform은 유지하고 눌림만 별도로 적용한다. */
         button:not(:disabled) { transition: color .15s ease, background-color .15s ease, border-color .15s ease, opacity .15s ease, translate .12s ease-out, scale .12s ease-out, filter .12s ease-out, box-shadow .12s ease-out; }
         button:active:not(:disabled):not([aria-disabled="true"]) { translate: 0 2px; scale: .98; filter: brightness(.94); box-shadow: inset 0 2px 4px #0F172A30 !important; transition-duration: 55ms; }
+        /* 보기 전환 글자는 고정하고 배경만 눌러 소수 배율에서 글자가 떨리지 않게 한다. */
+        #result-view-btns .result-sub-btn { position: relative; isolation: isolate; background: transparent !important; box-shadow: none !important; translate: none; scale: none; filter: none; transition: color .15s ease; }
+        #result-view-btns .result-sub-btn::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; transition: translate .12s ease-out, scale .12s ease-out, filter .12s ease-out, box-shadow .12s ease-out, background-color .15s ease; }
+        #result-view-btns .result-sub-btn.bg-brand-600::before { background: rgb(var(--brand-600)); box-shadow: 0 1px 2px #0000000d; }
+        #result-view-btns .result-sub-btn:active:not(:disabled)::before { translate: 0 2px; scale: .98; filter: brightness(.94); box-shadow: inset 0 2px 4px #0F172A30; transition-duration: 55ms; }
         @media (prefers-reduced-motion: reduce) { button:not(:disabled) { transition: none !important; } }
+        @media (prefers-reduced-motion: reduce) { #result-view-btns .result-sub-btn::before { transition: none; } }
 
         /* 카드 외곽 테두리와 표 외각 셀 테두리 이중 중첩 방지 */
         table tr:first-child th { border-top: none !important; }
@@ -268,6 +293,7 @@
         table td select option { text-align: left !important; }
         .app-select-source { display: none !important; }
         .app-select-btn { position: relative; padding: 4px 18px !important; white-space: nowrap; min-width: 90px; max-width: 100%; border: 1px solid #CBD5E1 !important; border-radius: 7px !important; background: #F8FAFC !important; color: #0F172A !important; font-size: 12.5px !important; font-weight: 700; text-align: center !important; cursor: pointer; }
+        .grade-subject-btn { display: block; min-width: 0; width: 100%; }
         .app-select-btn svg { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); }
         .app-select-btn:hover:not(:disabled):not([aria-expanded="true"]):not(:focus) { border-color: #94A3B8 !important; }
         .app-select-btn:focus, .app-select-btn[aria-expanded="true"] { outline: none; border-color: #2563EB !important; background: #FFFFFF !important; box-shadow: 0 0 0 2px #2563EB40 !important; }
@@ -323,10 +349,14 @@
         .split-grid-body tbody { display: block; }
         .split-grid-body tr { display: grid; grid-template-columns: var(--split-columns); }
         .split-grid-body td { min-width: 0; width: auto !important; overflow: hidden; }
-        #teacher-list-header th, #teacher-list-scroll td { border-right-color: transparent !important; }
-        .teacher-table-frame { position: relative; }
-        .teacher-column-lines { position: absolute; top: 0; left: 0; width: 100%; overflow: hidden; pointer-events: none; z-index: 31; }
-        .teacher-column-lines span { position: absolute; top: 0; height: 100%; width: var(--hair); background: rgb(var(--line)); }
+        #absence-list-body td:has(> [data-absence-teacher]) { container-type: inline-size; }
+        #absence-list-body [data-absence-teacher] { font-size: min(12.5px, 17cqi); }
+        #absence-list-body .absence-short-label { font-size: 12.5px; }
+        #absence-list-body .absence-add { font-size: 20px; }
+        #teacher-list-header th, #teacher-list-scroll td, #absence-table-header th, #absence-table-scroll td { border-right-color: transparent !important; }
+        .split-table-frame { position: relative; }
+        .split-column-lines { position: absolute; top: 0; left: 0; width: 100%; overflow: hidden; pointer-events: none; z-index: 31; }
+        .split-column-lines span { position: absolute; top: 0; height: 100%; width: var(--hair); background: rgb(var(--line)); }
         /* 머리글 아래 선은 바깥 프레임의 1px 선 하나만 사용한다. */
         .grid-table-header tr:last-child th, .grid-table-header th[rowspan] { border-bottom-width: 0 !important; }
 
@@ -470,6 +500,7 @@
             background-repeat: no-repeat;
         }
         ::-webkit-scrollbar-thumb:hover { background-color: rgba(100, 116, 139, 0.8); }
+        ::-webkit-scrollbar-thumb:vertical, ::-webkit-scrollbar-thumb:vertical:hover { background-color: rgb(var(--chrome) / 0.65); }
 
         /* ── 애니메이션 ──────────────────────────────────────────── */
 

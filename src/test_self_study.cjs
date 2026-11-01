@@ -17,7 +17,7 @@ const { chromium } = require('playwright');
             renderSubjects(); renderSubjectsTab();
         });
         const pinned = page.locator('#subject-list > div').first();
-        assert.equal(await pinned.textContent(), '수업');
+        assert.equal(await pinned.locator(':scope > span').textContent(), '수업');
         assert.equal(await pinned.locator('button').count(), 0);
         assert.equal(await pinned.evaluate(el => getComputedStyle(el).paddingLeft === getComputedStyle(el).paddingRight && getComputedStyle(el).justifyContent === 'center'), true);
         const badgeWidths = await page.locator('#subject-list > div').evaluateAll(badges => badges.slice(0, 2).map(badge => badge.getBoundingClientRect().width));
@@ -60,6 +60,15 @@ const { chromium } = require('playwright');
             if (oldData.config.subjects.join(',') !== '수업,국어') throw Error('Existing subjects must be preserved');
         });
         assert.deepEqual(errors, []);
+        for (const file of ['시험감독_배정결과(예시).json', '../시험감독_배정결과(예시).json']) {
+            const sample = JSON.parse(require('node:fs').readFileSync(path.join(__dirname, file), 'utf8'));
+            assert.ok(!sample.config.subjects.includes('수업'));
+            assert.ok(!Object.values(sample.classSubjects).some(subjects => Object.values(subjects).includes('수업')));
+            await page.evaluate(data => { appData = data; sanitizeAppData(appData); renderConfigTab(); }, sample);
+            assert.equal(await page.locator('#subject-list > div > span').filter({ hasText: /^수업$/ }).count(), 1);
+            const options = await page.locator('.grade-subject-source').first().locator('option').allTextContents();
+            assert.equal(options.filter(subject => subject === '수업').length, 1);
+        }
         console.log('PASS: pinned grey subject, no deletion/duplicates, optional grade selections, existing data');
     } finally { await browser.close(); }
 })().catch(e => { console.error(e); process.exitCode = 1; });

@@ -7,6 +7,17 @@ const assert=require('node:assert/strict');const path=require('node:path');const
  const brush=grade=>page.locator(`#brush-toolbar [data-type="GRADE"][data-target="${grade}"]`);
  const erase=async()=>{const box=await cell().boundingBox();await cell().click({button:'right',position:{x:box.width*.75,y:box.height/2}});};
  const absence=()=>page.evaluate(()=>appData.teachers[0].absences.p1);
+ const fontSize=()=>cell().evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+ assert.equal(await fontSize(),20);
+ await page.locator('#titlebar').hover();
+ await page.waitForFunction(()=>getComputedStyle(document.querySelector('#absence-list-body [data-absence-teacher]')).color==='rgba(0, 0, 0, 0)');
+ assert.equal(await cell().evaluate(el=>getComputedStyle(el).color),'rgba(0, 0, 0, 0)');
+ await cell().hover();
+ await page.waitForFunction(()=>getComputedStyle(document.querySelector('#absence-list-body [data-absence-teacher]')).color!=='rgba(0, 0, 0, 0)');
+ assert.notEqual(await cell().evaluate(el=>getComputedStyle(el).color),'rgba(0, 0, 0, 0)');
+ await page.locator('#titlebar').hover();
+ await page.waitForFunction(()=>getComputedStyle(document.querySelector('#absence-list-body [data-absence-teacher]')).color==='rgba(0, 0, 0, 0)');
+ assert.equal(await cell().evaluate(el=>getComputedStyle(el).color),'rgba(0, 0, 0, 0)');
  for(const grade of [2,3]){
   await brush(grade).click();
   const first=await cell().boundingBox(),second=await cell(1).boundingBox();
@@ -16,11 +27,13 @@ const assert=require('node:assert/strict');const path=require('node:path');const
  assert.deepEqual(await absence(),{type:'GRADE',target:['2','3']});
  assert.deepEqual(await page.evaluate(()=>appData.teachers[1].absences.p1),{type:'GRADE',target:['2','3']});
  assert.equal(await cell().textContent(),'결시');
+ assert.equal(await fontSize(),12.5);
  assert.match(await cell().getAttribute('aria-label'),/2학년·3학년/);
  const gradient=await cell().evaluate(el=>el.style.backgroundImage);
  assert.match(gradient,/50%/);assert.match(gradient,/5, 150, 105/);assert.match(gradient,/37, 99, 235/);
  await cell().click();assert.deepEqual(await absence(),{type:'GRADE',target:['2','3']});
  await erase();assert.deepEqual(await absence(),{type:'GRADE',target:'2'});
+ assert.ok(await fontSize()<=12.5,'Long grade labels retain responsive sizing');
  assert.equal(await cell().evaluate(el=>el.style.backgroundImage),'');
  await brush(3).click();await cell().click();
  await page.evaluate(()=>{appData=JSON.parse(JSON.stringify(appData));renderAbsencesTab();});
@@ -28,8 +41,10 @@ const assert=require('node:assert/strict');const path=require('node:path');const
  await brush(1).click();await cell().click();assert.deepEqual(await absence(),{type:'GRADE',target:['1','2','3']});
  await cell().click({button:'right',position:{x:4,y:10}});assert.deepEqual(await absence(),{type:'GRADE',target:['2','3']});
  await page.locator('#brush-toolbar [data-type="ALL"]').click();await cell().click();assert.equal((await absence()).type,'ALL');
+ assert.equal(await fontSize(),12.5);
  await brush(2).click();await cell().click();assert.equal((await absence()).type,'ALL');
  await erase();assert.equal(await absence(),undefined);
+ assert.equal(await fontSize(),20);
  await page.locator('#brush-toolbar [data-type="ALL"]').click();await erase();assert.equal(await absence(),undefined);
  await brush(2).click();await cell().click();await erase();assert.equal(await absence(),undefined);
  await page.screenshot({path:path.join(require('node:os').tmpdir(),'exam-multi-grade-absence.png')});

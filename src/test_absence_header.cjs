@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');const path=require('node:path');const
  for(const deviceScaleFactor of [1,1.25,1.5]){
   const context=await browser.newContext({deviceScaleFactor});const page=await context.newPage();
   await page.goto(pathToFileURL(path.join(__dirname,'index.html')).href);
-  await page.evaluate(()=>{sanitizeAppData(appData);appData.config.grades=[1,2,3];appData.config.classes={1:3,2:3,3:3};appData.periods=Array.from({length:12},(_,i)=>({id:`p${i}`,date:`2026-10-${26+Math.floor(i/3)}`,name:`${i%3+1}교시`}));appData.teachers=Array.from({length:50},(_,i)=>({id:`T${i}`,name:`교사${i}`,absences:Object.fromEntries(appData.periods.map(p=>[p.id,{type:'ALL',target:''}]))}));showTab('tab-absences');});
+  await page.evaluate(()=>{sanitizeAppData(appData);appData.config.grades=[1,2,3];appData.config.classes={1:3,2:3,3:3};appData.periods=Array.from({length:12},(_,i)=>({id:`p${i}`,date:`2026-10-${26+Math.floor(i/3)}`,name:`${i%3+1}교시`}));appData.teachers=Array.from({length:50},(_,i)=>({id:`T${i}`,name:`교사${i}`,absences:Object.fromEntries(appData.periods.map(p=>[p.id,{type:'ALL',target:''}]))}));showTab('tab-absences');closePageHint();});
   for(const periodCount of [9,12]){
    await page.evaluate(count=>{appData.periods=Array.from({length:count},(_,i)=>({id:`p${i}`,date:`2026-10-${26+Math.floor(i/3)}`,name:`${i%3+1}교시`}));renderAbsencesTab();},periodCount);
   for(const [width,height] of [[1024,640],[1280,800],[1365,850],[1500,900],[1536,864],[1600,1000],[2544,1376]]){

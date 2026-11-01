@@ -64,7 +64,7 @@ async function check(page, dpr) {
             headY: heads[0].getBoundingClientRect().top + 3,
             bodyY: scroll.top + 3,
             left: scroll.left, right: scroll.right - 10,
-            color: getComputedStyle(document.querySelector('.teacher-column-lines span')).backgroundColor.match(/\d+/g).map(Number),
+            color: getComputedStyle(document.querySelector('.split-column-lines span')).backgroundColor.match(/\d+/g).map(Number),
         };
     });
     assert.equal(m.heads.length, m.cells.length);

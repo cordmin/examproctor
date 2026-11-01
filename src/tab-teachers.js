@@ -148,6 +148,8 @@ function renderAbsenceButton(button, data) {
     const detail = data?.type === 'GRADE' ? `${targets.map(grade => `${grade}학년`).join('·')} 결시` : data ? absenceLabel(data.type, data.target) : '결시 없음';
     button.className = `${ABS_BTN_BASE} ${data ? (multiple ? 'text-white font-bold cursor-default' : absenceFill(data.type, targets[0])) : 'bg-transparent text-transparent hover:bg-surface-100 hover:text-pebble'}`;
     button.textContent = data ? (multiple ? '결시' : absenceLabel(data.type, targets[0])) : '+';
+    button.classList.toggle('absence-short-label', button.textContent === '결시');
+    button.classList.toggle('absence-add', !data);
     button.title = detail;
     button.setAttribute('aria-label', detail);
     button.style.backgroundImage = '';
@@ -209,7 +211,7 @@ window.renderAbsencesTab = function() {
     const row1 = `<tr>
         <th rowspan="2" class="p-2 align-middle text-[13px] border-b border-r border-line bg-[#F1F5F9]">순</th>
         <th rowspan="2" class="p-2 align-middle border-b border-r border-line text-[14.5px] bg-[#F1F5F9]">성명</th>
-        <th rowspan="2" class="p-2 leading-tight align-middle text-[13px] border-b border-r border-line bg-[#F1F5F9] cursor-help" data-tip="시험 기간 중 감독 배정 시간의 최대값을 설정">배정 제한</th>
+        <th id="absence-limit-label" rowspan="2" class="p-2 leading-tight align-middle text-[13px] border-b border-r border-line bg-[#F1F5F9]" data-page-hint="시험 기간 중 감독 배정 시간의 최대값을 설정">배정 제한</th>
         ${dateHeaders.row1}
         <th rowspan="2" class="p-2 align-middle text-[13px] border-b border-line bg-[#F1F5F9]">참고사항</th>
     </tr>`;

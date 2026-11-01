@@ -372,7 +372,7 @@ function syncSplitTableHeader(scroll, header, viewport = null) {
         head.dataset.gridPlaced = 'true';
     }
     header.style.paddingRight = `${scroll.offsetWidth - scroll.clientWidth}px`;
-    if (header.id === 'teacher-list-header' || header.classList.contains('result-table-header')) {
+    if (header.id === 'teacher-list-header' || header.id === 'absence-table-header' || header.classList.contains('result-table-header')) {
         // 같은 좌표라도 table 셀과 grid 셀은 소수 배율에서 선을 다르게 그린다.
         // 본문도 헤더와 동일한 grid 트랙을 사용해 두 렌더링 방식을 통일한다.
         bodyTable.style.setProperty('--split-columns', gridColumns);
@@ -453,6 +453,93 @@ document.getElementById('tour').addEventListener('keydown', event => {
     else if (event.key === 'ArrowLeft' && tourIndex > 0) moveTour(-1);
 });
 window.addEventListener('resize', () => { if (!document.getElementById('tour').classList.contains('hidden')) placeTour(); });
+
+// 페이지 진입 안내는 3초 뒤 사라지고, 대상에 커서를 올리면 다시 보인다.
+const pageHint = document.createElement('div');
+pageHint.id = 'page-hint';
+pageHint.className = 'page-hint';
+pageHint.setAttribute('role', 'tooltip');
+pageHint.hidden = true;
+const pageHintShape = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+pageHintShape.setAttribute('aria-hidden', 'true');
+const pageHintOutline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+pageHintOutline.setAttribute('fill', '#FFFFFF');
+pageHintOutline.setAttribute('stroke', '#526580');
+pageHintOutline.setAttribute('stroke-width', '1');
+pageHintShape.append(pageHintOutline);
+const pageHintLabel = document.createElement('span');
+pageHint.append(pageHintShape, pageHintLabel);
+document.body.append(pageHint);
+let pageHintSelector = null;
+let pageHintMode = null;
+let pageHintDismissTimer;
+let pageHintFadeTimer;
+
+function closePageHint() {
+    clearTimeout(pageHintDismissTimer);
+    clearTimeout(pageHintFadeTimer);
+    if (pageHintSelector) document.querySelector(pageHintSelector)?.removeAttribute('aria-describedby');
+    pageHintSelector = null;
+    pageHintMode = null;
+    pageHint.hidden = true;
+    pageHint.classList.remove('is-fading');
+}
+
+function positionPageHint() {
+    if (!pageHintSelector) return;
+    const target = document.querySelector(pageHintSelector);
+    if (!target || !target.getClientRects().length) { closePageHint(); return; }
+    const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+    const rect = target.getBoundingClientRect();
+    let anchorBottom = rect.bottom;
+    if (target.id === 'absence-limit-label') {
+        const text = document.createRange();
+        text.selectNodeContents(target);
+        anchorBottom = text.getBoundingClientRect().bottom;
+    }
+    const left = Math.max(4, Math.min(rect.left / zoom, (innerWidth - 4) / zoom - pageHint.offsetWidth));
+    pageHint.style.left = `${left}px`;
+    pageHint.style.top = `${anchorBottom / zoom + 9}px`;
+    const w = pageHint.offsetWidth, h = pageHint.offsetHeight;
+    const a = Math.max(16, Math.min(w - 16, (rect.left + rect.width / 2) / zoom - left));
+    pageHintShape.setAttribute('viewBox', `0 -8 ${w} ${h + 8}`);
+    // 본체와 꼬리를 하나의 닫힌 윤곽선으로 그려 연결부가 겹치지 않게 한다.
+    pageHintOutline.setAttribute('d', `M 7.5 .5 H ${a - 7} Q ${a - 5} .5 ${a - 3.5} -1.5 L ${a - 1} -5 Q ${a} -6.5 ${a + 1} -5 L ${a + 3.5} -1.5 Q ${a + 5} .5 ${a + 7} .5 H ${w - 7.5} Q ${w - .5} .5 ${w - .5} 7.5 V ${h - 7.5} Q ${w - .5} ${h - .5} ${w - 7.5} ${h - .5} H 7.5 Q .5 ${h - .5} .5 ${h - 7.5} V 7.5 Q .5 .5 7.5 .5 Z`);
+    target.setAttribute('aria-describedby', pageHint.id);
+}
+
+function showPageHint(tab) {
+    openPageHint(tab === 'tab-config' ? '#class-subject-badge' : tab === 'tab-absences' ? '#absence-limit-label' : null, true);
+}
+
+function openPageHint(selector, autoDismiss = false) {
+    closePageHint();
+    const target = selector && document.querySelector(selector);
+    if (!target) return;
+    pageHintSelector = selector;
+    pageHintMode = autoDismiss ? 'entry' : 'hover';
+    pageHintLabel.textContent = target.dataset.pageHint;
+    pageHint.hidden = false;
+    positionPageHint();
+    requestAnimationFrame(positionPageHint);
+    if (autoDismiss) pageHintDismissTimer = setTimeout(() => {
+        if (document.querySelector(pageHintSelector)?.matches(':hover')) { pageHintMode = 'hover'; return; }
+        pageHint.classList.add('is-fading');
+        pageHintFadeTimer = setTimeout(closePageHint, 300);
+    }, 3000);
+}
+
+document.addEventListener('click', closePageHint, true);
+document.addEventListener('mouseover', event => {
+    const target = event.target.closest('[data-page-hint]');
+    if (target && !target.contains(event.relatedTarget)) openPageHint(`#${target.id}`);
+});
+document.addEventListener('mouseout', event => {
+    const target = event.target.closest('[data-page-hint]');
+    if (pageHintMode === 'hover' && target && !target.contains(event.relatedTarget)) closePageHint();
+});
+document.addEventListener('scroll', positionPageHint, true);
+window.addEventListener('resize', () => requestAnimationFrame(positionPageHint));
 
 // ── 말풍선 툴팁: data-tip 이 있는 요소에 마우스를 올리면 아래에 띄운다 ──
 // 표 머리글처럼 넘치는 부분을 숨기는 상자 안에서도 보이도록 칸 안이 아니라 body 에 띄운다.

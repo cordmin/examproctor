@@ -45,6 +45,7 @@ window.renderSidebar = function() {
 
 window.showTab = function(target) {
     closeAppSelect();
+    const entering = activeTarget !== target;
     activeTarget = target;
     document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
     document.getElementById(target).classList.remove('hidden');
@@ -52,6 +53,8 @@ window.showTab = function(target) {
     if (gcf) gcf.classList.toggle('hidden', target !== 'tab-config');
     renderSidebar();
     if (TAB_RENDERERS[target]) TAB_RENDERERS[target]();
+    if (entering) showPageHint(target);
+    else positionPageHint();
 };
 
 document.getElementById('sidebar-nav').addEventListener('click', (e) => {
@@ -188,47 +191,61 @@ function syncTeacherHeader() {
     const scroll = document.getElementById('teacher-list-scroll');
     const header = document.getElementById('teacher-list-header');
     syncSplitTableHeader(scroll, header);
-    syncTeacherColumnLines();
+    syncTableColumnLines(header, scroll);
 }
 // 헤더와 스크롤 본문을 따로 그리면 같은 좌표라도 픽셀 반올림이 달라진다.
 // 세로선은 두 영역에 걸친 한 개의 레이어에서 한 번만 그린다.
-function syncTeacherColumnLines() {
-    const header = document.getElementById('teacher-list-header');
-    const scroll = document.getElementById('teacher-list-scroll');
+function syncTableColumnLines(header, scroll) {
     if (!scroll.clientWidth) return;
     const frame = header.parentElement;
-    frame.classList.add('teacher-table-frame');
-    let lines = frame.querySelector('.teacher-column-lines');
+    frame.classList.add('split-table-frame');
+    let lines = frame.querySelector('.split-column-lines');
     if (!lines) {
         lines = document.createElement('div');
-        lines.className = 'teacher-column-lines';
+        lines.className = 'split-column-lines';
         lines.setAttribute('aria-hidden', 'true');
         frame.appendChild(lines);
     }
     const zoom = parseFloat(document.documentElement.style.zoom) || 1;
-    const heads = [...header.querySelectorAll('th')].filter(cell => cell.getBoundingClientRect().width > 0);
+    const rows = header.querySelector('thead').rows;
+    const heads = [...header.querySelectorAll('th')].filter(cell => cell.rowSpan > 1 || rows.length === 1 || cell.parentElement === rows[1]).filter(cell => cell.getBoundingClientRect().width > 0).sort((a, b) => a.getBoundingClientRect().right - b.getBoundingClientRect().right);
     const edges = heads.slice(0, -1);
     if (lines.children.length !== edges.length) lines.replaceChildren(...edges.map(() => document.createElement('span')));
     const origin = frame.getBoundingClientRect();
     const body = scroll.querySelector('table').getBoundingClientRect();
-    const empty = document.querySelector('#teacher-list-body td[colspan]');
+    const empty = scroll.querySelector('tbody td[colspan]');
     const bottom = empty ? header.getBoundingClientRect().bottom : Math.min(scroll.getBoundingClientRect().bottom, body.bottom);
     lines.style.height = `${Math.max(0, bottom - origin.top) / zoom}px`;
-    edges.forEach((cell, index) => lines.children[index].style.left = `calc(${(cell.getBoundingClientRect().right - origin.left) / zoom}px - var(--hair))`);
+    lines.style.width = `${scroll.clientWidth}px`;
+    edges.forEach((cell, index) => {
+        const line = lines.children[index];
+        const thick = cell.classList.contains('border-thick');
+        const thickness = thick ? '2px' : 'var(--hair)';
+        const top = rows.length > 1 && cell.rowSpan === 1 && !thick ? (cell.getBoundingClientRect().top - origin.top) / zoom : 0;
+        line.style.left = `calc(${(cell.getBoundingClientRect().right - origin.left) / zoom}px - ${thickness})`;
+        line.style.top = `${top}px`;
+        line.style.height = `calc(100% - ${top}px)`;
+        line.style.width = thickness;
+        line.style.background = thick ? 'rgb(var(--surface-300))' : 'rgb(var(--line))';
+    });
 }
 new ResizeObserver(syncTeacherHeader).observe(document.getElementById('teacher-list-scroll'));
 document.getElementById('teacher-list-scroll').addEventListener('scroll', event => {
     document.getElementById('teacher-list-header').scrollLeft = event.currentTarget.scrollLeft;
-    syncTeacherColumnLines();
+    syncTableColumnLines(document.getElementById('teacher-list-header'), document.getElementById('teacher-list-scroll'));
 });
 
 function syncAbsenceHeader() {
     const scroll = document.getElementById('absence-table-scroll');
     const header = document.getElementById('absence-table-header');
     syncSplitTableHeader(scroll, header, document.getElementById('absence-header-viewport'));
+    syncTableColumnLines(header, scroll);
 }
 new ResizeObserver(syncAbsenceHeader).observe(document.getElementById('absence-table-scroll'));
-document.getElementById('absence-table-scroll').addEventListener('scroll', syncAbsenceHeader);
+document.getElementById('absence-table-scroll').addEventListener('scroll', event => {
+    document.getElementById('absence-header-viewport').scrollLeft = event.currentTarget.scrollLeft;
+    syncTableColumnLines(document.getElementById('absence-table-header'), event.currentTarget);
+});
 
 function syncScrollHeads() {
     syncTeacherHeader();
@@ -335,6 +352,7 @@ window.addEventListener('pywebviewready', function() {
         if(data) appData = data;
         sanitizeAppData(appData);
         renderConfigTab(); renderSubjectsTab(); renderTeachers(); renderAbsencesTab(); renderResultTab(); renderRulesTab(); renderValidateTab(); markDataSaved();
+        showPageHint(activeTarget);
     });
     // 켤 때마다 가이드 투어를 띄운다. '다시 보지 않기'를 체크했으면 띄우지 않는다.
     window.pywebview.api.get_settings().then(settings => {
