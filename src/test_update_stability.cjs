@@ -14,7 +14,19 @@ const assert=require('node:assert/strict');const path=require('node:path');const
   await page.locator('#about-modal .modal-close').click();
   await page.evaluate(()=>askUpdate({current:'v1.2.2',version:'v1.2.3'}));await page.waitForTimeout(180);
   const update=page.locator('#update-modal > div');const before=await bounds(update);
+  const spacing=await page.locator('#update-modal-message').evaluate(el=>{
+   const range=document.createRange();range.selectNodeContents(el);const text=range.getBoundingClientRect();
+   const version=document.getElementById('update-from').parentElement.getBoundingClientRect();
+   const footer=document.getElementById('update-modal-ok').parentElement.getBoundingClientRect();
+   return {top:text.top-version.bottom,bottom:footer.top-text.bottom};
+  });
+  assert.ok(Math.abs(spacing.top-spacing.bottom)<2,JSON.stringify(spacing));
   await page.locator('#update-modal-ok').click();assert.deepEqual(await bounds(update),before,'Download changes modal geometry');
+  const download=await page.locator('#update-modal-message').evaluate(el=>{
+   const range=document.createRange();range.selectNodeContents(el);
+   return {text:range.getBoundingClientRect().bottom,progress:document.getElementById('update-download-progress').getBoundingClientRect().top};
+  });
+  assert.ok(download.text<=download.progress,'Download progress must not overlap the message');
   await page.evaluate(()=>window.resolveInstall({success:false,error:'테스트 다운로드 실패'}));await page.waitForFunction(()=>!document.getElementById('update-modal-ok').disabled);
   assert.deepEqual(await bounds(update),before,'Failure changes modal geometry');
   await page.locator('#update-modal-ok').click();await page.evaluate(()=>window.resolveInstall({success:true}));await page.waitForFunction(()=>document.getElementById('update-modal-message').textContent.includes('설치를 시작했습니다'));

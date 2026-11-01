@@ -7,6 +7,11 @@ on:
     branches: [main]
     paths: ['src/**', '.github/workflows/release.yml']
   workflow_dispatch:
+    inputs:
+      replace_existing:
+        description: '현재 버전의 태그와 설치 파일을 교체'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -32,8 +37,10 @@ jobs:
           $ver = $m.Matches[0].Groups[1].Value
           $existingTag = git ls-remote --tags origin "refs/tags/v$ver"
           if ($LASTEXITCODE -ne 0) { throw "기존 릴리스 버전을 확인하지 못했습니다." }
-          if ($existingTag) { throw "v$ver 은 이미 배포됐습니다. 변경 성격에 맞게 APP_VERSION 을 올려 주세요." }
+          if ($existingTag -and $env:REPLACE_EXISTING -ne 'true') { throw "v$ver 은 이미 배포됐습니다. 변경 성격에 맞게 APP_VERSION 을 올려 주세요." }
           "VERSION=$ver" >> $env:GITHUB_ENV
+        env:
+          REPLACE_EXISTING: ${{ github.event_name == 'workflow_dispatch' && inputs.replace_existing }}
 
       - uses: actions/setup-python@v5
         with:
@@ -57,6 +64,15 @@ jobs:
         working-directory: src
         shell: powershell
         run: ./test_update_installer.ps1
+
+      - name: Update existing version tag
+        if: github.event_name == 'workflow_dispatch' && inputs.replace_existing
+        shell: pwsh
+        run: |
+          git tag --force "v$env:VERSION" $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { throw '버전 태그를 갱신하지 못했습니다.' }
+          git push --force origin "refs/tags/v$env:VERSION"
+          if ($LASTEXITCODE -ne 0) { throw '버전 태그를 푸시하지 못했습니다.' }
 
       - uses: softprops/action-gh-release@v2
         with:

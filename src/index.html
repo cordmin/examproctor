@@ -554,7 +554,9 @@
 
         .update-spinner { width: 16px; height: 16px; border: 2px solid #CBD5E1; border-top-color: #2563EB; border-radius: 50%; animation: updateSpin .8s linear infinite; }
         @keyframes updateSpin { to { transform: rotate(360deg); } }
-        #update-modal-message { height:72px; overflow-y:auto; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        #update-modal-message { height:72px; padding-top:2px; overflow-y:auto; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        #update-modal[data-busy="true"] #update-modal-message { padding-bottom:24px; }
+        #update-download-progress { position:absolute; left:0; right:0; bottom:0; }
         #update-modal button:disabled { opacity: .55; cursor: wait; }
         .modal-header { position: relative; min-height: 48px; padding-right: 56px !important; }
         .modal-header.justify-center { padding-left: 56px !important; }
@@ -1331,12 +1333,14 @@
                 <h3 class="font-bold text-[14.5px]">새 버전 업데이트</h3>
                 <button type="button" id="update-modal-close" onclick="closeUpdateModal()" title="닫기" aria-label="닫기" class="modal-close w-6 h-6 flex items-center justify-center text-chrome-text/80 hover:text-white rounded-md cursor-pointer transition-colors"><svg class="w-4 h-4 -translate-x-[0.5px]"><use href="#i-x"/></svg></button>
             </div>
-            <div class="p-6 flex flex-col gap-4">
+            <div class="px-6 pt-6 pb-4 flex flex-col gap-4">
                 <div class="text-[15px] font-bold text-text-main text-center p-3.5 bg-surface-50 rounded-xl border border-surface-200">
                     <span id="update-from"></span> <span class="text-pebble mx-1">→</span> <span id="update-to" class="text-[#2563EB]"></span>
                 </div>
+                <div class="relative">
                 <p id="update-modal-message" class="text-[13.5px] font-bold text-text-main text-center leading-relaxed whitespace-pre-line" aria-live="polite">새 버전이 나왔습니다. 지금 업데이트하시겠습니까?</p>
                 <div id="update-download-progress" class="invisible flex items-center justify-center gap-2 text-[12.5px] text-stone" role="status"><span class="update-spinner" aria-hidden="true"></span>업데이트 파일을 준비하고 있습니다.</div>
+                </div>
             </div>
             <div class="px-5 py-3.5 bg-surface-50 border-t border-surface-100 flex justify-end gap-2.5 flex-shrink-0">
                 <button id="update-modal-ok" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-brand-text font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">업데이트</button>
