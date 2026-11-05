@@ -1142,9 +1142,12 @@
     </div>
 
     <!-- ── 토스트 ─────────────────────────────────────────────────────── -->
-    <div id="toast-notification"
-         role="status" aria-live="polite" aria-atomic="true"
-         class="fixed top-14 left-1/2 -translate-x-1/2 max-w-[calc(var(--vw)*92)] px-6 py-3 bg-surface-0 text-text-main border border-line rounded-full shadow-xl z-[9999] text-[13.5px] font-bold flex items-center justify-center text-center space-x-2 transition-all duration-300 -translate-y-10 opacity-0 pointer-events-none">
+    <!-- 가로 정렬은 바깥 요소가 맡고 토스트는 세로 이동·투명도만 전환한다. -->
+    <div class="fixed top-14 inset-x-0 z-[9999] flex justify-center pointer-events-none">
+        <div id="toast-notification"
+             role="status" aria-live="polite" aria-atomic="true"
+             class="max-w-[calc(var(--vw)*92)] px-6 py-3 bg-surface-0 text-text-main border border-line rounded-full shadow-xl text-[13.5px] font-bold flex items-center justify-center text-center space-x-2 transition-[transform,opacity] duration-300 -translate-y-10 opacity-0 pointer-events-none">
+        </div>
     </div>
 
     <!-- ── 모달 ──────────────────────────────────────────────────────── -->
