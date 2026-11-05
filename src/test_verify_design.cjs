@@ -19,7 +19,7 @@ const assert=require('node:assert/strict');const fs=require('node:fs');const pat
  await page.waitForFunction(()=>!document.getElementById('about-check').disabled);
  assert.ok((await page.locator('#titlebar').textContent()).includes('시험감독 배정'));
  assert.ok(!(await page.locator('#titlebar').textContent()).includes('프로그램'));
- assert.equal(await page.locator('.about-description').textContent(),'제작: 아산배방중학교 교사 이경민');
+ assert.equal(await page.locator('.about-description').textContent(),'문의: leekyunggo@hanmail.net');
  for(const status of ['latest','development','unconfigured','error','new']){
   await page.evaluate(status=>{window.pywebview.api.check_update=async()=>status==='new'?{available:true,version:'v1.0.8'}:{available:false,status};checkAboutUpdate()},status);
   await page.waitForFunction(()=>!document.getElementById('about-check').disabled);

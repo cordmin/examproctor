@@ -1,6 +1,6 @@
 ﻿시험감독 배정 프로그램 — MIT 라이선스
 
-Copyright (c) 2026 이경민
+Copyright (c) 2026 leekyunggo@hanmail.net
 
 아래 한국어 내용은 이해를 돕기 위한 번역입니다. 해석에 차이가 있을 경우 영문 원문을 기준으로 합니다.
 
@@ -10,14 +10,14 @@ Copyright (c) 2026 이경민
 
 소프트웨어는 "있는 그대로" 제공되며, 상품성, 특정 목적에 대한 적합성 및 권리 비침해를 포함하여 어떠한 명시적 또는 묵시적 보증도 제공하지 않습니다. 저작자 또는 저작권자는 계약, 불법행위 또는 그 밖의 법적 근거와 관계없이, 소프트웨어 자체 또는 그 사용이나 기타 취급과 관련하여 발생하는 청구, 손해 또는 기타 책임에 대해 책임을 지지 않습니다.
 
-이 라이선스는 이경민이 저작권을 보유한 코드에 적용됩니다. 함께 제공되는 외부 구성 요소에는 각 구성 요소의 라이선스가 적용됩니다. 포함된 글꼴의 라이선스는 motto-serif-LICENSE.txt를 참조하세요.
+이 라이선스는 leekyunggo@hanmail.net이 저작권을 보유한 코드에 적용됩니다. 함께 제공되는 외부 구성 요소에는 각 구성 요소의 라이선스가 적용됩니다. 포함된 글꼴의 라이선스는 motto-serif-LICENSE.txt를 참조하세요.
 
 ────────────────────────────────
 영문 원문
 
 MIT License
 
-Copyright (c) 2026 이경민
+Copyright (c) 2026 leekyunggo@hanmail.net
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

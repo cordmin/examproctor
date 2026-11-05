@@ -15,6 +15,8 @@
 AppId={{6F1C2A9E-4B7D-4E21-9A3F-2D8C5E7B1A40}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
+AppPublisher=leekyunggo@hanmail.net
+AppSupportURL=mailto:leekyunggo@hanmail.net
 DefaultDirName={autopf}\시험감독배정
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
