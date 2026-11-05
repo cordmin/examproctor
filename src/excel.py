@@ -25,7 +25,7 @@ def write_template(path, teachers=None):
     center_align = Alignment(horizontal='center', vertical='center')
     header_fill = PatternFill(start_color="D9E1F2", end_color="D9E1F2", fill_type="solid")
 
-    ws.append(["순", "이름", "담당교과", "담임학급", "참고사항"])
+    ws.append(["순", "이름", "담당교과", "담임학급", "참고"])
 
     # 지금 화면의 감독 명단을 그대로 담는다. 명단이 비어 있으면 입력 예시 한 줄을 둔다.
     if teachers:

@@ -15,7 +15,7 @@ def test_teacher_template():
         write_template(path, teachers)
         wb = load_workbook(path)
         ws = wb.active
-        assert [cell.value for cell in ws[1]] == ["순", "이름", "담당교과", "담임학급", "참고사항"]
+        assert [cell.value for cell in ws[1]] == ["순", "이름", "담당교과", "담임학급", "참고"]
         assert [ws.column_dimensions[c].width for c in "BCD"] == [12, 12, 12]
         assert all(ws[c].alignment.horizontal == "center" for c in ("A1", "B1", "C1", "A2", "B2", "C2"))
         assert [ws.cell(row, 1).value for row in range(2, 4)] == [1, 2]
