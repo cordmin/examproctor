@@ -31,6 +31,14 @@ const assert=require('node:assert/strict');const path=require('node:path');const
  assert.deepEqual(await page.evaluate(()=>appData.teachers[0].absences.p1),{type:'GRADE',target:'2'});
  await cell.click({button:'right'});
  assert.equal(await page.evaluate(()=>appData.teachers[0].absences.p1),undefined);
+ const classBrush=page.locator('#brush-class-wrapper');
+ const classBounds=await classBrush.boundingBox();
+ await page.mouse.move(classBounds.x+12,classBounds.y+classBounds.height/2);
+ await page.mouse.down();
+ await page.waitForFunction(()=>getComputedStyle(document.getElementById('brush-class-wrapper')).scale==='0.98');
+ assert.equal(await classBrush.evaluate(el=>getComputedStyle(el).translate),'0px 2px');
+ await page.mouse.up();
+ await page.waitForFunction(()=>['none','1'].includes(getComputedStyle(document.getElementById('brush-class-wrapper')).scale));
  await page.locator('#brush-class-select-dropdown').click();
  await page.locator('#grade-subject-menu').getByRole('option',{name:'2-2',exact:true}).click();
  await cell.click();

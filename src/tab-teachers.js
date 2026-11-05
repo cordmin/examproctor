@@ -264,7 +264,7 @@ window.renderAbsencesTab = function() {
         });
         
         if (!dates.length) rHtml += '<td class="border border-line"></td>';
-        rHtml += `<td class="p-1.5 border border-line border-edge text-[13px] text-left font-medium bg-surface-0 text-text-main overflow-hidden truncate" title="${t.notes||''}">${t.notes||''}</td>`;
+        rHtml += `<td class="p-1.5 border border-line border-edge text-[13px] text-left font-medium bg-surface-0 text-text-main overflow-hidden flex items-center" title="${t.notes||''}"><span class="block min-w-0 truncate">${t.notes||''}</span></td>`;
         rows += rHtml + `</tr>`;
     });
     tbody.innerHTML = rows;
