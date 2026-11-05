@@ -213,7 +213,7 @@ window.renderAbsencesTab = function() {
         <th rowspan="2" class="p-2 align-middle border-b border-r border-line text-[14.5px] bg-[#F1F5F9]">성명</th>
         <th id="absence-limit-label" rowspan="2" class="p-2 leading-tight align-middle text-[13px] border-b border-r border-line bg-[#F1F5F9]" data-page-hint="시험 기간 중 감독 배정 시간의 최대값을 설정">배정 제한</th>
         ${dateHeaders.row1}
-        <th rowspan="2" class="p-2 align-middle text-[13px] border-b border-line bg-[#F1F5F9]">참고사항</th>
+        <th rowspan="2" class="p-2 align-middle text-[13px] border-b border-line bg-[#F1F5F9]">참고</th>
     </tr>`;
     const row2 = `<tr>${dateHeaders.row2}</tr>`;
 
