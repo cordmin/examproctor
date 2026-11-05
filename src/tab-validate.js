@@ -130,26 +130,54 @@ window.renderValidateTab = function() {
     if (!ready || !v.verify) {
         verifyHtml = `<div class="text-pebble text-[13px] text-center py-10 font-bold">배정을 실행하면 검증 결과가 표시됩니다.</div>`;
     } else {
-        const allPass = v.verify.all_pass;
-        const passed = v.verify.checks.filter(check => check.pass).length;
-        const total = v.verify.checks.length;
+        // enabled는 배정·재검증 당시의 설정이다. 이전 저장 파일만 현재 설정으로 보완한다.
+        const optionalChecks = {
+            5: rules.excludeHomeroom ?? DEFAULT_RULES.excludeHomeroom,
+            6: rules.excludeSubject ?? DEFAULT_RULES.excludeSubject,
+            7: rules.excludeSameClass ?? DEFAULT_RULES.excludeSameClass,
+            8: (rules.excludeClassConsecutive ?? DEFAULT_RULES.excludeClassConsecutive)
+                || (rules.excludeHallwayConsecutive ?? DEFAULT_RULES.excludeHallwayConsecutive),
+            9: Number(rules.maxConsecutive ?? 99) < 99,
+            10: appData.teachers.some(t => Number(t.maxPeriods) > 0 && Number(t.maxPeriods) < 999),
+            11: Number(rules.maxDailyDiff ?? 99) < 99,
+        };
+        const checkNumber = c => Number(c.name?.match(/^\s*(\d+)/)?.[1]);
+        const checkOrder = [1, 2, 3, 4, 5, 6, 10, 11, 9, 7, 8];
+        const checks = v.verify.checks
+            .filter(c => c.enabled ?? optionalChecks[checkNumber(c)] ?? true)
+            .sort((a, b) => checkOrder.indexOf(checkNumber(a)) - checkOrder.indexOf(checkNumber(b)));
+        const allPass = checks.every(check => check.pass);
+        const passed = checks.filter(check => check.pass).length;
+        const total = checks.length;
         const banner = `
             <div class="verify-review ${allPass ? '' : 'has-issues'}">
               <div class="verify-summary">
                 <span class="verify-seal" aria-hidden="true">${allPass ? '✓' : '!'}</span>
-                <div><h3>${allPass ? '모든 규칙을 충족했어요' : '확인이 필요한 규칙이 있어요'}</h3>
+                <div><h3>${allPass ? '적용한 규칙을 모두 충족했어요' : '확인이 필요한 규칙이 있어요'}</h3>
                 <p>${allPass ? '누락이나 중복 없이 배정되었습니다.' : `${total - passed}개 규칙의 위반 내용을 확인하세요.`}</p></div>
                 <div class="verify-score">${passed}<small> / ${total}</small></div>
               </div>
               <div class="verify-progress" aria-hidden="true"><span style="width:${total ? passed / total * 100 : 0}%"></span></div>`;
-        const cleanCheckName = (name) => {
-            if (!name) return '';
-            return name
-                .replace(/\s*\((절대 규칙|형평성 규칙|슬롯 누락 확인|최대배정 제한)\)/g, '')
-                .replace("시간 배정 금지", " 배정 금지")
-                .replace("특정 감독 연속 배정 금지", "동일 역할(수업/복도) 연속 배정 금지");
+        const checkNames = {
+            1: '모든 감독 자리 배정 완료', 2: '동일 교시 중복 배정 방지',
+            3: '교사별 감독 권한 준수', 4: '결시 교사 배정 방지',
+            5: '본인 담임학급 배정 금지', 6: '본인 담당교과 배정 금지',
+            7: '동일 학급 연속 배정 금지', 9: '1일 연속 감독 횟수 제한',
+            10: '교사별 배정 제한 준수', 11: '1일 감독 횟수 편차 제한',
         };
-        const cards = v.verify.checks.map((c, index) => {
+        const cleanCheckName = c => {
+            const number = checkNumber(c);
+            if (checkNames[number]) return checkNames[number];
+            if (number === 8 && c.enabled === undefined) {
+                const roles = [['수업', 'excludeClassConsecutive'], ['복도', 'excludeHallwayConsecutive']]
+                    .filter(([, key]) => rules[key] ?? DEFAULT_RULES[key]).map(([name]) => name);
+                return roles.join('·') + '감독 연속 배정 금지';
+            }
+            return (c.name || '').replace(/^\s*\d+[.)]\s*/, '')
+                .replace('동일 역할(수업/복도)', '수업·복도감독')
+                .replace('특정 감독', '수업·복도감독');
+        };
+        const cards = checks.map((c, index) => {
             const badge = `<span class="verify-status ${c.pass ? '' : 'is-failed'}">${c.pass ? '✓ 충족' : '! 확인 필요'}</span>`;
             let detail = '';
             if (!c.pass && c.messages.length) {
@@ -172,7 +200,7 @@ window.renderValidateTab = function() {
                 <div class="verify-row ${c.pass ? '' : 'is-failed'}">
                   <div class="verify-row-heading">
                     <span class="verify-number">${String(index + 1).padStart(2, '0')}</span>
-                    <span class="verify-rule-name">${cleanCheckName(c.name).replace(/^\s*\d+[.)]\s*/, '')}</span>${badge}
+                    <span class="verify-rule-name">${cleanCheckName(c)}</span>${badge}
                   </div>${detail ? `<div class="verify-detail">${detail}</div>` : ''}
                 </div>`;
         }).join('');

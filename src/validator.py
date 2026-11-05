@@ -10,18 +10,34 @@ from labels import CHECK_INDEX, ROLE_COL, check_label, parse_label, period_num, 
 
 def generate_verify_data(teachers, periods, assignments, classSubjects, rules):
     checks = [
-        {"name": "1. 모든 구역/학급 배정 완료", "desc": "요구된 모든 시험감독 자리에 누락 없이 교사가 배정되었는지 확인합니다.", "pass": True, "messages": []},
+        {"name": "1. 모든 감독 자리 배정 완료", "desc": "요구된 모든 시험감독 자리에 누락 없이 교사가 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "2. 동일 교시 중복 배정 방지", "desc": "한 교시 동안 2개 이상의 감독 자리에 중복 배정되었는지 확인합니다.", "pass": True, "messages": []},
-        {"name": "3. 교사별 감독 역할 권한 일치", "desc": "교사별로 허용된 감독 역할(정, 부, 복, 자 등)에 맞게 배정되었는지 확인합니다.", "pass": True, "messages": []},
+        {"name": "3. 교사별 감독 권한 준수", "desc": "교사별로 허용된 감독 역할(정, 부, 복, 자 등)에 맞게 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "4. 결시 교사 배정 방지", "desc": "전체/학년/학급 결시로 설정된 시간대에 배정된 교사가 없는지 확인합니다.", "pass": True, "messages": []},
         {"name": "5. 본인 담임학급 배정 금지", "desc": "본인이 담임을 맡고 있는 학급의 시험 감독으로 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "6. 본인 담당교과 배정 금지", "desc": "본인이 담당하는 교과목의 시험 시간대에 감독으로 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "7. 동일 학급 연속 배정 금지", "desc": "동일한 학급에 연속으로 시험 감독이 배정되었는지 확인합니다.", "pass": True, "messages": []},
-        {"name": "8. 동일 역할(수업/복도) 연속 배정 금지", "desc": "수업감독 또는 복도감독이 2연속으로 배정되었는지 확인합니다.", "pass": True, "messages": []},
-        {"name": "9. 1일 최대 연속 감독 횟수 제한", "desc": "하루 최대 연속 감독 시간 제한을 초과하여 배정되었는지 확인합니다.", "pass": True, "messages": []},
+        {"name": "8. 수업·복도감독 연속 배정 금지", "desc": "수업감독 또는 복도감독이 2연속으로 배정되었는지 확인합니다.", "pass": True, "messages": []},
+        {"name": "9. 1일 연속 감독 횟수 제한", "desc": "하루 최대 연속 감독 시간 제한을 초과하여 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "10. 교사별 배정 제한 준수", "desc": "교사별 설정된 '배정 제한' 한도를 초과하여 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "11. 1일 감독 횟수 편차 제한", "desc": "1일 최대 감독 횟수 편차 한도를 초과하여 교사 간 불균형이 있는지 확인합니다.", "pass": True, "messages": []}
     ]
+
+    # 배정 당시 적용한 규칙을 저장한다. 이후 설정을 바꿔도 기존 결과 표시는 유지한다.
+    enabled = {
+        4: rules.get('excludeHomeroom', True),
+        5: rules.get('excludeSubject', True),
+        6: rules.get('excludeSameClass', True),
+        7: rules.get('excludeClassConsecutive', True) or rules.get('excludeHallwayConsecutive', True),
+        8: int(rules.get('maxConsecutive', 99)) < 99,
+        9: any(0 < int(t.get('maxPeriods', 0) or 0) < 999 for t in teachers),
+        10: int(rules.get('maxDailyDiff', 99)) < 99,
+    }
+    for index, check in enumerate(checks):
+        check['enabled'] = bool(enabled.get(index, True))
+    roles = [name for name, key in [('수업', 'excludeClassConsecutive'), ('복도', 'excludeHallwayConsecutive')]
+             if rules.get(key, True)]
+    checks[7]['name'] = '8. ' + '·'.join(roles) + '감독 연속 배정 금지'
 
     # 실패한 검사 카드에 보여 줄 해결 방법과 바로 가기 화면 (검사 순서와 같다).
     swap = "배정 결과에서 해당 칸을 다른 선생님과 교체하세요."
@@ -135,7 +151,7 @@ def generate_verify_data(teachers, periods, assignments, classSubjects, rules):
                         f"[{date}] 1일 감독 횟수 편차 {day_max - day_min}회 발생 (허용:{max_diff}회)"
                         f" — 최다: {who(most, date, day_max)} / 최소: {who(least, date, day_min)}")
 
-    return {"all_pass": all(c['pass'] for c in checks), "checks": checks}
+    return {"all_pass": all(c['pass'] for c in checks if c['enabled']), "checks": checks}
 
 
 def build_stats(teachers, assignments, rules):
