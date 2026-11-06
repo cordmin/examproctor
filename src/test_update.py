@@ -55,9 +55,21 @@ def test_update_launch():
                 assert dll.call_args_list[-1].args[0].value == bundle
 
 
+def test_update_rejects_unsafe_tag():
+    bad = ('../../../../other/repo/releases/download/v1', 'v1/../x', 'v1%2Fx', 'v1' + chr(92) + 'x', '..', '', None)
+    api = main.Api.__new__(main.Api)
+    with patch.object(main.urllib.request, 'urlretrieve') as download:
+        for tag in bad:
+            assert not api.install_update(tag)['success'], tag
+    download.assert_not_called()
+    for tag in ('v1.2.5', 'v1.3-beta', 'v2026.11_school', '1.0'):
+        assert main.SAFE_TAG.fullmatch(tag), tag
+
+
 if __name__ == '__main__':
     assert main.version_tuple('v1.1.0') > main.version_tuple('v1.0.10')
     assert main.version_tuple('v1.1.1') > main.version_tuple('v1.1.0')
     assert main.version_tuple('v2.0.0') > main.version_tuple('v1.99.99')
     test_update_launch()
+    test_update_rejects_unsafe_tag()
     print('PASS: save before close, independent installer environment, DLL path reset/restore, logging, forced close, failure keeps app open')

@@ -15,6 +15,7 @@ import ctypes
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -52,15 +53,31 @@ def legacy_sample_digest(data):
     return hashlib.sha256(content.encode('utf-8')).hexdigest()
 
 
+# 화면은 자료 글자를 HTML 로 그린다. 파일에서 온 글자가 명령이 되지 않도록 모양이 비슷한 글자로 바꾼다.
+SAFE_CHARS = str.maketrans({'<': '＜', '>': '＞', '"': '”', "'": '’', '`': '’', '&': '＆'})
+
+
+def clean_text(value):
+    if isinstance(value, str):
+        return value.translate(SAFE_CHARS)
+    if isinstance(value, list):
+        return [clean_text(item) for item in value]
+    if isinstance(value, dict):
+        return {clean_text(key): clean_text(item) for key, item in value.items()}
+    return value
+
+
 XLSX_TYPES = ('Excel 파일 (*.xlsx)', '모든 파일 (*.*)')
 JSON_TYPES = ('JSON 파일 (*.json)', '모든 파일 (*.*)')
 
 # 앞 두 자리(1.0)만 손으로 고친다. 마지막 자리는 GitHub Actions(release.yml)가 빌드할 때 실행 번호로 채운다.
-APP_VERSION = '1.2.5'
+APP_VERSION = '1.2.6'
 # 업데이트를 받을 GitHub 공개 저장소 'owner/repo'. 비어 있으면 업데이트 확인을 건너뛴다 (켤 때 최신 릴리스와 비교).
 UPDATE_REPO = 'cordmin/examproctor'
 # 릴리스에 올리는 설치 파일 이름. installer.iss 의 OutputBaseFilename 과 같아야 한다.
 SETUP_ASSET = 'ExamProctorSetup.exe'
+# 업데이트 주소에 들어가는 버전 이름에는 경로를 바꾸는 글자(/, \, % 등)를 쓸 수 없다.
+SAFE_TAG = re.compile(r'[A-Za-z0-9][A-Za-z0-9._-]*')
 
 
 def version_tuple(v):
@@ -231,7 +248,7 @@ class Api:
                 self._write_json(self.data_file, data)
             # 한 번만 검사한다. 이후 사용자가 직접 연 예시는 자동 삭제하지 않는다.
             self._write_json(migration_file, {'completed': True})
-        return data
+        return clean_text(data)
 
     def _write_json(self, path, data):
         with open(path, 'w', encoding='utf-8') as f:
@@ -277,7 +294,7 @@ class Api:
             return {"success": False, "canceled": True}
         try:
             with open(result[0], 'r', encoding='utf-8') as f:
-                self.data = json.load(f)
+                self.data = clean_text(json.load(f))
             self._write_json(self.data_file, self.data)
             return {"success": True, "data": self.data}
         except Exception as e:
@@ -300,7 +317,7 @@ class Api:
         if not result:
             return {"success": False, "canceled": True}
         try:
-            return {"success": True, "teachers": excel.read_teachers(result[0])}
+            return {"success": True, "teachers": clean_text(excel.read_teachers(result[0]))}
         except Exception as e:
             return {"success": False, "error": str(e)}
 
@@ -395,6 +412,8 @@ class Api:
 
     def install_update(self, tag, data=None):
         """설치 파일을 받아 조용히 설치하도록 띄우고 창을 닫는다. 설치가 끝나면 설치 파일이 프로그램을 다시 켠다."""
+        if not isinstance(tag, str) or not SAFE_TAG.fullmatch(tag):
+            return {"success": False, "error": "버전 이름이 올바르지 않습니다."}
         try:
             url = f'https://github.com/{UPDATE_REPO}/releases/download/{tag}/{SETUP_ASSET}'
             path = os.path.join(tempfile.gettempdir(), SETUP_ASSET)

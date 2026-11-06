@@ -432,6 +432,17 @@ window.openAboutModal = async function() {
     checkAboutUpdate();
 };
 
+window.openPrivacyModal = function() {
+    const modal = document.getElementById('privacy-modal');
+    modal.classList.remove('hidden');
+    modal.focus();
+};
+
+window.closePrivacyModal = function() {
+    document.getElementById('privacy-modal').classList.add('hidden');
+    document.getElementById('about-privacy').focus();
+};
+
 window.checkAboutUpdate = async function() {
     const button = document.getElementById('about-check');
     if (button.disabled) return;
