@@ -101,3 +101,13 @@ begin
     Log('업데이트 진행 창 준비 실패: ' + GetExceptionMessage);
   end;
 end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if (CurUninstallStep <> usPostUninstall) or UninstallSilent then Exit;
+  // 되살릴 수 없으므로 기본 선택은 '아니요'이고, 사용자가 고를 때만 지운다.
+  if MsgBox('프로그램에 저장된 자료(교사 명단, 배정 결과 등)도 함께 지울까요?' + #13#10 + #13#10 +
+      '지운 자료는 되살릴 수 없습니다. 직접 저장하거나 내보낸 파일은 지워지지 않습니다.',
+      mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES then
+    DelTree(ExpandConstant('{userappdata}\시험감독배정'), True, True, True);
+end;

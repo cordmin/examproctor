@@ -477,7 +477,12 @@ tr[id^="grade-row-"].grade-row-disabled td:nth-child(2) {
 .privacy-body { font-size:13px; line-height:1.65; color:rgb(var(--text-main)); text-align:left; }
 .privacy-body h4 { font-size:13.5px; font-weight:700; margin:16px 0 5px; }
 .privacy-body p { margin:0 0 7px; }
-.privacy-body ul { margin:0 0 7px; padding-left:18px; list-style:disc; }
+.privacy-body h5 { font-size:13px; font-weight:700; margin:10px 0 4px; }
+.privacy-body ul, .privacy-body ol { margin:0 0 7px; padding-left:18px; }
+.privacy-body ul { list-style:disc; }
+.privacy-body ol { list-style:decimal; }
+.privacy-body .basis { color:rgb(var(--brand-500)); font-size:12px; }
+.privacy-body a { text-decoration:underline; }
 .privacy-body table { width:100%; margin:0 0 9px; border-collapse:collapse; font-size:12px; line-height:1.5; }
 .privacy-body th, .privacy-body td { padding:5px 7px; border:1px solid rgb(var(--surface-200)); text-align:left; vertical-align:top; }
 .privacy-body th { font-weight:700; background:rgb(var(--surface-100)); }

@@ -19,3 +19,4 @@ Output/
 !/tests/test_clean_startup.py
 !/tests/test_update_installer.ps1
 !/tests/sample_data.json
+/제출서류/
