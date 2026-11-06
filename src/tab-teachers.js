@@ -107,7 +107,7 @@ window.renderTeachers = function() {
                 ${sepDis ? '' : `<td class="py-2.5 px-1 border border-line"><input type="checkbox" class="chk-custom" ${t.isSeparated?'checked':''} onchange="updateTeacher('${t.id}', 'isSeparated', this.checked, false)"></td>`}
                 ${spDis ? '' : `<td class="py-2.5 px-1 border border-line"><input type="checkbox" class="chk-custom" ${t.isSpecial?'checked':''} onchange="updateTeacher('${t.id}', 'isSpecial', this.checked, false)"></td>`}
                 <td class="py-2.5 px-1 border border-line w-full"><input type="text" id="note-t-${idx}" data-tid="${t.id}" class="w-full bg-transparent focus:outline-none text-stone text-sm p-0.5 text-left px-2" value="${t.notes||''}" onchange="updateTeacher('${t.id}', 'notes', this.value, false)" onkeydown="handleNotesKey(event, ${idx}, 't')" onpaste="handleNotesPaste(event, ${idx}, 't')"></td>
-                <td class="py-2.5 px-1 border border-line"><button class="text-coral transition-transform inline-flex items-center justify-center mx-auto x-btn" onclick="deleteTeacher('${t.id}')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button></td>
+                <td class="py-2.5 px-1 border border-line"><button class="text-coral transition-transform flex items-center justify-center w-full h-full x-btn" onclick="deleteTeacher('${t.id}')"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button></td>
             </tr>`;
     });
     tbody.innerHTML = rows;
@@ -319,7 +319,7 @@ function applyAbsence(tId, pId, isAdd, isRemove, btn, event) {
 }
 
 window.clearAllAbsences = function() {
-    openConfirmModal("결시 전체 초기화", "입력된 모든 교사의 결시 데이터를<br>전체 초기화하시겠습니까?", "초기화 실행 (Enter)", () => {
+    openConfirmModal("결시 전체 초기화", "입력된 모든 교사의 결시 데이터를<br>전체 초기화하시겠습니까?", "초기화 실행", () => {
         appData.teachers.forEach(t => t.absences = {});
         renderAbsencesTab();
         showToast("모든 결시 데이터가 초기화되었습니다.", "success");

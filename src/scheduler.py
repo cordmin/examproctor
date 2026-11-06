@@ -24,9 +24,9 @@ RELAX_ORDER = ["수업감독 연속 배정 금지", "복도감독 연속 배정 
 
 
 class AssignmentFailure(Exception):
-    def __init__(self, summary, reasons):
+    def __init__(self, summary, cause, reasons):
         super().__init__(summary)
-        self.failure = {"summary": summary, "reasons": reasons}
+        self.failure = {"summary": summary, "cause": cause, "reasons": reasons}
 
 
 def run_algorithm(appData):
@@ -55,8 +55,8 @@ def run_algorithm(appData):
         periods_sorted = sorted(periods, key=lambda x: (x['date'], period_num(x['name'])))
         if not periods_sorted:
             return {"success": False, "error_type": "INPUT", "failure": {
-                "summary": "시험 일정과 교시가 설정되지 않았습니다.",
-                "reasons": [{"message": "배정할 시험 시간이 없습니다.", "action": "기초 설정에서 시험 날짜와 교시를 추가한 뒤 다시 실행하세요.", "target": "tab-config"}]}}
+                "summary": "시험 일정과 교시가 설정되지 않았습니다.", "cause": "시험 날짜와 교시가 없음",
+                "reasons": [{"message": "배정할 시험 시간이 없습니다.", "action": "기초 설정에서 시험 날짜와 교시를 추가한 뒤 다시 실행하세요.", "target": "tab-config", "step": "시험 날짜와 교시 추가하기"}]}}
 
 
         def count_all_absent(t):
@@ -122,8 +122,8 @@ def run_algorithm(appData):
 
         if not total_required_slots:
             return {"success": False, "error_type": "INPUT", "failure": {
-                "summary": "배정할 학년과 과목이 선택되지 않았습니다.",
-                "reasons": [{"message": "현재 설정에서 감독이 필요한 시간이 없습니다.", "action": "기초 설정에서 시험 학년을 켜고, 학년별 교시에 시험 과목 또는 수업을 선택하세요.", "target": "tab-config"}]}}
+                "summary": "배정할 학년과 과목이 선택되지 않았습니다.", "cause": "시험 학년과 과목이 선택되지 않음",
+                "reasons": [{"message": "현재 설정에서 감독이 필요한 시간이 없습니다.", "action": "기초 설정에서 시험 학년을 켜고, 학년별 교시에 시험 과목 또는 수업을 선택하세요.", "target": "tab-config", "step": "시험 학년과 과목 선택하기"}]}}
 
         # 인원 부족은 '선생님이 몇 명 더 있어야 하는지'로 알려 준다.
         # 한 교시에 한 선생님은 한 자리만 맡으므로 (1) 교시마다 자리 수 > 그 교시에 감독할 수 있는 선생님 수,
@@ -150,7 +150,8 @@ def run_algorithm(appData):
             reasons = []
             if worst_gap > 0:
                 reasons.append({"message": f"{when(worst)}에는 감독 자리가 {len(slots_by_period[worst['id']])}곳인데, 감독할 수 있는 선생님은 {free_at[worst['id']]}명뿐입니다.",
-                                "action": "한 선생님은 한 교시에 한 자리만 맡을 수 있습니다. 이 시간에 잘못 넣은 결시가 없는지 확인하세요.", "target": "tab-absences"})
+                                "action": "한 선생님은 한 교시에 한 자리만 맡을 수 있습니다. 이 시간에 잘못 넣은 결시가 없는지 확인하세요.", "target": "tab-absences",
+                                "step": ""})   # 이 내용은 실패 창의 원인 칸에 나온다
 
             limited = sorted(((t, max(0, n_periods - count_all_absent(t)) - calc_teacher_capacity(t)) for t in active_teachers),
                              key=lambda x: -x[1])
@@ -160,7 +161,8 @@ def run_algorithm(appData):
                 names = ', '.join(f"{t['name']}({t['maxPeriods']}시간)" for t, _ in limited[:5]) + (f" 외 {len(limited) - 5}명" if len(limited) > 5 else '')
                 effect = "이 제한만 풀어도 해결됩니다." if after <= 0 else f"모두 풀면 필요한 선생님이 {need - after}명 줄어듭니다."
                 reasons.append({"message": f"배정 제한이 걸린 선생님: {names}",
-                                "action": f"{effect} 결시 관리에서 배정 제한을 늘릴 수 있는지 확인하세요.", "target": "tab-absences"})
+                                "action": f"{effect} 결시 관리에서 배정 제한을 늘릴 수 있는지 확인하세요.", "target": "tab-absences",
+                                "step": f"배정 제한이 걸린 선생님 {len(limited)}명 확인하기"})
 
             for g in config.get('grades', []):
                 g_str = str(g)
@@ -172,26 +174,30 @@ def run_algorithm(appData):
                         continue
                     effect = "이것만으로 해결됩니다." if after <= 0 else f"필요한 선생님이 {need - after}명 줄어듭니다."
                     reasons.append({"message": f"{g}학년 {place} 감독을 2명에서 1명으로 줄이면 {effect}",
-                                    "action": "기초 설정의 교실별 배정 인원에서 정·부감독(2인)을 정감독(1인)으로 바꿀 수 있습니다.", "target": "tab-config"})
+                                    "action": "기초 설정의 교실별 배정 인원에서 정·부감독(2인)을 정감독(1인)으로 바꿀 수 있습니다.", "target": "tab-config",
+                                    "step": f"{g}학년 {place} 감독을 1명으로 줄이기"})
 
             absent = sorted(((t, count_all_absent(t)) for t in active_teachers), key=lambda x: -x[1])
             absent = [f"{t['name']}({n}시간)" for t, n in absent if n] + [f"{t['name']}(전체 제외)" for t in teachers if t.get('isAbsentAll')]
             if absent:
                 reasons.append({"message": f"결시로 감독에서 빠진 선생님: {', '.join(absent[:5])}" + (f" 외 {len(absent) - 5}명" if len(absent) > 5 else ''),
-                                "action": "결시가 실제 계획과 맞는지 확인하세요. 잘못 넣은 결시를 지우면 그만큼 감독할 수 있습니다.", "target": "tab-absences"})
+                                "action": "결시가 실제 계획과 맞는지 확인하세요. 잘못 넣은 결시를 지우면 그만큼 감독할 수 있습니다.", "target": "tab-absences",
+                                "step": f"결시 {len(absent)}명 확인하기"})
 
             reasons.append({"message": f"가장 확실한 방법은 감독 선생님을 {need}명 이상 추가하는 것입니다.",
-                            "action": "감독 명단에 빠진 선생님이 없는지 확인하고 추가하세요.", "target": "tab-teachers"})
+                            "action": "감독 명단에 빠진 선생님이 없는지 확인하고 추가하세요.", "target": "tab-teachers",
+                            "step": f"선생님 {need}명 이상 추가하기"})
             return reasons
 
         worst, worst_gap, need = need_for(total_capacity)
         if need > 0:
             reasons = capacity_reasons(need, worst, worst_gap)
             summary = f"감독 선생님이 최소 {need}명 더 있어야 지금 조건으로 감독 시간표를 짤 수 있습니다."
+            cause = f"{when(worst)}에 선생님 {need}명 모자람" if worst_gap == need else f"감독 선생님이 {need}명 모자람"
             return {"success": False, "error_type": "CAPACITY",
                     "validation": {"shortage": True, "need": need, "summary": summary, "reasons": reasons,
                                    "required": total_required_slots, "available": total_capacity, "logs": [], "stats": []},
-                    "failure": {"summary": summary, "reasons": reasons}}
+                    "failure": {"summary": summary, "cause": cause, "reasons": reasons}}
 
         def is_absent(t_abs, p_id, g, c):
             if p_id not in t_abs:
@@ -364,7 +370,12 @@ def run_algorithm(appData):
                             elif is_absent(t.get('absences', {}), p_id, s_gd, s_nm): reason = "해당 시간 결시"
                             else: reason = violates_absolute(t, t_states[t['id']], p_id, date, p_num, s_nm, s_rl, s_gd, assigned_this_period)
                             if reason: counts[reason] = counts.get(reason, 0) + 1
-                        reasons = [{"message": f"{reason}: {count}명", "action": remedies[reason][0], "target": remedies[reason][1]}
+                        steps = {"전체 배정 제외": "배정 제외 선생님 확인하기", "감독 유형 권한 없음": "감독 권한 확인하기",
+                                 "해당 시간 결시": "결시 확인하기", "동시간 중복 배정": "감독 인원 확인하기",
+                                 "배정 제한 시간 도달": "배정 제한 늘리기"}
+                        step_of = lambda reason: steps.get(reason, f"{reason} 풀기")
+                        reasons = [{"message": f"{reason}: {count}명", "action": remedies[reason][0], "target": remedies[reason][1],
+                                    "step": f"{step_of(reason)} ({count}명)"}
                                    for reason, count in counts.items()]
                         # 규칙을 하나만 풀었을 때 이 자리에 들어갈 수 있게 되는 교사 수를 세어,
                         # 학교 운영에 부담이 적은 규칙부터 '먼저 풀어 볼 규칙'으로 앞에 보여 준다.
@@ -377,11 +388,13 @@ def run_algorithm(appData):
                                 rule = blocks.pop()
                                 unlock[rule] = unlock.get(rule, 0) + 1
                         tips = [{"message": f"{i}순위로 풀어 볼 규칙: {rule} (풀면 이 자리에 {unlock[rule]}명 배정 가능)",
-                                 "action": remedies[rule][0], "target": remedies[rule][1]}
+                                 "action": remedies[rule][0], "target": remedies[rule][1],
+                                 "step": f"{step_of(rule)} ({unlock[rule]}명 가능)"}
                                 for i, rule in enumerate((r for r in RELAX_ORDER if unlock.get(r)), 1)]
                         tipped = {r for r in RELAX_ORDER if unlock.get(r)}
                         reasons = tips + [r for r, reason in zip(reasons, counts) if reason not in tipped]
-                        raise AssignmentFailure(f"{when(p)} {s_nm} {s_rl}감독 자리에 들어갈 수 있는 선생님이 없습니다.", reasons)
+                        raise AssignmentFailure(f"{when(p)} {s_nm} {s_rl}감독 자리에 들어갈 수 있는 선생님이 없습니다.",
+                                               f"{when(p)} {s_nm} {s_rl}감독을 맡을 선생님 없음", reasons)
 
                     bt_id = best_teacher['t']['id']
                     best_teacher['assigned_total'] += 1

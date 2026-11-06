@@ -239,24 +239,24 @@ window.openAssignmentFailure = function(result) {
         reasons: [{message: result.error || '상세 오류 정보가 없습니다.',
                    action: '입력한 시험 일정·학년·과목과 감독 명단을 확인한 뒤 다시 실행하세요. 같은 오류가 반복되면 데이터를 저장하고 프로그램을 다시 실행한 뒤, 아래 오류 내용을 전달해 주세요.', target: 'tab-config'}]
     };
-    document.getElementById('assignment-failure-summary').textContent = failure.summary;
+    document.getElementById('assignment-failure-summary').textContent = failure.cause || failure.summary;
     const container = document.getElementById('assignment-failure-reasons');
     container.replaceChildren();
-    (failure.reasons || []).forEach(reason => {
+    // step 이 빈 글자인 항목은 원인 칸에 이미 나온 내용이다.
+    (failure.reasons || []).filter(reason => reason.step !== '').forEach((reason, index) => {
         const row = document.createElement('div');
-        row.className = 'p-3 bg-surface-50 rounded-lg border border-line';
-        const heading = document.createElement('p');
-        heading.className = 'font-bold text-[13px] mb-1';
-        heading.textContent = reason.message;
-        const action = document.createElement('p');
-        action.className = 'text-[13px] leading-relaxed text-stone';
-        action.textContent = reason.action;
-        row.append(heading, action);
+        row.className = 'failure-step';
+        const text = document.createElement('span');
+        const number = document.createElement('span');
+        number.className = 'failure-step-number';
+        number.textContent = String.fromCharCode(0x2460 + index);   // ①②③
+        text.append(number, reason.step || reason.message);
+        row.appendChild(text);
         if (GO_TARGET_LABELS[reason.target]) {
             const button = document.createElement('button');
             button.type = 'button';
-            button.className = GO_TARGET_BTN;
-            button.textContent = GO_TARGET_LABELS[reason.target];
+            button.className = 'failure-step-go';
+            button.innerHTML = `${GO_TARGET_LABELS[reason.target].replace(' 확인', '')}${icon('chevron-down', '')}`;
             button.onclick = () => { closeAssignmentFailure(); goToTarget(reason.target); };
             row.appendChild(button);
         }
