@@ -7,19 +7,6 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-if (-not ('ExamUpdate.WindowDrag' -as [type])) {
-    Add-Type @'
-using System;
-using System.Runtime.InteropServices;
-namespace ExamUpdate {
-    public static class WindowDrag {
-        [DllImport("user32.dll")] public static extern bool ReleaseCapture();
-        [DllImport("user32.dll")] public static extern IntPtr SendMessage(IntPtr window, int message, IntPtr wParam, IntPtr lParam);
-    }
-}
-'@
-}
-
 $installer = Get-Process -Id $InstallerPid -ErrorAction SilentlyContinue
 if ($installer) { try { $null = $installer.Handle } catch { $installer = $null } }
 $state = @{ stage = 'installing'; started = Get-Date }
@@ -29,8 +16,7 @@ $form.ClientSize = New-Object System.Drawing.Size(460, 280)
 $form.StartPosition = 'CenterScreen'
 $form.FormBorderStyle = 'None'
 $form.MaximizeBox = $false
-$form.MinimizeBox = $false
-$form.TopMost = $true
+$form.MinimizeBox = $true
 $form.BackColor = [System.Drawing.Color]::White
 $form.Font = New-Object System.Drawing.Font('Malgun Gothic', 9)
 $form.ForeColor = [System.Drawing.ColorTranslator]::FromHtml('#19263F')
@@ -49,7 +35,7 @@ function SetProgressWindowRegion {
     if ($oldRegion) { $oldRegion.Dispose() }
     $path.Dispose()
 }
-$form.Add_SizeChanged({ SetProgressWindowRegion })
+$form.Add_SizeChanged({ if ($form.WindowState -ne 'Minimized') { SetProgressWindowRegion } })
 
 $header = New-Object System.Windows.Forms.Panel
 $header.Dock = 'Top'
@@ -58,20 +44,39 @@ $header.BackColor = [System.Drawing.ColorTranslator]::FromHtml('#19263F')
 $appName = New-Object System.Windows.Forms.Label
 $appName.Text = '시험감독 배정 프로그램'
 $appName.ForeColor = [System.Drawing.ColorTranslator]::FromHtml('#C1CEE2')
-$appName.SetBounds(24, 17, 412, 23)
+$appName.SetBounds(24, 17, 380, 23)
 $heading = New-Object System.Windows.Forms.Label
 $heading.Text = '프로그램 업데이트'
 $heading.ForeColor = [System.Drawing.Color]::White
 $heading.Font = New-Object System.Drawing.Font('Malgun Gothic', 14, [System.Drawing.FontStyle]::Bold)
 $heading.SetBounds(24, 42, 412, 32)
 $header.Controls.AddRange(@($appName, $heading))
-$dragWindow = {
-    if ($_.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
-        [void][ExamUpdate.WindowDrag]::ReleaseCapture()
-        [void][ExamUpdate.WindowDrag]::SendMessage($form.Handle, 0xA1, [IntPtr]2, [IntPtr]::Zero)
+$minimizeButton = New-Object System.Windows.Forms.Button
+$minimizeButton.Text = '―'
+$minimizeButton.AccessibleName = '최소화'
+$minimizeButton.FlatStyle = 'Flat'
+$minimizeButton.FlatAppearance.BorderSize = 0
+$minimizeButton.FlatAppearance.MouseOverBackColor = [System.Drawing.ColorTranslator]::FromHtml('#2A3B5C')
+$minimizeButton.ForeColor = [System.Drawing.Color]::White
+$minimizeButton.TabStop = $false
+$minimizeButton.SetBounds(414, 12, 32, 26)
+$minimizeButton.Add_Click({ $form.WindowState = 'Minimized' })
+$header.Controls.Add($minimizeButton)
+# 창 끌기: 마우스가 움직인 만큼 창 위치를 옮긴다. 컴파일이 필요한 Add-Type 은 환경에 따라 실패해 쓰지 않는다.
+$startDrag = {
+    param($source, $mouse)
+    if ($mouse.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+        $state.dragCursor = [System.Windows.Forms.Cursor]::Position
+        $state.dragWindow = $form.Location
     }
 }
-foreach ($control in @($header, $appName, $heading)) { $control.Add_MouseDown($dragWindow) }
+$moveDrag = {
+    if ($state.dragCursor) {
+        $cursor = [System.Windows.Forms.Cursor]::Position
+        $form.Location = New-Object System.Drawing.Point(($state.dragWindow.X + $cursor.X - $state.dragCursor.X), ($state.dragWindow.Y + $cursor.Y - $state.dragCursor.Y))
+    }
+}
+$endDrag = { $state.dragCursor = $null }
 $form.Controls.Add($header)
 
 $status = New-Object System.Windows.Forms.Label
@@ -109,6 +114,11 @@ $closeButton.ForeColor = [System.Drawing.Color]::White
 $closeButton.Visible = $false
 $closeButton.Add_Click({ $form.Close() })
 $form.Controls.AddRange(@($status, $detail, $progress, $downloadState, $stageLabel, $closeButton))
+foreach ($control in @($form, $header, $appName, $heading, $status, $detail, $downloadState, $stageLabel)) {
+    $control.Add_MouseDown($startDrag)
+    $control.Add_MouseMove($moveDrag)
+    $control.Add_MouseUp($endDrag)
+}
 $animation = New-Object System.Windows.Forms.Timer
 $animation.Interval = 30
 $animation.Add_Tick({
@@ -156,7 +166,7 @@ $timer.Add_Tick({
         $form.Close()
     }
 })
-$form.Add_Shown({ SetProgressWindowRegion; $timer.Start(); $animation.Start() })
+$form.Add_Shown({ SetProgressWindowRegion; $form.Activate(); $timer.Start(); $animation.Start() })
 $form.Add_FormClosed({ $timer.Stop(); $animation.Stop() })
 try { [System.Windows.Forms.Application]::Run($form) }
 finally { $timer.Dispose(); $animation.Dispose(); $form.Dispose(); if ($installer) { $installer.Dispose() } }
