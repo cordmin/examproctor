@@ -26,6 +26,8 @@ $source = $source.Replace('[Setup]', "[Setup]`r`nUninstallable=no`r`nCreateUnins
 $source = $source -replace '(?s)\[Icons\].*?(?=\[Run\])', ''
 $source = $source.Replace('Source: "dist\{#MyAppExe}"', ('Source: "' + $stub + '"'))
 $source = $source.Replace('Source: "update-progress.ps1"', ('Source: "' + $src + '\update-progress.ps1"'))
+$source = $source.Replace('Source: "icon.ico"', ('Source: "' + $src + '\icon.ico"'))
+$source = $source.Replace('Source: "icon.png"', ('Source: "' + $src + '\icon.png"'))
 $source = $source.Replace('SetupIconFile=icon.ico', ('SetupIconFile=' + $src + '\icon.ico'))
 $source = $source.Replace('LicenseFile=license.txt', ('LicenseFile=' + $src + '\license.txt'))
 $source = $source.Replace('Source: "license.txt"', ('Source: "' + $src + '\license.txt"'))

@@ -1,6 +1,7 @@
 ﻿param(
     [Parameter(Mandatory = $true)][int]$InstallerPid,
-    [Parameter(Mandatory = $true)][string]$AppPath
+    [Parameter(Mandatory = $true)][string]$AppPath,
+    [string]$Version = ''
 )
 
 Add-Type -AssemblyName System.Windows.Forms
@@ -17,7 +18,12 @@ $form.StartPosition = 'CenterScreen'
 $form.FormBorderStyle = 'None'
 $form.MaximizeBox = $false
 $form.MinimizeBox = $true
-$form.BackColor = [System.Drawing.Color]::White
+$form.BackColor = [System.Drawing.ColorTranslator]::FromHtml('#F8FAFC')
+# 지정하지 않으면 작업 표시줄에 Windows 기본 창 아이콘이 나온다.
+if ($PSScriptRoot -and (Test-Path (Join-Path $PSScriptRoot 'icon.ico'))) {
+    $appIcon = New-Object System.Drawing.Icon((Join-Path $PSScriptRoot 'icon.ico'))
+    $form.Icon = $appIcon
+}
 $form.Font = New-Object System.Drawing.Font('Malgun Gothic', 9)
 $form.ForeColor = [System.Drawing.ColorTranslator]::FromHtml('#19263F')
 $form.AutoScaleDimensions = New-Object System.Drawing.SizeF(96, 96)
@@ -39,18 +45,27 @@ $form.Add_SizeChanged({ if ($form.WindowState -ne 'Minimized') { SetProgressWind
 
 $header = New-Object System.Windows.Forms.Panel
 $header.Dock = 'Top'
-$header.Height = 88
+$header.Height = 150
 $header.BackColor = [System.Drawing.ColorTranslator]::FromHtml('#19263F')
+$logo = New-Object System.Windows.Forms.PictureBox
+$logo.SetBounds(206, 18, 48, 48)
+$logo.SizeMode = 'Zoom'
+$logo.BackColor = $header.BackColor
+if ($PSScriptRoot -and (Test-Path (Join-Path $PSScriptRoot 'icon.png'))) {
+    $logo.Image = [System.Drawing.Image]::FromFile((Join-Path $PSScriptRoot 'icon.png'))
+}
 $appName = New-Object System.Windows.Forms.Label
-$appName.Text = '시험감독 배정 프로그램'
-$appName.ForeColor = [System.Drawing.ColorTranslator]::FromHtml('#C1CEE2')
-$appName.SetBounds(24, 17, 380, 23)
+$appName.Text = '시험감독 배정'
+$appName.ForeColor = [System.Drawing.Color]::White
+$appName.Font = New-Object System.Drawing.Font('Malgun Gothic', 14, [System.Drawing.FontStyle]::Bold)
+$appName.TextAlign = 'MiddleCenter'
+$appName.SetBounds(40, 72, 380, 32)
 $heading = New-Object System.Windows.Forms.Label
-$heading.Text = '프로그램 업데이트'
-$heading.ForeColor = [System.Drawing.Color]::White
-$heading.Font = New-Object System.Drawing.Font('Malgun Gothic', 14, [System.Drawing.FontStyle]::Bold)
-$heading.SetBounds(24, 42, 412, 32)
-$header.Controls.AddRange(@($appName, $heading))
+$heading.Text = if ($Version) { "v$Version 업데이트" } else { '프로그램 업데이트' }
+$heading.ForeColor = [System.Drawing.ColorTranslator]::FromHtml('#BFD0EB')
+$heading.TextAlign = 'MiddleCenter'
+$heading.SetBounds(40, 106, 380, 24)
+$header.Controls.AddRange(@($logo, $appName, $heading))
 $minimizeButton = New-Object System.Windows.Forms.Button
 $minimizeButton.Text = '―'
 $minimizeButton.AccessibleName = '최소화'
@@ -82,29 +97,21 @@ $form.Controls.Add($header)
 $status = New-Object System.Windows.Forms.Label
 $status.Text = '새 버전을 설치하고 있습니다.'
 $status.Font = New-Object System.Drawing.Font('Malgun Gothic', 11, [System.Drawing.FontStyle]::Bold)
-$status.SetBounds(24, 110, 412, 28)
+$status.TextAlign = 'MiddleCenter'
+$status.SetBounds(24, 164, 412, 28)
 $detail = New-Object System.Windows.Forms.Label
 $detail.Text = '설치가 끝나면 프로그램이 자동으로 열립니다.'
 $detail.ForeColor = [System.Drawing.ColorTranslator]::FromHtml('#566780')
-$detail.SetBounds(24, 148, 412, 46)
+$detail.TextAlign = 'TopCenter'
+$detail.SetBounds(24, 216, 412, 46)
 $progress = New-Object System.Windows.Forms.Panel
 $progress.AccessibleName = '업데이트 진행 중'
-$progress.BackColor = [System.Drawing.ColorTranslator]::FromHtml('#F0F4F9')
-$progress.SetBounds(24, 210, 412, 6)
+$progress.BackColor = [System.Drawing.ColorTranslator]::FromHtml('#E3E9F1')
+$progress.SetBounds(40, 198, 380, 6)
 $progressFill = New-Object System.Windows.Forms.Panel
 $progressFill.BackColor = [System.Drawing.ColorTranslator]::FromHtml('#2A5088')
 $progressFill.SetBounds(0, 0, 130, 6)
 $progress.Controls.Add($progressFill)
-$downloadState = New-Object System.Windows.Forms.Label
-$downloadState.Text = '다운로드 완료'
-$downloadState.ForeColor = $detail.ForeColor
-$downloadState.SetBounds(24, 232, 180, 24)
-$stageLabel = New-Object System.Windows.Forms.Label
-$stageLabel.Text = '설치 진행 중'
-$stageLabel.ForeColor = $progressFill.BackColor
-$stageLabel.Font = New-Object System.Drawing.Font('Malgun Gothic', 9, [System.Drawing.FontStyle]::Bold)
-$stageLabel.TextAlign = 'TopRight'
-$stageLabel.SetBounds(256, 232, 180, 24)
 $closeButton = New-Object System.Windows.Forms.Button
 $closeButton.Text = '닫기'
 $closeButton.SetBounds(356, 273, 80, 29)
@@ -113,8 +120,8 @@ $closeButton.BackColor = $progressFill.BackColor
 $closeButton.ForeColor = [System.Drawing.Color]::White
 $closeButton.Visible = $false
 $closeButton.Add_Click({ $form.Close() })
-$form.Controls.AddRange(@($status, $detail, $progress, $downloadState, $stageLabel, $closeButton))
-foreach ($control in @($form, $header, $appName, $heading, $status, $detail, $downloadState, $stageLabel)) {
+$form.Controls.AddRange(@($status, $detail, $progress, $closeButton))
+foreach ($control in @($form, $header, $logo, $appName, $heading, $status, $detail)) {
     $control.Add_MouseDown($startDrag)
     $control.Add_MouseMove($moveDrag)
     $control.Add_MouseUp($endDrag)
@@ -133,8 +140,6 @@ function ShowUpdateProblem([string]$message, [string]$explanation) {
     $detail.Text = $explanation
     $animation.Stop()
     $progressFill.Visible = $false
-    $stageLabel.Text = '확인 필요'
-    $stageLabel.ForeColor = [System.Drawing.ColorTranslator]::FromHtml('#B63D3D')
     $form.ClientSize = New-Object System.Drawing.Size($form.ClientSize.Width, ([int](316 * $form.DeviceDpi / 96)))
     $closeButton.Visible = $true
 }
@@ -154,7 +159,6 @@ $timer.Add_Tick({
             return
         }
         $state.stage = 'starting'
-        $stageLabel.Text = '자동 실행 중'
         $status.Text = '프로그램을 다시 실행하고 있습니다.'
         $detail.Text = "첫 실행 준비에 시간이 걸릴 수 있습니다.`r`n프로그램 창이 열리면 이 안내는 자동으로 닫힙니다."
     }
@@ -169,4 +173,4 @@ $timer.Add_Tick({
 $form.Add_Shown({ SetProgressWindowRegion; $form.Activate(); $timer.Start(); $animation.Start() })
 $form.Add_FormClosed({ $timer.Stop(); $animation.Stop() })
 try { [System.Windows.Forms.Application]::Run($form) }
-finally { $timer.Dispose(); $animation.Dispose(); $form.Dispose(); if ($installer) { $installer.Dispose() } }
+finally { $timer.Dispose(); $animation.Dispose(); if ($logo.Image) { $logo.Image.Dispose() }; if ($appIcon) { $appIcon.Dispose() }; $form.Dispose(); if ($installer) { $installer.Dispose() } }

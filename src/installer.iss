@@ -44,6 +44,8 @@ Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
 
 [Files]
 Source: "update-progress.ps1"; Flags: dontcopy
+Source: "icon.ico"; Flags: dontcopy
+Source: "icon.png"; Flags: dontcopy
 Source: "dist\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "motto-serif-LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
@@ -87,10 +89,16 @@ begin
     ProgressScript := ExpandConstant('{userappdata}\시험감독배정\update-progress.ps1');
     if not FileCopy(ExpandConstant('{tmp}\update-progress.ps1'), ProgressScript, False) then
       RaiseException('업데이트 안내 파일을 준비하지 못했습니다.');
+    // 안내 창과 작업 표시줄에 프로그램 아이콘을 쓴다.
+    ExtractTemporaryFile('icon.ico');
+    ExtractTemporaryFile('icon.png');
+    FileCopy(ExpandConstant('{tmp}\icon.ico'), ExtractFilePath(ProgressScript) + 'icon.ico', False);
+    FileCopy(ExpandConstant('{tmp}\icon.png'), ExtractFilePath(ProgressScript) + 'icon.png', False);
     Parameters := '-NoProfile -NonInteractive -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File ' +
       AddQuotes(ProgressScript) +
       ' -InstallerPid ' + IntToStr(GetCurrentProcessId) +
-      ' -AppPath ' + AddQuotes(ExpandConstant('{app}\{#MyAppExe}'));
+      ' -AppPath ' + AddQuotes(ExpandConstant('{app}\{#MyAppExe}')) +
+      ' -Version {#MyAppVersion}';
     if IsWin64 then
       PowerShellPath := ExpandConstant('{sysnative}\WindowsPowerShell\v1.0\powershell.exe')
     else
