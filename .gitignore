@@ -12,4 +12,10 @@ Output/
 # Generated design previews and UI verification captures
 /artifacts/
 
-!/시험감독_배정결과(예시).json
+# 내 컴퓨터에서만 쓰는 파일
+.claude/
+/tests/*
+# 배포 때 자동으로 도는 시험과 그 자료만 올린다
+!/tests/test_clean_startup.py
+!/tests/test_update_installer.ps1
+!/tests/sample_data.json

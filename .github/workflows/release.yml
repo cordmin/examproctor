@@ -50,7 +50,7 @@ jobs:
         working-directory: src
         run: |
           pip install pywebview openpyxl pyinstaller
-          python test_clean_startup.py
+          python ../tests/test_clean_startup.py
           pyinstaller 시험감독배정시스템.spec
 
       - name: Build installer
@@ -61,7 +61,7 @@ jobs:
           iscc "/DMyAppVersion=$env:VERSION" installer.iss
 
       - name: Test silent update notice through delayed restart
-        working-directory: src
+        working-directory: tests
         shell: powershell
         run: ./test_update_installer.ps1
 

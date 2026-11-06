@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'src'))
 import main
 
 
@@ -20,7 +22,7 @@ def write_saved(folder, data):
 
 
 def check():
-    sources = [Path(__file__).with_name(name) for name in ['sample_data.json', '시험감독_배정결과(예시).json']]
+    sources = [Path(__file__).with_name('sample_data.json'), Path(main.__file__).with_name('시험감독_배정결과(예시).json')]
     samples = [json.loads(source.read_text(encoding='utf-8-sig')) for source in sources]
     with TemporaryDirectory() as folder:
         api = installed_api(folder)

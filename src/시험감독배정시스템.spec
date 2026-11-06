@@ -5,9 +5,9 @@ import os
 # 프론트엔드 정적 파일. index.html 의 <script> 순서와 일치해야 한다.
 FRONTEND = ['index.html', 'tailwind.min.js',
             'flatpickr.min.js', 'flatpickr.min.css', 'flatpickr-ko.js',
-            'state.js', 'labels.js', 'ui.js',
+            'state.js', 'labels.js', 'ui.js', 'tour.js',
             'tab-setup.js', 'tab-teachers.js', 'tab-result.js', 'tab-validate.js',
-            'shell.js', 'icon.ico', 'icon.png', 'motto-serif.woff2', 'motto-serif-LICENSE.txt']
+            'shell.js', 'updates.js', 'actions.js', 'app.css', 'icon.ico', 'icon.png', 'motto-serif.woff2', 'motto-serif-LICENSE.txt']
 
 a = Analysis(
     [os.path.join(SPECPATH, 'main.py')],

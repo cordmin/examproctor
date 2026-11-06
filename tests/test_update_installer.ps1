@@ -19,17 +19,18 @@ public class UpdateTestApp {
     }
 }
 '@
-$source = Get-Content "$PSScriptRoot/installer.iss" -Raw -Encoding UTF8
+$src = (Resolve-Path (Join-Path $PSScriptRoot '..\src')).Path
+$source = Get-Content "$src/installer.iss" -Raw -Encoding UTF8
 $source = $source -replace 'AppId=.*', ('AppId=ExamUpdateSmoke-' + [guid]::NewGuid())
 $source = $source.Replace('[Setup]', "[Setup]`r`nUninstallable=no`r`nCreateUninstallRegKey=no`r`nUsePreviousAppDir=no")
 $source = $source -replace '(?s)\[Icons\].*?(?=\[Run\])', ''
 $source = $source.Replace('Source: "dist\{#MyAppExe}"', ('Source: "' + $stub + '"'))
-$source = $source.Replace('Source: "update-progress.ps1"', ('Source: "' + $PSScriptRoot + '\update-progress.ps1"'))
-$source = $source.Replace('SetupIconFile=icon.ico', ('SetupIconFile=' + $PSScriptRoot + '\icon.ico'))
-$source = $source.Replace('LicenseFile=license.txt', ('LicenseFile=' + $PSScriptRoot + '\license.txt'))
-$source = $source.Replace('Source: "license.txt"', ('Source: "' + $PSScriptRoot + '\license.txt"'))
-$source = $source.Replace('Source: "motto-serif-LICENSE.txt"', ('Source: "' + $PSScriptRoot + '\motto-serif-LICENSE.txt"'))
-$source = $source.Replace('Source: "시험감독_배정결과(예시).json"', ('Source: "' + $PSScriptRoot + '\시험감독_배정결과(예시).json"'))
+$source = $source.Replace('Source: "update-progress.ps1"', ('Source: "' + $src + '\update-progress.ps1"'))
+$source = $source.Replace('SetupIconFile=icon.ico', ('SetupIconFile=' + $src + '\icon.ico'))
+$source = $source.Replace('LicenseFile=license.txt', ('LicenseFile=' + $src + '\license.txt'))
+$source = $source.Replace('Source: "license.txt"', ('Source: "' + $src + '\license.txt"'))
+$source = $source.Replace('Source: "motto-serif-LICENSE.txt"', ('Source: "' + $src + '\motto-serif-LICENSE.txt"'))
+$source = $source.Replace('Source: "시험감독_배정결과(예시).json"', ('Source: "' + $src + '\시험감독_배정결과(예시).json"'))
 $source = $source.Replace("ExpandConstant('{userappdata}\시험감독배정')", "'$folder'")
 $source = $source.Replace("ExpandConstant('{userappdata}\시험감독배정\update-progress.ps1')", "'$folder\update-progress.ps1'")
 $iss = Join-Path $folder 'smoke.iss'
