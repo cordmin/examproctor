@@ -312,7 +312,6 @@ def run_algorithm(appData):
 
                 for slot in slots_ordered:
                     s_nm = slot['name']
-                    s_sj = slot['subject']
                     s_rl = slot['role']
                     s_gd = slot.get('grade', '')
                     best_teacher = None
@@ -392,9 +391,9 @@ def run_algorithm(appData):
                         'date': date, 'p_num': p_num, 'role': s_rl, 'class_name': s_nm
                     })
 
-                    if s_sj == '자습' or best_teacher['t'].get('subject') == s_sj:
-                        label = f"{s_nm}(수업)"
-                    elif slot['type'] == 'class':
+                    # 라벨은 맡은 자리로만 정한다. 교사의 담당 과목으로 정하면 담당교과 금지를 끈 시험 시간과
+                    # 과목이 빈 교사의 복도·특수·분리 자리가 '(수업)'으로 잘못 표기된다.
+                    if slot['type'] == 'class':
                         label = f"{s_nm}({s_rl})"
                     else:
                         label = s_nm if "(부)" not in s_rl else f"{s_nm}(부)"
