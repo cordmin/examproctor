@@ -1,5 +1,5 @@
-// 감독 명단 · 결시 관리 화면.
-// 결시 표는 드래그로 칠하는 방식이라 마우스 핸들러가 함께 있다.
+// 감독 명단 · 배정 제외 화면.
+// 배정 제외 표는 드래그로 칠하는 방식이라 마우스 핸들러가 함께 있다.
 
 const roleMenu = document.getElementById('role-menu');
 let roleMenuTrigger = null;
@@ -113,8 +113,8 @@ window.renderTeachers = function() {
     tbody.innerHTML = rows;
 };
 
-// ── 결시 표시 ──────────────────────────────────────────────────────────
-// 결시 종류를 마커 팔레트로 범주 구분한다(색이 곧 분류 신호).
+// ── 배정 제외 표시 ──────────────────────────────────────────────────────
+// 제외 종류를 마커 팔레트로 범주 구분한다(색이 곧 분류 신호).
 // 브러시 툴바 / 표 셀 / 드래그 칠하기 세 곳이 이 함수 하나를 공유한다.
 const ABSENCE_MARK = {
     ALL: 'bg-coral text-white',
@@ -133,8 +133,8 @@ function absenceFill(type, target) {
 const ABS_BTN_BASE = 'w-full h-full min-h-[34px] text-[12.5px] font-bold rounded-md';
 
 function absenceLabel(type, target) {
-    if (type === 'ALL') return '결시';
-    return type === 'GRADE' ? `결시(${target}학년)` : `결시(${target})`;
+    if (type === 'ALL') return '제외';
+    return type === 'GRADE' ? `제외(${target}학년)` : `제외(${target})`;
 }
 
 function absenceTargets(data) {
@@ -145,10 +145,10 @@ function absenceTargets(data) {
 function renderAbsenceButton(button, data) {
     const targets = absenceTargets(data);
     const multiple = data?.type === 'GRADE' && targets.length > 1;
-    const detail = data?.type === 'GRADE' ? `${targets.map(grade => `${grade}학년`).join('·')} 결시` : data ? absenceLabel(data.type, data.target) : '결시 없음';
+    const detail = data?.type === 'GRADE' ? `${targets.map(grade => `${grade}학년`).join('·')} 제외` : data ? absenceLabel(data.type, data.target) : '제외 없음';
     button.className = `${ABS_BTN_BASE} ${data ? (multiple ? 'text-white font-bold cursor-default' : absenceFill(data.type, targets[0])) : 'bg-transparent text-transparent hover:bg-surface-100 hover:text-pebble'}`;
-    button.textContent = data ? (multiple ? '결시' : absenceLabel(data.type, targets[0])) : '+';
-    button.classList.toggle('absence-short-label', button.textContent === '결시');
+    button.textContent = data ? (multiple ? '제외' : absenceLabel(data.type, targets[0])) : '+';
+    button.classList.toggle('absence-short-label', button.textContent === '제외');
     button.classList.toggle('absence-add', !data);
     button.title = detail;
     button.setAttribute('aria-label', detail);
@@ -183,15 +183,15 @@ window.renderAbsencesTab = function() {
 
     const tContainer = document.getElementById('brush-toolbar');
     const brushCls = 'abs-brush px-3 inline-flex items-center justify-center rounded-lg font-bold text-[12px] cursor-pointer';
-    let tHtml = `<span class="font-bold text-[12px] text-white mr-1 self-center">결시 선택:</span>`;
-    tHtml += `<button type="button" class="${brushCls} ${absenceFill('ALL')}" data-type="ALL" data-target="">전체 결시</button>`;
+    let tHtml = `<span class="font-bold text-[12px] text-white mr-1 self-center">배정 제외 선택:</span>`;
+    tHtml += `<button type="button" class="${brushCls} ${absenceFill('ALL')}" data-type="ALL" data-target="">전체 제외</button>`;
     appData.config.grades.forEach(g => {
-        tHtml += `<button type="button" class="${brushCls} ${absenceFill('GRADE', g)}" data-type="GRADE" data-target="${g}">${g}학년 결시</button>`;
+        tHtml += `<button type="button" class="${brushCls} ${absenceFill('GRADE', g)}" data-type="GRADE" data-target="${g}">${g}학년 제외</button>`;
     });
     let cOpts = ''; appData.config.grades.forEach(g => { for(let c=1; c<=(appData.config.classes[g]||0); c++) cOpts += `<option value="${g}-${c}">${g}-${c}</option>`; });
-    tHtml += `<div class="inline-flex items-center gap-2 pl-3 pr-1 rounded-lg abs-brush cursor-pointer ${absenceFill('CLASS')}" id="brush-class-wrapper" data-type="CLASS"><span class="font-bold text-[12px] text-white pointer-events-none select-none">학급 결시</span><select id="brush-class-select" class="text-[11px] font-bold" aria-label="결시 학급 선택" onchange="event.stopPropagation(); setBrush('CLASS', this.value, document.getElementById('brush-class-wrapper'));">${cOpts}</select></div>`;
+    tHtml += `<div class="inline-flex items-center gap-2 pl-3 pr-1 rounded-lg abs-brush cursor-pointer ${absenceFill('CLASS')}" id="brush-class-wrapper" data-type="CLASS"><span class="font-bold text-[12px] text-white pointer-events-none select-none">학급 제외</span><select id="brush-class-select" class="text-[11px] font-bold" aria-label="제외 학급 선택" onchange="event.stopPropagation(); setBrush('CLASS', this.value, document.getElementById('brush-class-wrapper'));">${cOpts}</select></div>`;
     tContainer.innerHTML = tHtml;
-    // currentTarget: 학급 결시는 내부 select 클릭도 wrapper 기준으로 처리해야 한다.
+    // currentTarget: 학급 제외는 내부 select 클릭도 wrapper 기준으로 처리해야 한다.
     document.querySelectorAll('.abs-brush').forEach(b => { b.onclick = (e) => setBrush(e.currentTarget.getAttribute('data-type'), e.currentTarget.getAttribute('data-target'), e.currentTarget); });
 
     const classSelect = document.getElementById('brush-class-select');
@@ -319,10 +319,10 @@ function applyAbsence(tId, pId, isAdd, isRemove, btn, event) {
 }
 
 window.clearAllAbsences = function() {
-    openConfirmModal("결시 전체 초기화", "입력된 모든 교사의 결시 데이터를<br>전체 초기화하시겠습니까?", "초기화 실행", () => {
+    openConfirmModal("배정 제외 전체 초기화", "입력된 모든 교사의 배정 제외 데이터를<br>전체 초기화하시겠습니까?", "초기화 실행", () => {
         appData.teachers.forEach(t => t.absences = {});
         renderAbsencesTab();
-        showToast("모든 결시 데이터가 초기화되었습니다.", "success");
+        showToast("모든 배정 제외 데이터가 초기화되었습니다.", "success");
     });
 };
 

@@ -6,7 +6,7 @@
 const TOUR_STEPS = [
     { el: '[data-target="tab-config"]',   title: '1. 기초 설정',  text: '시험 날짜와 교시, 시험 보는 학년과 과목을 정합니다. 교실마다 감독을 몇 명 둘지도 여기서 정합니다.' },
     { el: '[data-target="tab-teachers"]', title: '2. 감독 명단',  text: '감독 들어가실 선생님을 설정합니다. 엑셀 양식으로 한꺼번에 불러올 수도 있고, 선생님마다 맡을 수 있는 감독을 체크합니다.' },
-    { el: '[data-target="tab-absences"]', title: '3. 결시 관리',  text: '출장·수업 등으로 감독할 수 없는 시간을 표시합니다. 선생님별 배정 제한도 여기서 정합니다.' },
+    { el: '[data-target="tab-absences"]', title: '3. 배정 제외',  text: '출장·수업 등으로 감독할 수 없는 시간을 표시합니다. 선생님별 배정 제한도 여기서 정합니다.' },
     { el: '[data-action="run"]',          title: '4. 배정 실행',  text: '배정 규칙을 확인하고 실행하면 감독이 자동으로 배정됩니다. 배정이 막히면 무엇부터 고치면 되는지 알려 줍니다.' },
     { el: '[data-target="tab-result"]',   title: '5. 배정 결과',  text: '선생님별·학급별 감독표를 봅니다. 칸을 끌어 놓거나 우클릭해서 선생님을 바꿀 수 있고, 엑셀로 내려받을 수 있습니다.' },
     { el: '[data-target="tab-validate"]', title: '6. 배정 검증',  text: '모든 규칙을 잘 지켰는지 확인합니다. 문제가 있으면 해결 방법과 바로 가기 버튼이 함께 나옵니다.' },

@@ -57,7 +57,7 @@ function naturalSortKey(a, b) {
 }
 
 // ── 날짜 x 교시 표 공통 ──────────────────────────────────────────────────
-// 시험교과/결시/배정결과 탭이 모두 '날짜를 묶고 그 아래 교시를 펼치는' 같은 표를 쓴다.
+// 시험교과/배정제외/배정결과 탭이 모두 '날짜를 묶고 그 아래 교시를 펼치는' 같은 표를 쓴다.
 
 function groupPeriodsByDate() {
     const periodsByDate = {};
@@ -220,7 +220,7 @@ document.addEventListener('scroll', event => {
 window.addEventListener('resize', () => closeAppSelect());
 
 // 안내 문구의 target 으로 해당 화면을 연다 (배정 실패 창, 배정 검증 카드가 함께 쓴다).
-const GO_TARGET_LABELS = {'tab-config': '기초 설정 확인', 'tab-teachers': '감독 명단 확인', 'tab-absences': '결시 관리 확인', 'tab-result': '배정 결과 보기', rules: '배정 규칙 확인'};
+const GO_TARGET_LABELS = {'tab-config': '기초 설정 확인', 'tab-teachers': '감독 명단 확인', 'tab-absences': '배정 제외 확인', 'tab-result': '배정 결과 보기', rules: '배정 규칙 확인'};
 const GO_TARGET_BTN = 'mt-2 px-3 py-1.5 border border-line bg-surface-0 rounded-lg text-[12px] font-bold hover:bg-surface-100';
 window.goToTarget = function(target) {
     if (target === 'rules') openRulesModal();

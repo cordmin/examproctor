@@ -146,11 +146,11 @@ def run_algorithm(appData):
             return f"{int(m)}월 {int(d)}일 {p['name']}"
 
         def capacity_reasons(need, worst, worst_gap):
-            """부족할 때 '먼저 해 볼 것'을 순서대로: 배정 제한 → 교실별 배정 인원 → 결시 확인 → 선생님 추가."""
+            """부족할 때 '먼저 해 볼 것'을 순서대로: 배정 제한 → 교실별 배정 인원 → 배정 제외 확인 → 선생님 추가."""
             reasons = []
             if worst_gap > 0:
                 reasons.append({"message": f"{when(worst)}에는 감독 자리가 {len(slots_by_period[worst['id']])}곳인데, 감독할 수 있는 선생님은 {free_at[worst['id']]}명뿐입니다.",
-                                "action": "한 선생님은 한 교시에 한 자리만 맡을 수 있습니다. 이 시간에 잘못 넣은 결시가 없는지 확인하세요.", "target": "tab-absences",
+                                "action": "한 선생님은 한 교시에 한 자리만 맡을 수 있습니다. 이 시간에 잘못 넣은 배정 제외가 없는지 확인하세요.", "target": "tab-absences",
                                 "step": ""})   # 이 내용은 실패 창의 원인 칸에 나온다
 
             limited = sorted(((t, max(0, n_periods - count_all_absent(t)) - calc_teacher_capacity(t)) for t in active_teachers),
@@ -161,7 +161,7 @@ def run_algorithm(appData):
                 names = ', '.join(f"{t['name']}({t['maxPeriods']}시간)" for t, _ in limited[:5]) + (f" 외 {len(limited) - 5}명" if len(limited) > 5 else '')
                 effect = "이 제한만 풀어도 해결됩니다." if after <= 0 else f"모두 풀면 필요한 선생님이 {need - after}명 줄어듭니다."
                 reasons.append({"message": f"배정 제한이 걸린 선생님: {names}",
-                                "action": f"{effect} 결시 관리에서 배정 제한을 늘릴 수 있는지 확인하세요.", "target": "tab-absences",
+                                "action": f"{effect} 배정 제외에서 배정 제한을 늘릴 수 있는지 확인하세요.", "target": "tab-absences",
                                 "step": f"배정 제한이 걸린 선생님 {len(limited)}명 확인하기"})
 
             for g in config.get('grades', []):
@@ -180,9 +180,9 @@ def run_algorithm(appData):
             absent = sorted(((t, count_all_absent(t)) for t in active_teachers), key=lambda x: -x[1])
             absent = [f"{t['name']}({n}시간)" for t, n in absent if n] + [f"{t['name']}(전체 제외)" for t in teachers if t.get('isAbsentAll')]
             if absent:
-                reasons.append({"message": f"결시로 감독에서 빠진 선생님: {', '.join(absent[:5])}" + (f" 외 {len(absent) - 5}명" if len(absent) > 5 else ''),
-                                "action": "결시가 실제 계획과 맞는지 확인하세요. 잘못 넣은 결시를 지우면 그만큼 감독할 수 있습니다.", "target": "tab-absences",
-                                "step": f"결시 {len(absent)}명 확인하기"})
+                reasons.append({"message": f"배정 제외로 감독에서 빠진 선생님: {', '.join(absent[:5])}" + (f" 외 {len(absent) - 5}명" if len(absent) > 5 else ''),
+                                "action": "배정 제외가 실제 계획과 맞는지 확인하세요. 잘못 넣은 제외를 지우면 그만큼 감독할 수 있습니다.", "target": "tab-absences",
+                                "step": f"배정 제외 {len(absent)}명 확인하기"})
 
             reasons.append({"message": f"가장 확실한 방법은 감독 선생님을 {need}명 이상 추가하는 것입니다.",
                             "action": "감독 명단에 빠진 선생님이 없는지 확인하고 추가하세요.", "target": "tab-teachers",
@@ -352,11 +352,11 @@ def run_algorithm(appData):
 
                     if not best_teacher:
                         remedies = {
-                            "전체 배정 제외": ("감독 명단과 결시 설정에서 배정 제외 상태가 실제 계획과 일치하는지 확인하세요.", "tab-teachers"),
+                            "전체 배정 제외": ("감독 명단과 배정 제외 설정에서 배정 제외 상태가 실제 계획과 일치하는지 확인하세요.", "tab-teachers"),
                             "감독 유형 권한 없음": (f"감독 명단에서 {s_gd}학년 {s_rl} 감독이 가능한 교사의 해당 체크를 켜세요.", "tab-teachers"),
-                            "해당 시간 결시": ("결시 관리에서 해당 교시의 전체·학년·학급 결시를 확인하고 잘못 입력한 결시를 수정하세요.", "tab-absences"),
+                            "해당 시간 배정 제외": ("배정 제외에서 해당 교시의 전체·학년·학급 제외를 확인하고 잘못 입력한 제외를 수정하세요.", "tab-absences"),
                             "동시간 중복 배정": ("같은 교시에 한 교사가 두 곳을 감독할 수 없습니다. 감독 가능한 교사를 추가하거나 기초 설정의 교실별 배정 인원이 실제 계획보다 많지 않은지 확인하세요.", "tab-config"),
-                            "배정 제한 시간 도달": ("결시 관리에서 해당 교사의 배정 제한을 확인하고, 가능한 범위에서 늘리거나 감독 인원을 추가하세요.", "tab-absences"),
+                            "배정 제한 시간 도달": ("배정 제외에서 해당 교사의 배정 제한을 확인하고, 가능한 범위에서 늘리거나 감독 인원을 추가하세요.", "tab-absences"),
                             "본인 담임학급 배정 금지": ("다른 학급을 맡을 수 있는 감독 인원을 확보하세요. 학교 운영상 허용하는 경우에만 배정 규칙에서 담임학급 시간 배정 금지를 해제하세요.", "rules"),
                             "본인 담당교과 배정 금지": ("해당 과목을 담당하지 않는 감독 인원을 확보하세요. 학교 운영상 허용하는 경우에만 배정 규칙에서 담당교과 시간 배정 금지를 해제하세요.", "rules"),
                             "동일 학급 연속 배정 금지": ("해당 시간에 다른 교사를 배정할 수 있도록 인원을 확보하거나, 허용하는 경우 배정 규칙에서 동일 학급 연속 배정 금지를 해제하세요.", "rules"),
@@ -367,11 +367,11 @@ def run_algorithm(appData):
                         for t in teachers:
                             if t.get('isAbsentAll', False): reason = "전체 배정 제외"
                             elif not has_role_permission(t, s_rl, s_gd): reason = "감독 유형 권한 없음"
-                            elif is_absent(t.get('absences', {}), p_id, s_gd, s_nm): reason = "해당 시간 결시"
+                            elif is_absent(t.get('absences', {}), p_id, s_gd, s_nm): reason = "해당 시간 배정 제외"
                             else: reason = violates_absolute(t, t_states[t['id']], p_id, date, p_num, s_nm, s_rl, s_gd, assigned_this_period)
                             if reason: counts[reason] = counts.get(reason, 0) + 1
                         steps = {"전체 배정 제외": "배정 제외 선생님 확인하기", "감독 유형 권한 없음": "감독 권한 확인하기",
-                                 "해당 시간 결시": "결시 확인하기", "동시간 중복 배정": "감독 인원 확인하기",
+                                 "해당 시간 배정 제외": "배정 제외 확인하기", "동시간 중복 배정": "감독 인원 확인하기",
                                  "배정 제한 시간 도달": "배정 제한 늘리기"}
                         step_of = lambda reason: steps.get(reason, f"{reason} 풀기")
                         reasons = [{"message": f"{reason}: {count}명", "action": remedies[reason][0], "target": remedies[reason][1],

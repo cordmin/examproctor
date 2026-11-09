@@ -19,7 +19,7 @@ _HALLWAY_RE = re.compile(r'^(\d+학년\(복도?)(\d*)\)$')
 ROLE_COL = {'정': 'main', '부': 'sub', '복도': 'hall', '분리': 'sep', '수업': 'cls', '특수': 'sp'}
 
 # check_label() 의 위반 분류 -> _generate_verify_data() 의 검사 항목 번호
-CHECK_INDEX = {'권한': 2, '결시': 3, '담임': 4, '교과': 5}
+CHECK_INDEX = {'권한': 2, '제외': 3, '담임': 4, '교과': 5}
 
 def parse_label(label):
     """라벨을 (구역명, 역할표기) 로 분해한다. 복도는 구역 번호가 역할표기가 된다."""
@@ -76,7 +76,7 @@ def check_label(t, p_id, label, classSubjects, rules):
     """한 교사가 특정 교시에 이 라벨을 받아도 되는지 검사한다.
 
     반환: [(분류, 사유), ...]. 빈 리스트면 문제 없음.
-    분류는 '권한 / 결시 / 담임 / 교과' 네 가지.
+    분류는 '권한 / 제외 / 담임 / 교과' 네 가지.
 
     사후 검증(_generate_verify_data)과 수동 교체 검사가 이 함수 하나를 공유한다.
     ※ 배정 알고리즘의 violates_absolute() 와는 일부러 합치지 않는다.
@@ -99,8 +99,8 @@ def check_label(t, p_id, label, classSubjects, rules):
     if abs_data:
         a_type, targets = abs_data.get('type'), absence_targets(abs_data)
         if a_type == 'ALL' or (a_type == 'GRADE' and grade in targets) or (a_type == 'CLASS' and area in targets):
-            abs_str = '전체 결시' if a_type == 'ALL' else (f"{'·'.join(targets)}학년 결시" if a_type == 'GRADE' else f"{'·'.join(targets)} 결시")
-            out.append(('결시', f"{abs_str} 시간대 '{area}' 배정 위반"))
+            abs_str = '전체 제외' if a_type == 'ALL' else (f"{'·'.join(targets)}학년 제외" if a_type == 'GRADE' else f"{'·'.join(targets)} 제외")
+            out.append(('제외', f"{abs_str} 시간대 '{area}' 배정 위반"))
 
     if rules.get('excludeHomeroom', True) and t.get('homeroom') == area:
         out.append(('담임', f"본인 담임학급({area}) 배정 위반"))

@@ -57,21 +57,21 @@ window.handleRightClickSwap = function(e, tId, pId) {
     const infoStr = `<div class="text-[15px] font-bold text-text-main leading-relaxed">${formatBeautifulDate(p.date)} ${p.name} <span class="text-brand-600 font-bold">${t1.name}</span> 교사의 <span class="inline-block bg-surface-100 px-2 py-0.5 rounded border border-surface-300 font-bold text-[14px] text-slate-800 mx-0.5">'${a1}'</span>을 교체합니다.</div>`;
     document.getElementById('rc-swap-info').innerHTML = infoStr;
 
-    // 공강 → 배정 중 → 결시 순으로 묶어 3칸 바둑판 메뉴로 보여 준다 (ui.js 의 grid-select).
+    // 공강 → 배정 중 → 배정 제외 순으로 묶어 3칸 바둑판 메뉴로 보여 준다 (ui.js 의 grid-select).
     const groups = { free: [], busy: [], absent: [] };
     appData.teachers.forEach(t2 => {
         if (t2.id === tId) return;
         const a2 = (appData.assignments[t2.id] || {})[pId];
         const abs = t2.absences && t2.absences[pId];
         if (abs) {
-            const sub = abs.type === 'ALL' ? '' : (abs.type === 'GRADE' ? `${abs.target}학년 결시` : `${abs.target} 결시`);
+            const sub = abs.type === 'ALL' ? '' : (abs.type === 'GRADE' ? `${abs.target}학년 제외` : `${abs.target} 제외`);
             groups.absent.push(`<option value="${t2.id}" data-sub="${sub}" disabled>${t2.name}</option>`);
         } else if (a2) groups.busy.push(`<option value="${t2.id}" data-sub="${a2}">${t2.name}</option>`);
         else groups.free.push(`<option value="${t2.id}">${t2.name}</option>`);
     });
     const group = (label, items) => items.length ? `<optgroup label="${label}" data-count="${items.length}명">${items.join('')}</optgroup>` : '';
     document.getElementById('rc-swap-target').innerHTML = `<option value="">-- 교체할 교사 선택 --</option>`
-        + group('공강', groups.free) + group('배정 중', groups.busy) + group('결시 · 선택 불가', groups.absent);
+        + group('공강', groups.free) + group('배정 중', groups.busy) + group('배정 제외 · 선택 불가', groups.absent);
     refreshDropdowns();
 
     const m = document.getElementById('rightclick-swap-modal');

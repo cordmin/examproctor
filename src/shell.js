@@ -8,7 +8,7 @@ const NAV_ITEMS = [
     { action: 'reset',        label: '전체 초기화', icon: 'refresh' },
     { target: 'tab-config',   label: '기초 설정', icon: 'settings' },
     { target: 'tab-teachers', label: '감독 명단', icon: 'users' },
-    { target: 'tab-absences', label: '결시 관리', icon: 'clipboard-list' },
+    { target: 'tab-absences', label: '배정 제외', icon: 'clipboard-list' },
     { action: 'run',          label: '배정 실행', icon: 'play' },   // 탭이 아니라 규칙 창을 연다
     { target: 'tab-result',   label: '배정 결과', icon: 'table' },
     { target: 'tab-validate', label: '배정 검증', icon: 'search' },

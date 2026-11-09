@@ -13,7 +13,7 @@ def generate_verify_data(teachers, periods, assignments, classSubjects, rules):
         {"name": "1. 모든 감독 자리 배정 완료", "desc": "요구된 모든 시험감독 자리에 누락 없이 교사가 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "2. 동일 교시 중복 배정 방지", "desc": "한 교시 동안 2개 이상의 감독 자리에 중복 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "3. 교사별 감독 권한 준수", "desc": "교사별로 허용된 감독 역할(정, 부, 복, 자 등)에 맞게 배정되었는지 확인합니다.", "pass": True, "messages": []},
-        {"name": "4. 결시 교사 배정 방지", "desc": "전체/학년/학급 결시로 설정된 시간대에 배정된 교사가 없는지 확인합니다.", "pass": True, "messages": []},
+        {"name": "4. 배정 제외 교사 배정 방지", "desc": "전체/학년/학급 제외로 설정된 시간대에 배정된 교사가 없는지 확인합니다.", "pass": True, "messages": []},
         {"name": "5. 본인 담임학급 배정 금지", "desc": "본인이 담임을 맡고 있는 학급의 시험 감독으로 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "6. 본인 담당교과 배정 금지", "desc": "본인이 담당하는 교과목의 시험 시간대에 감독으로 배정되었는지 확인합니다.", "pass": True, "messages": []},
         {"name": "7. 동일 학급 연속 배정 금지", "desc": "동일한 학급에 연속으로 시험 감독이 배정되었는지 확인합니다.", "pass": True, "messages": []},
@@ -46,10 +46,10 @@ def generate_verify_data(teachers, periods, assignments, classSubjects, rules):
         ("배정을 다시 실행하세요. 계속 비면 감독 명단에 선생님을 추가하세요.", "tab-teachers"),
         (swap, "tab-result"),
         ("감독 명단에서 해당 감독 권한을 켜거나, " + swap, "tab-teachers"),
-        ("결시 관리에서 결시가 맞는지 확인하고, 맞다면 " + swap, "tab-absences"),
+        ("배정 제외에서 제외 설정이 맞는지 확인하고, 맞다면 " + swap, "tab-absences"),
         rule_off, rule_off, rule_off, rule_off,
         ("연속으로 맡은 시간 중 하나를 다른 선생님과 교체하거나, 배정 규칙에서 연속 감독 시간을 늘리세요.", "rules"),
-        ("결시 관리에서 배정 제한이 맞는지 확인하거나, " + swap, "tab-absences"),
+        ("배정 제외에서 배정 제한이 맞는지 확인하거나, " + swap, "tab-absences"),
         ("가장 많이 맡은 선생님의 감독 하나를 가장 적게 맡은 선생님과 교체하거나, 배정 규칙에서 편차 허용을 늘리세요.", "rules"),
     ]
     for c, (fix, target) in zip(checks, fixes):
@@ -128,7 +128,7 @@ def generate_verify_data(teachers, periods, assignments, classSubjects, rules):
             day = [p for p in periods_sorted if p['date'] == date]
             off = [p['name'] for p in day if t.get('absences', {}).get(p['id'], {}).get('type') == 'ALL']
             if off:
-                return '종일 결시' if len(off) == len(day) else f"{','.join(off)} 결시"
+                return '종일 제외' if len(off) == len(day) else f"{','.join(off)} 제외"
             if not (t.get('isMain') or t.get('isSub') or t.get('isHallway')
                     or any(t.get(f'isClass{g}', True) for g in (1, 2, 3))):
                 return '특수·분리 전담'
@@ -141,7 +141,7 @@ def generate_verify_data(teachers, periods, assignments, classSubjects, rules):
         for date in sorted(set(p['date'] for p in periods)):
             # 그날 종일 결시한 교사는 비교에서 뺀다.
             counts = {t['id']: daily_counts.get(date, {}).get(t['id'], 0) for t in active_teachers
-                      if reason(t, date) != '종일 결시'}
+                      if reason(t, date) != '종일 제외'}
             if counts:
                 day_max, day_min = max(counts.values()), min(counts.values())
                 if day_max - day_min > max_diff:

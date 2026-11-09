@@ -90,7 +90,7 @@ window.renderValidateTab = function() {
           }).join('')}
         </div>`;
 
-    // 감독 명단·결시 관리와 같은 방식: 머리글 표를 스크롤 밖에 두고 syncSplitTableHeader 로 열 너비를 맞춘다.
+    // 감독 명단·배정 제외와 같은 방식: 머리글 표를 스크롤 밖에 두고 syncSplitTableHeader 로 열 너비를 맞춘다.
     // 그래야 세로 스크롤바 옆에서도 머리글 아래 선이 어긋나지 않는다.
     const statsTable = `
       <div id="stats-header" class="flex-shrink-0 bg-[#F1F5F9] relative z-30">
@@ -160,7 +160,7 @@ window.renderValidateTab = function() {
               <div class="verify-progress" aria-hidden="true"><span style="width:${total ? passed / total * 100 : 0}%"></span></div>`;
         const checkNames = {
             1: '모든 감독 자리 배정 완료', 2: '동일 교시 중복 배정 방지',
-            3: '교사별 감독 권한 준수', 4: '결시 교사 배정 방지',
+            3: '교사별 감독 권한 준수', 4: '배정 제외 교사 배정 방지',
             5: '본인 담임학급 배정 금지', 6: '본인 담당교과 배정 금지',
             7: '동일 학급 연속 배정 금지', 9: '1일 연속 감독 횟수 제한',
             10: '교사별 배정 제한 준수', 11: '1일 감독 횟수 편차 제한',
