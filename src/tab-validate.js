@@ -118,9 +118,9 @@ window.renderValidateTab = function() {
               <tr class="hover:bg-surface-50 bg-surface-0 transition-colors">
                 <td class="py-2.5 px-1 border border-line bg-surface-50 font-bold text-[13px]">${i+1}</td>
                 <td class="py-2.5 px-1 border border-line font-bold text-[14.5px]">${s.name}</td>
-                ${roleCols.map(([, , key]) => `<td class="py-2.5 px-1 border border-line text-stone font-semibold text-sm">${s[key] || ''}</td>`).join('')}
-                <td class="py-2.5 px-1 border border-line font-semibold text-coral bg-coral/10 text-sm">${s.total}</td>
-                <td class="py-2.5 px-1 border border-line font-semibold text-brand-700 bg-brand-50/50 text-sm">${s.workload || 0}</td>
+                ${roleCols.map(([, , key]) => `<td class="py-2.5 px-1 border border-line text-stone font-semibold text-[12px]">${s[key] || ''}</td>`).join('')}
+                <td class="py-2.5 px-1 border border-line font-semibold text-coral bg-coral/10 text-[12px]">${s.total}</td>
+                <td class="py-2.5 px-1 border border-line font-semibold text-brand-700 bg-brand-50/50 text-[12px]">${s.workload || 0}</td>
               </tr>`).join('') || emptyTableRows(colWidths.length)}
           </tbody>
         </table>
@@ -186,15 +186,15 @@ window.renderValidateTab = function() {
                     const [tid, pid] = (c.targets && c.targets[i]) || [];
                     return tid ? `<li class="cursor-pointer hover:underline" title="배정 결과에서 보기" onclick="jumpToCell('${tid}', '${pid || ''}')">${m}</li>` : `<li>${m}</li>`;
                 };
-                detail = `<ul class="mt-2 ml-4 list-disc text-[11px] text-coral space-y-0.5 font-bold">${
+                detail = `<ul class="mt-2 ml-4 list-disc text-[13px] text-coral space-y-0.5 font-bold">${
                     c.messages.map(li).join('')}</ul>`;
                 // 해결 방법과 바로 가기 (validator.py 의 fixes)
-                if (c.fix) detail += `<div class="mt-2.5 pt-2.5 border-t border-coral/20 text-[11.5px] text-text-main font-semibold leading-relaxed">
+                if (c.fix) detail += `<div class="mt-2.5 pt-2.5 border-t border-coral/20 text-[13px] text-text-main font-semibold leading-relaxed">
                     <span class="font-bold">해결 방법</span> · ${c.fix}
                     ${GO_TARGET_LABELS[c.fix_target] ? `<div><button type="button" class="${GO_TARGET_BTN}" onclick="goToTarget('${c.fix_target}')">${GO_TARGET_LABELS[c.fix_target]}</button></div>` : ''}
                   </div>`;
             } else if (c.pass && c.messages.length && !c.messages[0].startsWith('(')) {
-                detail = `<div class="mt-2 ml-4 text-[11px] text-stone font-bold">${c.messages[0]}</div>`;
+                detail = `<div class="mt-2 ml-4 text-[13px] text-stone font-bold">${c.messages[0]}</div>`;
             }
             return `
                 <div class="verify-row ${c.pass ? '' : 'is-failed'}">

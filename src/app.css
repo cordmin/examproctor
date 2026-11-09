@@ -447,21 +447,21 @@ tr[id^="grade-row-"].grade-row-disabled td:nth-child(2) {
 .verify-summary { display:grid; grid-template-columns:36px minmax(0,1fr) auto; gap:12px; align-items:center; padding:7px 0 21px; }
 .verify-seal { display:grid; place-items:center; width:36px; height:36px; border-radius:50%; color:var(--verify-color); background:#EAF7F1; font-size:23px; }
 .has-issues .verify-seal { background:#FFF0EE; }
-.verify-summary h3 { margin:0 0 5px; font-size:15px; font-weight:700; letter-spacing:-.4px; line-height:1.45; word-break:keep-all; }
-.verify-summary p { margin:0; font-size:11px; color:rgb(var(--stone)); line-height:1.6; word-break:keep-all; }
+.verify-summary h3 { margin:0 0 5px; font-size:16.5px; font-weight:700; letter-spacing:-.4px; line-height:1.45; word-break:keep-all; }
+.verify-summary p { margin:0; font-size:13px; color:rgb(var(--stone)); line-height:1.6; word-break:keep-all; }
 .verify-score { color:var(--verify-color); font-size:25px; font-weight:700; white-space:nowrap; }
-.verify-score small { font-size:12px; color:#94A0AE; font-weight:500; }
+.verify-score small { font-size:14px; color:#94A0AE; font-weight:500; }
 .verify-progress { height:3px; background:#EDF1F5; }
 .verify-progress span { display:block; height:100%; background:var(--verify-color); }
 .verify-list { padding-top:10px; }
 .verify-row { padding:12px 0; border-bottom:1px solid #EAF0F5; }
 .verify-row:last-child { border-bottom:0; }
 .verify-row-heading { display:flex; align-items:flex-start; gap:10px; line-height:1.6; }
-.verify-number { color:#475569; font-size:11px; font-weight:700; min-width:17px; padding-top:1px; font-variant-numeric:tabular-nums; }
-.verify-rule-name { flex:1; font-size:12px; font-weight:500; word-break:keep-all; }
-.verify-status { color:#148568; font-size:11px; white-space:nowrap; }
+.verify-number { color:#475569; font-size:13.5px; font-weight:700; min-width:20px; padding-top:1px; font-variant-numeric:tabular-nums; }
+.verify-rule-name { flex:1; font-size:14.5px; font-weight:500; word-break:keep-all; }
+.verify-status { color:#148568; font-size:13.5px; white-space:nowrap; }
 .verify-status.is-failed { color:#D94B4B; font-weight:700; }
-.verify-detail { margin-left:27px; }
+.verify-detail { margin-left:30px; }
 .verify-row.is-failed .verify-rule-name { font-weight:700; }
 .about-panel { width:390px; max-width:calc(var(--vw)*92); text-align:center; }
 .about-hero { position:relative; background:#19263F; color:white; padding:22px 22px 20px; }
