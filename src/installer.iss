@@ -50,7 +50,6 @@ Source: "dist\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "motto-serif-LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 
-Source: "시험감독_배정결과(예시).json"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: desktopicon

@@ -70,8 +70,8 @@ def clean_text(value):
 XLSX_TYPES = ('Excel 파일 (*.xlsx)', '모든 파일 (*.*)')
 JSON_TYPES = ('JSON 파일 (*.json)', '모든 파일 (*.*)')
 
-# 앞 두 자리(1.0)만 손으로 고친다. 마지막 자리는 GitHub Actions(release.yml)가 빌드할 때 실행 번호로 채운다.
-APP_VERSION = '1.3.5'
+# 변경 성격에 맞춰 전체 버전을 지정한다. release.yml이 이 값으로 배포한다.
+APP_VERSION = '1.4.0'
 # 업데이트를 받을 GitHub 공개 저장소 'owner/repo'. 비어 있으면 업데이트 확인을 건너뛴다 (켤 때 최신 릴리스와 비교).
 UPDATE_REPO = 'cordmin/examproctor'
 # 릴리스에 올리는 설치 파일 이름. installer.iss 의 OutputBaseFilename 과 같아야 한다.
@@ -92,7 +92,9 @@ class Api:
             os.makedirs(data_dir, exist_ok=True)
             self.data_file = os.path.join(data_dir, 'timetable_data.json')
         else:
-            self.data_file = 'timetable_data.json'
+            data_dir = os.path.abspath(os.environ.get('EXAMPROCTOR_DATA_DIR') or os.path.join(os.path.dirname(__file__), '..', '.local'))
+            os.makedirs(data_dir, exist_ok=True)
+            self.data_file = os.path.join(data_dir, 'timetable_data.json')
         self.data = self.load_data()
         # 마지막 창 위치·크기. 자동 저장 파일과 같은 폴더에 둔다.
         self.window_file = os.path.join(os.path.dirname(os.path.abspath(self.data_file)), 'window.json')

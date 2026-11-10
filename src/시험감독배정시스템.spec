@@ -6,7 +6,7 @@ import os
 FRONTEND = ['index.html', 'tailwind.min.js',
             'flatpickr.min.js', 'flatpickr.min.css', 'flatpickr-ko.js',
             'state.js', 'labels.js', 'ui.js', 'tour.js',
-            'tab-setup.js', 'tab-teachers.js', 'tab-result.js', 'tab-validate.js',
+            'tab-setup.js', 'tab-teachers.js', 'tab-absences.js', 'result-interactions.js', 'tab-result.js', 'tab-validate.js',
             'shell.js', 'updates.js', 'actions.js', 'app.css', 'icon.ico', 'icon.png', 'save-icon.png', 'motto-serif.woff2', 'motto-serif-LICENSE.txt']
 
 a = Analysis(
