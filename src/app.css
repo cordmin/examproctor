@@ -366,6 +366,7 @@ table td select:focus, table td input.fld:focus {
 .mouse-hint { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; color: #F1F5F9; font-size: 12px; }
 .mouse-hint > span:not(.hint-sep) { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .mouse-hint svg { flex-shrink: 0; }
+.mouse-hint .hint-where { color: #7DD3FC; font-weight: 700; }
 .mouse-hint .hint-sep { width: 1px; height: 16px; background: rgb(255 255 255 / .25); }
 
 .grade-toggle {
