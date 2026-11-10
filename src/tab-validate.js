@@ -152,33 +152,38 @@ window.renderValidateTab = function() {
         const banner = `
             <div class="verify-review ${allPass ? '' : 'has-issues'}">
               <div class="verify-summary">
-                <span class="verify-seal" aria-hidden="true">${allPass ? '✓' : '!'}</span>
-                <div><h3>${allPass ? '적용한 규칙을 모두 충족했어요' : '확인이 필요한 규칙이 있어요'}</h3>
-                <p>${allPass ? '누락이나 중복 없이 배정되었습니다.' : `${total - passed}개 규칙의 위반 내용을 확인하세요.`}</p></div>
-                <div class="verify-score">${passed}<small> / ${total}</small></div>
-              </div>
-              <div class="verify-progress" aria-hidden="true"><span style="width:${total ? passed / total * 100 : 0}%"></span></div>`;
+                <span class="verify-seal" aria-hidden="true">${allPass ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>' : '!'}</span>
+                <div><h3>${allPass ? '배정 결과 이상 없음.' : '확인이 필요한 규칙이 있어요'}</h3>
+                ${allPass ? '' : `<p>${total - passed}개 규칙의 위반 내용을 확인하세요.</p>`}</div>
+              </div>`;
         const checkNames = {
-            1: '모든 감독 자리 배정 완료', 2: '동일 교시 중복 배정 방지',
-            3: '교사별 감독 권한 준수', 4: '배정 제외 교사 배정 방지',
-            5: '본인 담임학급 배정 금지', 6: '본인 담당교과 배정 금지',
-            7: '동일 학급 연속 배정 금지', 9: '1일 연속 감독 횟수 제한',
-            10: '교사별 배정 제한 준수', 11: '1일 감독 횟수 편차 제한',
+            1: '감독이 배정되지 못한 곳이 있는가?',
+            2: '같은 교시에 감독을 중복 배정하진 않았는가?',
+            3: '교사별 감독 권한에 맞게 배정하였는가?',
+            4: '배정 제외 설정을 준수하였는가?',
+            5: '본인 담임학급에 감독을 배정하진 않았는가?',
+            6: '담당 교과 시험 시간에 배정하진 않았는가?',
+            7: '같은 학급에 연속으로 배정하진 않았는가?',
+            9: '하루 연속 감독 횟수 제한을 지켰는가?',
+            10: '교사별 배정 제한 시간을 지켰는가?',
+            11: '하루 감독 횟수의 편차는 허용 범위 안인가?',
         };
         const cleanCheckName = c => {
             const number = checkNumber(c);
             if (checkNames[number]) return checkNames[number];
-            if (number === 8 && c.enabled === undefined) {
-                const roles = [['수업', 'excludeClassConsecutive'], ['복도', 'excludeHallwayConsecutive']]
-                    .filter(([, key]) => rules[key] ?? DEFAULT_RULES[key]).map(([name]) => name);
-                return roles.join('·') + '감독 연속 배정 금지';
+            if (number === 8) {
+                const name = c.enabled === undefined
+                    ? [['수업', 'excludeClassConsecutive'], ['복도', 'excludeHallwayConsecutive']]
+                        .filter(([, key]) => rules[key] ?? DEFAULT_RULES[key]).map(([name]) => name).join('·') + '감독'
+                    : (c.name || '수업·복도감독').replace(/^\s*\d+[.)]\s*/, '')
+                        .replace('동일 역할(수업/복도)', '수업·복도감독')
+                        .replace('특정 감독', '수업·복도감독').replace(' 연속 배정 금지', '');
+                return name + '을 연속 배정하진 않았는가?';
             }
-            return (c.name || '').replace(/^\s*\d+[.)]\s*/, '')
-                .replace('동일 역할(수업/복도)', '수업·복도감독')
-                .replace('특정 감독', '수업·복도감독');
+            return (c.name || '').replace(/^\s*\d+[.)]\s*/, '');
         };
         const cards = checks.map((c, index) => {
-            const badge = `<span class="verify-status ${c.pass ? '' : 'is-failed'}">${c.pass ? '✓ 충족' : '! 확인 필요'}</span>`;
+            const badge = `<span class="verify-status ${c.pass ? '' : 'is-failed'}"><span class="verify-status-dot" aria-hidden="true"></span>${c.pass ? '통과' : '확인 필요'}</span>`;
             let detail = '';
             if (!c.pass && c.messages.length) {
                 // 교사가 정해진 메시지는 누르면 배정 결과의 해당 칸으로 이동한다.

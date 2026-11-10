@@ -50,6 +50,7 @@ window.showTab = function(target) {
     if (gcf) gcf.classList.toggle('hidden', target !== 'tab-config');
     renderSidebar();
     if (TAB_RENDERERS[target]) TAB_RENDERERS[target]();
+    requestAnimationFrame(syncToolbarDividers);
     if (entering) showPageHint(target);
     else positionPageHint();
 };
@@ -177,7 +178,35 @@ function fitZoom() {
     // 탭을 -1px 로 겹치면 남는 소수 픽셀만큼 표 안으로 파고들므로 실제 두께만큼만 겹친다.
     const dz = z * devicePixelRatio;
     root.style.setProperty('--hair', Math.max(1, Math.floor(dz)) / dz + 'px');
+    requestAnimationFrame(syncToolbarDividers);
 }
+// 두 페이지가 같은 선 하나를 재사용한다. 페이지별 합성·배율 차이를 피한다.
+const toolbarDivider = document.createElement('canvas');
+toolbarDivider.className = 'toolbar-divider';
+toolbarDivider.setAttribute('aria-hidden', 'true');
+document.body.append(toolbarDivider);
+function syncToolbarDividers() {
+    const group = [...document.querySelectorAll('.toolbar-hint-group')].find(el => el.getBoundingClientRect().width);
+    toolbarDivider.hidden = !group;
+    if (!group) return;
+    const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+    const snap = value => Math.round(value * devicePixelRatio) / devicePixelRatio;
+    const box = group.getBoundingClientRect();
+    const height = snap(28 * zoom);
+    toolbarDivider.style.zoom = String(1 / zoom);
+    toolbarDivider.width = Math.round(innerWidth * devicePixelRatio);
+    toolbarDivider.height = Math.round(innerHeight * devicePixelRatio);
+    toolbarDivider.style.width = `${toolbarDivider.width / devicePixelRatio}px`;
+    toolbarDivider.style.height = `${toolbarDivider.height / devicePixelRatio}px`;
+    const ctx = toolbarDivider.getContext('2d');
+    ctx.fillStyle = '#94A3B8';
+    ctx.beginPath();
+    const width = Math.round(2 * devicePixelRatio);
+    ctx.roundRect(Math.round(box.left * devicePixelRatio), Math.round((box.top + (box.height - height) / 2) * devicePixelRatio), width, Math.round(height * devicePixelRatio), width / 2);
+    ctx.fill();
+}
+const toolbarDividerObserver = new ResizeObserver(syncToolbarDividers);
+document.querySelectorAll('#brush-toolbar, #result-view-btns, .toolbar-hint-group').forEach(el => toolbarDividerObserver.observe(el));
 fitZoom();
 window.addEventListener('resize', fitZoom);
 

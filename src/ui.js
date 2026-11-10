@@ -83,8 +83,8 @@ function emptyTableRows(columns, rows = 6) {
 
 function build2RowDatePeriodHeaderParts(periodsByDate, dates, periodClass) {
     if (!dates.length) return {
-        row1: '<th class="p-2 border-b border-r border-line bg-[#F1F5F9]">시험일</th>',
-        row2: '<th class="p-2 border-b border-r border-line bg-[#F1F5F9]">교시</th>',
+        row1: '<th class="p-2 border-b border-thick border-line bg-[#F1F5F9]">시험일</th>',
+        row2: '<th class="p-2 border-b border-thick border-line bg-[#F1F5F9]">교시</th>',
     };
     let row1 = '';
     let row2 = '';
@@ -150,16 +150,18 @@ function openAppSelect(button, select) {
     if (wasOpen || select.disabled) return;
     appSelectTrigger = button;
     appSelectMenu.replaceChildren();
-    // grid-select: <optgroup> 마다 제목(label + data-count)과 3칸 바둑판, 첫 빈 안내 항목은 뺀다.
+    // grid-select: <optgroup> 마다 제목(label + data-count)과 4칸 바둑판, 첫 빈 안내 항목은 뺀다.
     const isGrid = select.classList.contains('grid-select');
     appSelectMenu.classList.toggle('grid-menu', isGrid);
     if (isGrid) select.querySelectorAll('optgroup').forEach(group => {
         const head = document.createElement('div');
         head.className = 'grid-menu-head';
+        head.dataset.state = group.dataset.state || '';
         head.textContent = group.label;
         if (group.dataset.count) head.insertAdjacentHTML('beforeend', `<span>${group.dataset.count}</span>`);
         const grid = document.createElement('div');
         grid.className = 'grid-menu-grid';
+        grid.dataset.state = group.dataset.state || '';
         appSelectMenu.append(head, grid);
     });
     const grids = appSelectMenu.querySelectorAll('.grid-menu-grid');

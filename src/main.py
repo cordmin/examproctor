@@ -381,6 +381,8 @@ class Api:
             problems = check_label(t, p_id, label,
                                    appData.get('classSubjects', {}),
                                    appData.get('config', {}).get('rules', {}))
+            if any(category == '제외' for category, _ in problems):
+                return {"valid": False, "code": "absence", "reason": "이곳은 [배정 제외] 설정되어 있습니다"}
             if problems:
                 return {"valid": False, "reason": "\n".join(msg for _, msg in problems)}
             return {"valid": True}

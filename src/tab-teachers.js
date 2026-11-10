@@ -133,8 +133,8 @@ function absenceFill(type, target) {
 const ABS_BTN_BASE = 'w-full h-full min-h-[34px] text-[12.5px] font-bold rounded-md';
 
 function absenceLabel(type, target) {
-    if (type === 'ALL') return '제외';
-    return type === 'GRADE' ? `제외(${target}학년)` : `제외(${target})`;
+    if (type === 'ALL') return '전체 제외';
+    return type === 'GRADE' ? `${target}학년 제외` : `${target} 제외`;
 }
 
 function absenceTargets(data) {
@@ -147,8 +147,7 @@ function renderAbsenceButton(button, data) {
     const multiple = data?.type === 'GRADE' && targets.length > 1;
     const detail = data?.type === 'GRADE' ? `${targets.map(grade => `${grade}학년`).join('·')} 제외` : data ? absenceLabel(data.type, data.target) : '제외 없음';
     button.className = `${ABS_BTN_BASE} ${data ? (multiple ? 'text-white font-bold cursor-default' : absenceFill(data.type, targets[0])) : 'bg-transparent text-transparent hover:bg-surface-100 hover:text-pebble'}`;
-    button.textContent = data ? (multiple ? '제외' : absenceLabel(data.type, targets[0])) : '+';
-    button.classList.toggle('absence-short-label', button.textContent === '제외');
+    button.textContent = data ? absenceLabel(data.type, multiple ? targets.join('·') : targets[0]) : '+';
     button.classList.toggle('absence-add', !data);
     button.title = detail;
     button.setAttribute('aria-label', detail);
@@ -183,7 +182,7 @@ window.renderAbsencesTab = function() {
 
     const tContainer = document.getElementById('brush-toolbar');
     const brushCls = 'abs-brush px-3 inline-flex items-center justify-center rounded-lg font-bold text-[12px] cursor-pointer';
-    let tHtml = `<span class="font-bold text-[12px] text-white mr-1 self-center">배정 제외 선택:</span>`;
+    let tHtml = '';
     tHtml += `<button type="button" class="${brushCls} ${absenceFill('ALL')}" data-type="ALL" data-target="">전체 제외</button>`;
     appData.config.grades.forEach(g => {
         tHtml += `<button type="button" class="${brushCls} ${absenceFill('GRADE', g)}" data-type="GRADE" data-target="${g}">${g}학년 제외</button>`;

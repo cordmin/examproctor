@@ -1,10 +1,142 @@
 // 배정 결과 화면과 수동 교체.
 // 교체 가능 여부 판정은 main.py 의 check_label 에 위임한다(브리지 호출).
 
-window.handleAssignDragStart = function(e, tId, pId) { e.dataTransfer.setData("text/plain", JSON.stringify({tId, pId})); };
-window.handleAssignDragOver = function(e) { e.preventDefault(); };
+let assignmentDrag = null;
+let assignmentPointer = null;
+function clearAssignmentDrag() {
+    const pointer = assignmentPointer;
+    assignmentPointer = null;
+    if (pointer?.source.hasPointerCapture(pointer.id)) pointer.source.releasePointerCapture(pointer.id);
+    if (!assignmentDrag) return;
+    cancelAnimationFrame(assignmentDrag.scrollFrame);
+    assignmentDrag.source.classList.remove('assign-drag-source');
+    assignmentDrag.target?.classList.remove('assign-drop-ready');
+    assignmentDrag.card.remove();
+    assignmentDrag = null;
+}
+function moveAssignmentCard(e) {
+    if (!assignmentDrag) return;
+    const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+    const { card, offsetX, offsetY } = assignmentDrag;
+    const box = card.getBoundingClientRect();
+    card.style.left = `${Math.max(0, Math.min(e.clientX - offsetX, innerWidth - box.width)) / zoom}px`;
+    card.style.top = `${Math.max(0, Math.min(e.clientY - offsetY, innerHeight - box.height)) / zoom}px`;
+}
+window.handleAssignDragStart = function(e, tId, pId) {
+    clearAssignmentDrag();
+    if (e.dataTransfer) {
+        e.dataTransfer.setData("text/plain", JSON.stringify({tId, pId}));
+        e.dataTransfer.effectAllowed = 'move';
+    }
+    const source = e.currentTarget;
+    const card = document.createElement('div');
+    card.className = 'assign-drag-card';
+    card.textContent = source.textContent;
+    document.body.append(card);
+    source.classList.add('assign-drag-source');
+    const sourceBox = source.getBoundingClientRect(), cardBox = card.getBoundingClientRect();
+    const offsetX = Math.max(0, Math.min(1, ((e.grabX ?? e.clientX) - sourceBox.left) / sourceBox.width)) * cardBox.width;
+    const offsetY = Math.max(0, Math.min(1, ((e.grabY ?? e.clientY) - sourceBox.top) / sourceBox.height)) * cardBox.height;
+    assignmentDrag = { tId, pId, source, card, offsetX, offsetY, target: null };
+    moveAssignmentCard(e);
+};
+window.handleAssignDragOver = function(e, tId, pId) {
+    const drag = assignmentDrag;
+    if (!drag) { e.preventDefault(); return; }
+    const ready = drag.pId === pId && drag.tId !== tId
+        && ((appData.assignments[drag.tId] || {})[pId] || (appData.assignments[tId] || {})[pId]);
+    if (!ready) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    if (drag.target !== e.currentTarget) {
+        drag.target?.classList.remove('assign-drop-ready');
+        drag.target = e.currentTarget;
+        drag.target.classList.add('assign-drop-ready');
+    }
+
+};
+document.addEventListener('dragover', e => {
+    moveAssignmentCard(e);
+    const drag = assignmentDrag;
+    if (drag?.target && !drag.target.contains(e.target)) {
+        drag.target.classList.remove('assign-drop-ready');
+        drag.target = null;
+    }
+});
+document.addEventListener('dragend', clearAssignmentDrag);
+document.addEventListener('drop', clearAssignmentDrag);
+// 포인터로 이동을 처리해 WebView의 반투명 기본 드래그 이미지가 생기지 않게 한다.
+window.handleAssignPointerDown = function(e, tId, pId) {
+    if (e.button !== 0 || !e.isPrimary) return;
+    clearAssignmentDrag();
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    assignmentPointer = { source: e.currentTarget, id: e.pointerId, tId, pId, x: e.clientX, y: e.clientY };
+};
+function updateAssignmentTarget(x, y) {
+    const target = document.elementFromPoint(x, y)?.closest('[data-swap-teacher]');
+    if (assignmentDrag.target !== target) {
+        assignmentDrag.target?.classList.remove('assign-drop-ready');
+        assignmentDrag.target = null;
+    }
+    if (target) handleAssignDragOver({ currentTarget: target, preventDefault() {} }, target.dataset.swapTeacher, target.dataset.swapPeriod);
+}
+function scrollAssignmentDrag(time) {
+    const drag = assignmentDrag, pointer = assignmentPointer;
+    if (!drag || !pointer) return;
+    const scroll = pointer.source.closest('.result-table-scroll');
+    const box = scroll?.getBoundingClientRect();
+    const edge = box ? Math.min(40, box.height / 5) : 0;
+    let direction = 0, pressure = 0;
+    if (edge && pointer.clientX >= box.left && pointer.clientX <= box.right
+        && pointer.clientY >= box.top - edge && pointer.clientY <= box.bottom + edge) {
+        if (pointer.clientY < box.top + edge) { direction = -1; pressure = (box.top + edge - pointer.clientY) / edge; }
+        else if (pointer.clientY > box.bottom - edge) { direction = 1; pressure = (pointer.clientY - box.bottom + edge) / edge; }
+    }
+    if (direction !== drag.scrollDirection) {
+        drag.scrollDirection = direction;
+        drag.edgeSince = time;
+    }
+    const elapsed = Math.min(32, time - (drag.scrollTime ?? time));
+    drag.scrollTime = time;
+    // 가장자리 40px 안에서 180ms 머문 뒤, 초당 80~400 화면 픽셀로 부드럽게 이동한다.
+    if (direction && time - drag.edgeSince >= 180) {
+        const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+        const before = scroll.scrollTop;
+        scroll.scrollTop += direction * (80 + 320 * Math.min(1, pressure) ** 2) * elapsed / 1000 / zoom;
+        if (scroll.scrollTop !== before) updateAssignmentTarget(pointer.clientX, pointer.clientY);
+    }
+    drag.scrollFrame = requestAnimationFrame(scrollAssignmentDrag);
+}
+document.addEventListener('pointermove', e => {
+    const pointer = assignmentPointer;
+    if (!pointer || pointer.id !== e.pointerId) return;
+    if (!assignmentDrag) {
+        if (Math.hypot(e.clientX - pointer.x, e.clientY - pointer.y) < 4) return;
+        // 시작 함수의 정리 작업 뒤에도 현재 포인터 정보를 유지한다.
+        handleAssignDragStart({ currentTarget: pointer.source, clientX: e.clientX, clientY: e.clientY, grabX: pointer.x, grabY: pointer.y }, pointer.tId, pointer.pId);
+        assignmentPointer = pointer;
+        pointer.source.setPointerCapture(pointer.id);
+        assignmentDrag.scrollFrame = requestAnimationFrame(scrollAssignmentDrag);
+    }
+    pointer.clientX = e.clientX;
+    pointer.clientY = e.clientY;
+    moveAssignmentCard(e);
+    updateAssignmentTarget(e.clientX, e.clientY);
+});
+document.addEventListener('pointerup', e => {
+    const pointer = assignmentPointer;
+    if (!pointer || pointer.id !== e.pointerId) return;
+    const target = assignmentDrag?.target;
+    clearAssignmentDrag();
+    if (target) handleAssignDrop({ preventDefault() {}, dataTransfer: { getData: () => JSON.stringify({ tId: pointer.tId, pId: pointer.pId }) } }, target.dataset.swapTeacher, target.dataset.swapPeriod);
+});
+document.addEventListener('pointercancel', clearAssignmentDrag);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') clearAssignmentDrag(); });
+window.addEventListener('blur', clearAssignmentDrag);
 window.handleAssignDrop = function(e, targetTId, targetPId) {
     e.preventDefault();
+    clearAssignmentDrag();
     try {
         const data = JSON.parse(e.dataTransfer.getData("text/plain"));
         const sourceTId = data.tId; const sourcePId = data.pId;
@@ -23,11 +155,11 @@ window.handleAssignDrop = function(e, targetTId, targetPId) {
             pendingSwapData = { t1, t2, targetPId, a1, a2 };
             const msgEl = document.getElementById('swap-modal-msg');
             const name1 = `<span class="text-brand-600 font-bold text-[15px]">${t1.name}</span>`, name2 = `<span class="text-brand-600 font-bold text-[15px]">${t2.name}</span>`;
-            const styleLabel = (l) => `<span class="inline-block bg-surface-100 px-2 py-0.5 rounded border border-surface-300 text-slate-800 font-bold mx-0.5">'${l}'</span>`;
+            const styleLabel = (l) => `<span class="swap-assignment">${l}</span>`;
             msgEl.innerHTML = (a1 && !a2) 
-                ? `<div>${name1} 교사의 ${styleLabel(a1)} 감독을</div><div class="mt-3">${name2} 교사의 <span class="text-pebble font-bold">(공강 시간)</span>으로 넘기시겠습니까?</div>` 
+                ? `<div>${name1} 교사의 ${styleLabel(a1)} 감독을</div><div class="mt-3">${name2} 교사의 ${styleLabel('공강 시간')}으로 넘기시겠습니까?</div>`
                 : (!a1 && a2) 
-                ? `<div>${name2} 교사의 ${styleLabel(a2)} 감독을</div><div class="mt-3">${name1} 교사의 <span class="text-pebble font-bold">(공강 시간)</span>으로 넘기시겠습니까?</div>` 
+                ? `<div>${name2} 교사의 ${styleLabel(a2)} 감독을</div><div class="mt-3">${name1} 교사의 ${styleLabel('공강 시간')}으로 넘기시겠습니까?</div>`
                 : `<div>${name1} 교사의 ${styleLabel(a1)} 감독과</div><div class="mt-3">${name2} 교사의 ${styleLabel(a2)} 감독을 교체하시겠습니까?</div>`;
             const m = document.getElementById('swap-modal'); m.classList.remove('hidden'); m.focus();
         }).catch(err => { console.error(err); showToast("교체 가능 여부 확인 실패: " + err, "error"); });
@@ -54,24 +186,23 @@ window.handleRightClickSwap = function(e, tId, pId) {
 
     rcSwapData = { tId, pId };
 
-    const infoStr = `<div class="text-[15px] font-bold text-text-main leading-relaxed">${formatBeautifulDate(p.date)} ${p.name} <span class="text-brand-600 font-bold">${t1.name}</span> 교사의 <span class="inline-block bg-surface-100 px-2 py-0.5 rounded border border-surface-300 font-bold text-[14px] text-slate-800 mx-0.5">'${a1}'</span>을 교체합니다.</div>`;
+    const infoStr = `<div class="swap-sentence">${t1.name} 교사의<br>${formatBeautifulDate(p.date)} ${p.name} <span class="swap-assignment">${a1}</span>을 교체합니다.</div>`;
     document.getElementById('rc-swap-info').innerHTML = infoStr;
 
-    // 공강 → 배정 중 → 배정 제외 순으로 묶어 3칸 바둑판 메뉴로 보여 준다 (ui.js 의 grid-select).
+    // 공강 → 배정 중 → 선택 불가 순으로 묶어 4열 메뉴로 보여 준다 (ui.js 의 grid-select).
     const groups = { free: [], busy: [], absent: [] };
     appData.teachers.forEach(t2 => {
         if (t2.id === tId) return;
         const a2 = (appData.assignments[t2.id] || {})[pId];
         const abs = t2.absences && t2.absences[pId];
         if (abs) {
-            const sub = abs.type === 'ALL' ? '' : (abs.type === 'GRADE' ? `${abs.target}학년 제외` : `${abs.target} 제외`);
-            groups.absent.push(`<option value="${t2.id}" data-sub="${sub}" disabled>${t2.name}</option>`);
+            groups.absent.push(`<option value="${t2.id}" disabled>${t2.name}</option>`);
         } else if (a2) groups.busy.push(`<option value="${t2.id}" data-sub="${a2}">${t2.name}</option>`);
         else groups.free.push(`<option value="${t2.id}">${t2.name}</option>`);
     });
-    const group = (label, items) => items.length ? `<optgroup label="${label}" data-count="${items.length}명">${items.join('')}</optgroup>` : '';
-    document.getElementById('rc-swap-target').innerHTML = `<option value="">-- 교체할 교사 선택 --</option>`
-        + group('공강', groups.free) + group('배정 중', groups.busy) + group('배정 제외 · 선택 불가', groups.absent);
+    const group = (label, items, state) => items.length ? `<optgroup label="${label}" data-count="${items.length}명" data-state="${state}">${items.join('')}</optgroup>` : '';
+    document.getElementById('rc-swap-target').innerHTML = `<option value="">새로 투입할 교사를 선택하세요</option>`
+        + group('공강', groups.free, 'free') + group('배정 중', groups.busy, 'busy') + group('선택 불가', groups.absent, 'absent');
     refreshDropdowns();
 
     const m = document.getElementById('rightclick-swap-modal');
@@ -129,8 +260,11 @@ function checkSwapPair(t1, t2, pId, labelForT1, labelForT2) {
 
 // 불가 사유가 있으면 토스트를 띄우고 false 를 돌려준다.
 function reportSwapBlocked(t1, t2, [v1, v2]) {
-    if(!v1.valid) { showToast(`[${t1.name} 교사 불가 사유]\n${v1.reason}`, "error"); return true; }
-    if(!v2.valid) { showToast(`[${t2.name} 교사 불가 사유]\n${v2.reason}`, "error"); return true; }
+    for (const [teacher, result] of [[t1, v1], [t2, v2]]) {
+        if (result.valid) continue;
+        showToast(result.code === 'absence' ? result.reason : `[${teacher.name} 교사 불가 사유]\n${result.reason}`, 'error');
+        return true;
+    }
     return false;
 }
 
@@ -288,7 +422,7 @@ window.renderResultTab = function() {
             periodsByDate[d].forEach((p, pIdx) => {
                 const borders = cellBorders(periodsByDate, dates, dIdx, pIdx);
                 const assigned = appData.assignments[t.id] && appData.assignments[t.id][p.id];
-                const swapAttrs = `draggable="true" ondragstart="handleAssignDragStart(event, '${t.id}', '${p.id}')" ondragover="handleAssignDragOver(event)" ondrop="handleAssignDrop(event, '${t.id}', '${p.id}')" oncontextmenu="handleRightClickSwap(event, '${t.id}', '${p.id}')"`;
+                const swapAttrs = `draggable="false" data-swap-teacher="${t.id}" data-swap-period="${p.id}" onpointerdown="handleAssignPointerDown(event, '${t.id}', '${p.id}')" ondragstart="handleAssignDragStart(event, '${t.id}', '${p.id}')" ondragover="handleAssignDragOver(event, '${t.id}', '${p.id}')" ondrop="handleAssignDrop(event, '${t.id}', '${p.id}')" oncontextmenu="handleRightClickSwap(event, '${t.id}', '${p.id}')"`;
                 const cellStyle = assigned ? "bg-slate-100 text-slate-800 font-bold" : "text-pebble";
                 const base = appData.baseAssignments;
                 const changed = base && (assigned || '') !== ((base[t.id] || {})[p.id] || '') ? 'cell-changed' : '';
@@ -355,7 +489,7 @@ window.renderResultTab = function() {
                     const assigned = sortAssignedList([...(cAssign[cnm][p.id] || [])]);
                     if(assigned.length > 0) {
                         // 인원 수와 무관하게 교사별 표와 같은 글자 크기를 쓴다.
-                        const nameAttrs = (x) => `draggable="true" ondragstart="handleAssignDragStart(event, '${x.tid}', '${p.id}')" ondragover="handleAssignDragOver(event)" ondrop="handleAssignDrop(event, '${x.tid}', '${p.id}')" oncontextmenu="handleRightClickSwap(event, '${x.tid}', '${p.id}')"`;
+                        const nameAttrs = (x) => `draggable="false" data-swap-teacher="${x.tid}" data-swap-period="${p.id}" onpointerdown="handleAssignPointerDown(event, '${x.tid}', '${p.id}')" ondragstart="handleAssignDragStart(event, '${x.tid}', '${p.id}')" ondragover="handleAssignDragOver(event, '${x.tid}', '${p.id}')" ondrop="handleAssignDrop(event, '${x.tid}', '${p.id}')" oncontextmenu="handleRightClickSwap(event, '${x.tid}', '${p.id}')"`;
                         // 한 명뿐이면 칩을 셀에 꽉 채워 셀 전체가 그레이로 보이게 한다.
                         const solo = assigned.length === 1;
                         const tdPad = solo ? 'p-0' : 'py-1.5 px-1';
