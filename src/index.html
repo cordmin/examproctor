@@ -411,8 +411,10 @@
             <section id="tab-absences" class="tab-content hidden h-full flex flex-col">
                 <div id="absence-toolbar-header" class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-start gap-2 flex-wrap flex-shrink-0">
                     <div id="brush-toolbar" class="flex items-center gap-2 flex-wrap"></div>
-                    <div class="absence-hint" aria-label="배정 제외 입력 방법">
-                        <span>좌클릭 드래그: 연속 추가 · 우클릭 드래그: 연속 삭제</span>
+                    <div class="mouse-hint" aria-label="배정 제외 입력 방법">
+                        <span><svg width="18" height="24" viewBox="0 0 18 24" aria-hidden="true"><rect x="1" y="1" width="16" height="22" rx="8" fill="#fff" stroke="#94A3B8" stroke-width="1.4"/><path d="M9 1.7V10H1.7V9A7.3 7.3 0 0 1 9 1.7Z" fill="#4A5565"/><path d="M1.5 10H16.5M9 1.5V10" stroke="#94A3B8" stroke-width="1.2"/></svg><b>좌클릭 드래그:</b> 제외 추가</span>
+                        <span class="hint-sep" aria-hidden="true"></span>
+                        <span><svg width="18" height="24" viewBox="0 0 18 24" aria-hidden="true"><rect x="1" y="1" width="16" height="22" rx="8" fill="#fff" stroke="#94A3B8" stroke-width="1.4"/><path d="M9 1.7V10H16.3V9A7.3 7.3 0 0 0 9 1.7Z" fill="#4A5565"/><path d="M1.5 10H16.5M9 1.5V10" stroke="#94A3B8" stroke-width="1.2"/></svg><b>우클릭 드래그:</b> 제외 삭제</span>
                     </div>
                     <button onclick="clearAllAbsences()" class="ml-auto inline-flex items-center justify-center gap-1.5 px-3 h-9 bg-[#F04A4A] hover:bg-[#D93838] text-white font-bold rounded-lg text-[12px] shadow-sm cursor-pointer transition-colors border-0 flex-shrink-0">
                         <svg class="w-3.5 h-3.5 text-white"><use href="#i-trash"/></svg> 제외 초기화
@@ -438,14 +440,16 @@
 
             <!-- 배정 결과 -->
             <section id="tab-result" class="tab-content hidden h-full flex flex-col">
-                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-shrink-0 gap-4">
-                    <div class="flex items-center gap-4 min-w-0">
+                <div class="px-5 py-2.5 bg-[#1E293B] text-white border-b border-[#1E293B] flex items-center justify-between flex-wrap flex-shrink-0 gap-4">
+                    <div class="flex items-center flex-wrap gap-4 min-w-0">
                         <!-- 교사별 + 시험 보는 학년마다 버튼 하나 (tab-result.js 의 buildResultViews 가 채운다) -->
                         <div id="result-view-btns" class="flex bg-surface-100 p-1 rounded-lg border border-surface-200 flex-shrink-0">
                             <button class="result-sub-btn bg-brand-600 text-brand-text shadow-sm px-3 py-1 rounded-md font-bold text-[13px] transition-all cursor-pointer" data-target="result-teacher">교사별</button>
                         </div>
-                        <div class="absence-hint" aria-label="감독 교체 방법">
-                            <span>셀 우클릭 또는 드래그로 동일 교시 내 교체</span>
+                        <div class="mouse-hint" aria-label="감독 교체 방법">
+                            <span><svg width="18" height="24" viewBox="0 0 18 24" aria-hidden="true"><rect x="1" y="1" width="16" height="22" rx="8" fill="#fff" stroke="#94A3B8" stroke-width="1.4"/><path d="M9 1.7V10H1.7V9A7.3 7.3 0 0 1 9 1.7Z" fill="#4A5565"/><path d="M1.5 10H16.5M9 1.5V10" stroke="#94A3B8" stroke-width="1.2"/></svg><b>좌클릭 드래그:</b> 감독 교체</span>
+                            <span class="hint-sep" aria-hidden="true"></span>
+                            <span><svg width="18" height="24" viewBox="0 0 18 24" aria-hidden="true"><rect x="1" y="1" width="16" height="22" rx="8" fill="#fff" stroke="#94A3B8" stroke-width="1.4"/><path d="M9 1.7V10H16.3V9A7.3 7.3 0 0 0 9 1.7Z" fill="#4A5565"/><path d="M1.5 10H16.5M9 1.5V10" stroke="#94A3B8" stroke-width="1.2"/></svg><b>우클릭:</b> 교체할 교사 선택</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
