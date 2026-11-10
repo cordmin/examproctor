@@ -364,10 +364,10 @@ table td select:focus, table td input.fld:focus {
 #brush-toolbar .abs-brush.is-active { opacity: 1; filter: none; box-shadow: 0 0 0 2px #FFFFFF; }
 #brush-class-wrapper .app-select-btn { height: 22px; min-width: 64px; padding-top: 0 !important; padding-bottom: 0 !important; font-size: 11px !important; }
 .mouse-hint { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; color: #F1F5F9; font-size: 12px; }
-.mouse-hint > span:not(.hint-sep) { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.mouse-hint-action { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; }
 .mouse-hint svg { flex-shrink: 0; }
-.mouse-hint .hint-where { color: #7DD3FC; font-weight: 700; }
-.mouse-hint .hint-sep { width: 1px; height: 16px; background: rgb(255 255 255 / .25); }
+.mouse-hint-bubble { position: relative; padding: 5px 10px; border: 1px solid #64748B; border-radius: 10px; background: #273449; }
+.mouse-hint-bubble::before { content: ''; position: absolute; left: -5px; top: 50%; width: 8px; height: 8px; background: inherit; border-left: 1px solid #64748B; border-bottom: 1px solid #64748B; transform: translateY(-50%) rotate(45deg); }
 
 .grade-toggle {
     position: relative;
