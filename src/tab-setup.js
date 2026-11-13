@@ -1,5 +1,46 @@
 // 기본 설정 · 시험 교과 · 배정 규칙 화면.
 
+let examPlaceGuideSeen = null; // 시작 설정을 읽기 전에는 덮개를 잠깐 띄우지 않는다.
+const examPlaceFrame = document.getElementById('exam-place-frame');
+const examPlaceGuide = document.getElementById('exam-place-guide');
+
+function positionExamPlaceGuide() {
+    if (examPlaceGuide.hidden || !examPlaceFrame.offsetWidth) return;
+    const frame = examPlaceFrame.getBoundingClientRect();
+    const cell = examPlaceFrame.querySelector('tbody tr td:nth-child(3)').getBoundingClientRect();
+    const scale = examPlaceFrame.offsetWidth / frame.width;
+    examPlaceGuide.style.left = `${(cell.left - frame.left) * scale}px`;
+    examPlaceGuide.style.top = `${(cell.top - frame.top) * scale}px`;
+}
+
+window.renderExamPlaceGuide = function() {
+    examPlaceGuide.hidden = examPlaceGuideSeen !== false;
+    examPlaceFrame.querySelectorAll('tbody td:nth-child(n+3)').forEach(cell => {
+        cell.inert = examPlaceGuideSeen === false;
+    });
+    positionExamPlaceGuide();
+};
+
+window.setExamPlaceGuideSeen = async function(seen) {
+    try {
+        const result = await window.pywebview.api.set_setting('examPlaceGuideSeen', seen);
+        if (!result.success) throw new Error(result.error);
+        examPlaceGuideSeen = seen;
+        renderExamPlaceGuide();
+        return true;
+    } catch (error) {
+        showToast('시험 장소 안내 설정을 저장하지 못했습니다. 다시 시도해 주세요.', 'error');
+        return false;
+    }
+};
+
+document.getElementById('exam-place-enter').addEventListener('click', async () => {
+    if (await setExamPlaceGuideSeen(true)) {
+        examPlaceFrame.querySelector('input:not(:disabled)')?.focus();
+    }
+});
+new ResizeObserver(positionExamPlaceGuide).observe(examPlaceFrame);
+
 window.renderConfigTab = function() {
     document.getElementById('exam-name').value = appData.config.examName || "";
     [1, 2, 3].forEach(grade => {
@@ -12,6 +53,7 @@ window.renderConfigTab = function() {
             cIn.value = appData.config.classes[grade] ?? ''; spIn.value = appData.config.special[grade] ?? ''; sepIn.value = appData.config.separated[grade] ?? ''; hwIn.value = appData.config.hallways[grade] ?? '';
         } else { cIn.value = appData.config.classes[grade] ?? ''; spIn.value = appData.config.special[grade] ?? ''; sepIn.value = appData.config.separated[grade] ?? ''; hwIn.value = appData.config.hallways[grade] ?? ''; toggle.classList.remove('active'); row.classList.add('grade-row-disabled'); cIn.disabled = spIn.disabled = sepIn.disabled = hwIn.disabled = true; }
     });
+    renderExamPlaceGuide();
     renderSubjects(); renderDates();
     if (window.renderSubjectsTab) renderSubjectsTab();
     if (window.renderRulesTab) renderRulesTab();

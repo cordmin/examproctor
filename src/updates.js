@@ -11,6 +11,8 @@ window.addEventListener('pywebviewready', function() {
     });
     // 켤 때마다 가이드 투어를 띄운다. '다시 보지 않기'를 체크했으면 띄우지 않는다.
     window.pywebview.api.get_settings().then(settings => {
+        examPlaceGuideSeen = !!settings.examPlaceGuideSeen;
+        renderExamPlaceGuide();
         tourHidden = !!settings.hideTour;
         if (!tourHidden) startTour();
     });

@@ -40,7 +40,7 @@ const {chromium} = require('playwright');
   await page.evaluate(data=>{appData=data;sanitizeAppData(appData);renderConfigTab();renderTeachers();renderAbsencesTab();renderResultTab();showTab('tab-validate');},sample);
   assert.equal(await page.locator('#stats-scroll tbody tr').count(),sample.teachers.length);
   const before=await page.locator('#stats-scroll tbody').textContent();
-  await page.evaluate(()=>{const validation=JSON.parse(JSON.stringify(appData.validation));window.pywebview={api:{revalidate:async()=>({success:true,validation})}};runRevalidation();});
+  await page.evaluate(()=>{const validation=JSON.parse(JSON.stringify(appData.validation));window.pywebview={api:{revalidate:async()=>({success:true,validation}),set_setting:async()=>({success:true})}};runRevalidation();});
   await page.waitForTimeout(150);
   assert.equal(await page.locator('#stats-scroll tbody').textContent(),before);
   assert.deepEqual(await page.evaluate(()=>appData.assignments),sample.assignments);

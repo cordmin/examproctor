@@ -60,7 +60,8 @@ document.getElementById('sidebar-nav').addEventListener('click', (e) => {
     if (tabBtn) showTab(tabBtn.getAttribute('data-target'));
     if (e.target.closest('[data-action="run"]')) openRulesModal();
     if (e.target.closest('[data-action="reset"]')) {
-        openConfirmModal('전체 초기화', '<p class="text-coral text-[15px] font-bold mb-2">현재 작업의 모든 자료가 지워집니다.</p><p class="mt-5 font-semibold text-text-main">저장하지 않은 데이터는 복구할 수 없으니 미리 저장해주세요</p>', '전체 초기화', () => {
+        openConfirmModal('전체 초기화', '<p class="text-coral text-[15px] font-bold mb-2">현재 작업의 모든 자료가 지워집니다.</p><p class="mt-5 font-semibold text-text-main">저장하지 않은 데이터는 복구할 수 없으니 미리 저장해주세요</p>', '전체 초기화', async () => {
+            if (!await setExamPlaceGuideSeen(false)) return;
             appData = createEmptyData();
             currentResultView = 'result-teacher';
             activeBrush = {type: 'ALL', target: '', fill: 'bg-coral text-white'};

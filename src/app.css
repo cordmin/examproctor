@@ -1,3 +1,39 @@
+#exam-place-guide {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 12px;
+    background: rgb(0 0 0 / 75%);
+    border-top: var(--hair) solid rgb(var(--line));
+}
+#exam-place-guide[hidden] { display: none; }
+#exam-place-guide p {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    transform: translateY(-5px);
+}
+#exam-place-enter {
+    padding: 6px 22px;
+    min-height: 35px;
+    border: 1px solid #f5c56b;
+    border-radius: 6px;
+    background: #f5c56b;
+    color: #453113;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+#exam-place-enter:hover { filter: brightness(.94); }
+#exam-place-enter:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
 .page-hint {
     position: fixed;
     z-index: 9999;

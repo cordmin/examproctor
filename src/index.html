@@ -264,7 +264,7 @@
                                         </span>
                                     </div>
                                     <div class="bg-surface-0 border border-line rounded-b-xl rounded-tr-xl overflow-hidden shadow-sm flex flex-col flex-1">
-                                        <div class="overflow-hidden flex-1">
+                                        <div id="exam-place-frame" class="overflow-hidden flex-1 relative">
                                             <table class="w-full h-full text-center text-[12.5px] border-collapse">
                                                 <thead class="bg-surface-100 text-text-main font-bold text-[12px]">
                                                     <tr><th class="w-12 p-2 border border-line bg-surface-100">시험</th><th class="w-16 p-2 border border-line bg-surface-100">학년</th><th class="w-[18%] p-2 border border-line bg-surface-100">일반학급</th><th class="w-[18%] p-2 border border-line bg-surface-100">특수학급</th><th class="w-[18%] p-2 border border-line bg-surface-100">분리고사실</th><th class="w-[18%] p-2 border border-line bg-surface-100">복도구역</th></tr>
@@ -296,6 +296,10 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
+                                            <div id="exam-place-guide" hidden>
+                                                <p>실제 시험 보는 장소의 수를 입력합니다.</p>
+                                                <button id="exam-place-enter" type="button">입력 하기</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
