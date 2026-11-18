@@ -89,16 +89,22 @@ window.openAboutModal = async function() {
     checkAboutUpdate();
 };
 
-window.openPrivacyModal = function() {
-    const modal = document.getElementById('privacy-modal');
+// 방침·라이선스 창: 사이드바 맨 아래 버튼이 연다. 닫으면 연 버튼으로 초점을 돌려준다.
+let legalOpener = null;
+function openLegalModal(id) {
+    legalOpener = document.activeElement;
+    const modal = document.getElementById(id);
     modal.classList.remove('hidden');
     modal.focus();
-};
-
-window.closePrivacyModal = function() {
-    document.getElementById('privacy-modal').classList.add('hidden');
-    document.getElementById('about-privacy').focus();
-};
+}
+function closeLegalModal(id) {
+    document.getElementById(id).classList.add('hidden');
+    legalOpener?.focus();
+}
+window.openPrivacyModal = () => openLegalModal('privacy-modal');
+window.closePrivacyModal = () => closeLegalModal('privacy-modal');
+window.openLicenseModal = () => openLegalModal('license-modal');
+window.closeLicenseModal = () => closeLegalModal('license-modal');
 
 window.checkAboutUpdate = async function() {
     const button = document.getElementById('about-check');

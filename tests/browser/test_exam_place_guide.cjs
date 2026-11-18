@@ -48,12 +48,15 @@ const {chromium} = require('playwright');
                 return {left: Math.abs(box.left - cell.left), top: Math.abs(box.top - cell.top),
                     background: getComputedStyle(el).backgroundColor,
                     text: getComputedStyle(el.querySelector('p')).color,
-                    button: getComputedStyle(el.querySelector('button')).backgroundColor};
+                    button: getComputedStyle(el.querySelector('button')).backgroundColor, label: el.querySelector('button').textContent,
+                    middle: Math.abs((box.top + box.bottom) / 2 - (el.querySelector('p').getBoundingClientRect().top + el.querySelector('button').getBoundingClientRect().bottom) / 2)};
             });
             assert.ok(geometry.left < 1 && geometry.top < 1, JSON.stringify(geometry));
             assert.equal(geometry.background, 'rgba(0, 0, 0, 0.75)');
             assert.equal(geometry.text, 'rgb(255, 255, 255)');
-            assert.equal(geometry.button, 'rgb(245, 197, 107)');
+            assert.equal(geometry.button, 'rgba(0, 0, 0, 0)');
+            assert.equal(geometry.label, '입력 시작하기');
+            assert.ok(geometry.middle < 1.5, 'Text block is vertically centered');
         }
         await page.setViewportSize({width: 1280, height: 800});
         await page.locator('#exam-place-frame').screenshot({path: path.join(__dirname, '../../.local/test-artifacts/exam-place-guide.png')});
@@ -80,7 +83,7 @@ const {chromium} = require('playwright');
         await page.locator('#exam-place-enter').click();
         assert.equal(await guide.isVisible(), true, 'Failed persistence must not dismiss the guide');
         assert.deepEqual(errors, []);
-        console.log('PASS: guide geometry, amber/75% styling, input gating, persistence, full reset and save failure');
+        console.log('PASS: guide geometry, text-link/75% styling, vertical centering, input gating, persistence, full reset and save failure');
     } finally {
         await browser.close();
     }

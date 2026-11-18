@@ -50,6 +50,7 @@ jobs:
         working-directory: src
         run: |
           pip install -r ../requirements-build.txt
+          python ../scripts/build_notices.py
           python ../scripts/test.py --unit
           pyinstaller 시험감독배정시스템.spec
 

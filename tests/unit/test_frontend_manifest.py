@@ -14,5 +14,6 @@ for filename in references:
     assert filename in manifest, f'Missing from executable: {filename}'
 for filename in manifest:
     assert (src / filename).is_file(), f'Missing asset: {filename}'
+assert 'Source: "THIRD-PARTY-NOTICES.txt"' in (src / 'installer.iss').read_text(encoding='utf-8'), 'Notices missing from installer'
 assert '시험감독_배정결과(예시).json' not in (src / 'installer.iss').read_text(encoding='utf-8')
 print('PASS: frontend modules/assets bundled; no sample data in installer')
