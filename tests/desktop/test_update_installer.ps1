@@ -32,6 +32,7 @@ $source = $source.Replace('SetupIconFile=icon.ico', ('SetupIconFile=' + $src + '
 $source = $source.Replace('LicenseFile=license.txt', ('LicenseFile=' + $src + '\license.txt'))
 $source = $source.Replace('Source: "license.txt"', ('Source: "' + $src + '\license.txt"'))
 $source = $source.Replace('Source: "motto-serif-LICENSE.txt"', ('Source: "' + $src + '\motto-serif-LICENSE.txt"'))
+$source = $source.Replace('Source: "THIRD-PARTY-NOTICES.txt"', ('Source: "' + $src + '\THIRD-PARTY-NOTICES.txt"'))
 $source = $source.Replace("ExpandConstant('{userappdata}\시험감독배정')", "'$folder'")
 $source = $source.Replace("ExpandConstant('{userappdata}\시험감독배정\update-progress.ps1')", "'$folder\update-progress.ps1'")
 $iss = Join-Path $folder 'smoke.iss'
