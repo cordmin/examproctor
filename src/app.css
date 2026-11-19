@@ -326,6 +326,8 @@ table td select:focus, table td input.fld:focus {
 .split-grid-body tbody { display: block; }
 .split-grid-body tr { display: grid; grid-template-columns: var(--split-columns); }
 .split-grid-body td { min-width: 0; width: auto !important; overflow: hidden; }
+/* 격자 줄에서는 vertical-align 이 듣지 않으므로, 학년별 결과 표 칸은 flex 로 세로 가운데에 둔다 */
+[id^="result-grade-"] .split-grid-body td { display: flex; flex-direction: column; justify-content: center; }
 #absence-list-body td:has(> [data-absence-teacher]) { container-type: inline-size; }
 #absence-list-body [data-absence-teacher] { font-size: min(12.5px, 17cqi); white-space: normal; word-break: keep-all; }
 #absence-list-body .absence-add { font-size: 20px; }
@@ -658,6 +660,11 @@ svg[class~="h-6"]   { height: 31.2px !important; }
 .x-btn svg { width: 14.5px !important; height: 14.5px !important; }
 .x-btn { color: #FCA5A5 !important; }
 .x-btn:hover { color: #DC2626 !important; }
+/* 공통 버튼 눌림(사각 그림자·어둡게)은 칸 전체가 눌려 보이므로, X 버튼은 X 모양만 눌리게 한다 */
+button.x-btn:active:not(:disabled):not([aria-disabled="true"]) { translate: none; scale: none; filter: none; box-shadow: none !important; }
+.x-btn svg { transition: translate .12s ease-out, scale .12s ease-out; }
+.x-btn:active svg { translate: 0 1px; scale: .82; transition-duration: 55ms; }
+@media (prefers-reduced-motion: reduce) { .x-btn svg { transition: none; } }
 
 /* ── flatpickr 달력 테마 ── */
 .flatpickr-calendar {

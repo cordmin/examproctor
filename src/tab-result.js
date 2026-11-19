@@ -70,11 +70,11 @@ function mountResultTable(container, html, periodsByDate, dates, periodTitle = p
 const RESULT_BTN_ON  = 'result-sub-btn bg-brand-600 text-brand-text shadow-sm px-3 py-1 rounded-md font-bold text-[12.5px] transition-all cursor-pointer';
 const RESULT_BTN_OFF = 'result-sub-btn bg-transparent text-stone hover:text-text-main px-3 py-1 rounded-md font-bold text-[12.5px] transition-all cursor-pointer';
 
-// 학년이 둘 이상이면 맨 오른쪽에 전체 학년을 한 표로 보는 '전체'(키 'all')를 둔다.
+// 학년이 둘 이상이면 맨 오른쪽에 전체 학년을 한 표로 보는 '전체학년'(키 'all')을 둔다.
 function buildResultViews() {
     const grades = (appData.config.grades.length ? [...appData.config.grades] : [1,2,3]).sort((a, b) => a - b);
     if (grades.length > 1) grades.push('all');
-    const views = [['result-teacher', '교사별'], ...grades.map(g => [`result-grade-${g}`, g === 'all' ? '전체' : `${g}학년`])];
+    const views = [['result-teacher', '교사별'], ...grades.map(g => [`result-grade-${g}`, g === 'all' ? '전체학년' : `${g}학년`])];
     if (!views.some(([id]) => id === currentResultView)) currentResultView = 'result-teacher';
     document.getElementById('result-view-btns').innerHTML = views.map(([id, lbl]) =>
         `<button class="${id === currentResultView ? RESULT_BTN_ON : RESULT_BTN_OFF}" data-target="${id}">${lbl}</button>`).join('');
@@ -84,6 +84,11 @@ function buildResultViews() {
     box.querySelectorAll('.result-view').forEach(view => view.classList.toggle('hidden', view.id !== currentResultView));
     return grades;
 }
+
+// 수업 칸만 살구색(회색과 진하기·밝기는 같고 색깔만 다름)
+const chipBg = txt => txt.includes('(수업)') || txt.includes('(수)') ? 'bg-[#F9F4F1]' : 'bg-slate-100';
+// 화면에서만 특수를 '특'으로 줄인다. 저장 라벨('1학년(특수2)')은 그대로 둔다.
+const shortSpecial = label => label.replace('(특수', '(특');
 
 window.renderResultTab = function() {
     resultHeaderObserver.disconnect();
@@ -154,7 +159,7 @@ window.renderResultTab = function() {
                 const borders = cellBorders(periodsByDate, dates, dIdx, pIdx);
                 const assigned = appData.assignments[t.id] && appData.assignments[t.id][p.id];
                 const swapAttrs = `draggable="false" data-swap-teacher="${t.id}" data-swap-period="${p.id}" onpointerdown="handleAssignPointerDown(event, '${t.id}', '${p.id}')" ondragstart="handleAssignDragStart(event, '${t.id}', '${p.id}')" ondragover="handleAssignDragOver(event, '${t.id}', '${p.id}')" ondrop="handleAssignDrop(event, '${t.id}', '${p.id}')" oncontextmenu="handleRightClickSwap(event, '${t.id}', '${p.id}')"`;
-                const cellStyle = assigned ? "bg-slate-100 text-slate-800 font-bold" : "text-pebble";
+                const cellStyle = assigned ? `${chipBg(assigned)} text-slate-800 font-bold` : "text-pebble";
                 const base = appData.baseAssignments;
                 const changed = base && (assigned || '') !== ((base[t.id] || {})[p.id] || '') ? 'cell-changed' : '';
 
@@ -165,7 +170,7 @@ window.renderResultTab = function() {
                     else if(assigned.length >= 6) txtSize = "text-[13.5px]";
                 }
 
-                tHtml += `<td ${swapAttrs} data-cell="${t.id}|${p.id}" class="py-2.5 px-1 border border-line ${txtSize} ${cellStyle} ${borders} ${changed} hover-swap overflow-hidden truncate">${assigned || '-'}</td>`;
+                tHtml += `<td ${swapAttrs} data-cell="${t.id}|${p.id}" class="py-2.5 px-1 border border-line ${txtSize} ${cellStyle} ${borders} ${changed} hover-swap overflow-hidden truncate">${assigned ? shortSpecial(assigned) : '-'}</td>`;
             });
         });
         if (!dates.length) tHtml += '<td class="border border-line"></td>';
@@ -183,7 +188,8 @@ window.renderResultTab = function() {
             const { area: cnm, role: rstr } = parseLabel(lbl);
             if(!cAssign[cnm]) cAssign[cnm] = {};
             if(!cAssign[cnm][pid]) cAssign[cnm][pid] = [];
-            cAssign[cnm][pid].push({ tid, txt: rstr ? `${tobj.name}(${rstr})` : tobj.name });
+            const role = rstr || (roleKey(lbl) === '특수' ? '특' : '');
+            cAssign[cnm][pid].push({ tid, txt: role ? `${tobj.name}(${role})` : tobj.name });
         });
     });
     function sortAssignedList(list) {
@@ -204,7 +210,7 @@ window.renderResultTab = function() {
     }
 
     // 학년별 보기: 그 학년 반·특수·분리·복도 자리만, 교시 머리글에 그 학년 과목을 괄호로 붙인다.
-    // '전체'는 모든 학년 자리를 보이고, 학년마다 과목이 달라 머리글에는 교시만 쓴다.
+    // '전체학년'은 모든 학년 자리를 보이고, 학년마다 과목이 달라 머리글에는 교시만 쓴다.
     const cColgroupHtml = `<colgroup><col style="width: 100px;">${'<col>'.repeat(Math.max(1, appData.periods.length))}</colgroup>`;
     grades.forEach(g => {
         const subjectOf = p => (appData.classSubjects[p.id] || {})[g] || '';
@@ -213,7 +219,7 @@ window.renderResultTab = function() {
         const areas = Object.keys(cAssign).filter(cnm => g === 'all' || gradeOf(cnm) === String(g));
         if (!areas.length) cHtml += emptyTableRows(1 + Math.max(1, appData.periods.length));
         Object.keys(cAssign).filter(cnm => g === 'all' || gradeOf(cnm) === String(g)).sort(naturalSortKey).forEach(cnm => {
-            cHtml += `<tr class="bg-surface-0"><td class="p-2 border border-line font-bold bg-surface-50 text-[14px]">${cnm}</td>`;
+            cHtml += `<tr class="bg-surface-0"><td class="p-2 align-middle border border-line font-bold bg-surface-50 text-[14px]">${cnm}</td>`;
             dates.forEach((d, dIdx) => {
                 periodsByDate[d].forEach((p, pIdx) => {
                     const borders = cellBorders(periodsByDate, dates, dIdx, pIdx);
@@ -221,13 +227,13 @@ window.renderResultTab = function() {
                     if(assigned.length > 0) {
                         // 인원 수와 무관하게 교사별 표와 같은 글자 크기를 쓴다.
                         const nameAttrs = (x) => `draggable="false" data-swap-teacher="${x.tid}" data-swap-period="${p.id}" onpointerdown="handleAssignPointerDown(event, '${x.tid}', '${p.id}')" ondragstart="handleAssignDragStart(event, '${x.tid}', '${p.id}')" ondragover="handleAssignDragOver(event, '${x.tid}', '${p.id}')" ondrop="handleAssignDrop(event, '${x.tid}', '${p.id}')" oncontextmenu="handleRightClickSwap(event, '${x.tid}', '${p.id}')"`;
-                        // 한 명뿐이면 칩을 셀에 꽉 채워 셀 전체가 그레이로 보이게 한다.
+                        // 칸 전체를 칠하고(수업이 있으면 살구색) 이름은 세로 가운데에 둔다. 한 명뿐이면 칸 높이만큼 여백을 준다.
                         const solo = assigned.length === 1;
                         const tdPad = solo ? 'p-0' : 'py-1.5 px-1';
-                        const chipCls = solo ? 'py-2.5 px-1' : 'rounded px-1 py-0.5';
-                        cHtml += `<td class="${tdPad} border border-line bg-surface-0 text-slate-800 font-bold ${borders} text-[13.5px] leading-tight min-w-[80px] w-[80px] overflow-hidden swap-cell"><div class="flex flex-col gap-1">` + assigned.map(x=>`<span class="truncate swap-name block bg-slate-100 ${chipCls}" ${nameAttrs(x)}>${x.txt}</span>`).join('') + `</div></td>`;
+                        const nameCls = solo ? 'py-2.5 px-1' : 'px-1 py-0.5';
+                        cHtml += `<td class="${tdPad} align-middle border border-line ${chipBg(assigned.map(x => x.txt).join())} text-slate-800 font-bold ${borders} text-[13.5px] leading-tight min-w-[80px] w-[80px] overflow-hidden swap-cell"><div class="flex flex-col gap-1">` + assigned.map(x=>`<span class="truncate swap-name block ${nameCls}" ${nameAttrs(x)}>${x.txt}</span>`).join('') + `</div></td>`;
                     } else {
-                        cHtml += `<td class="p-2 border border-line text-pebble ${borders} min-w-[80px] w-[80px]">-</td>`;
+                        cHtml += `<td class="p-2 align-middle border border-line text-pebble ${borders} min-w-[80px] w-[80px]">-</td>`;
                     }
                 });
             });

@@ -94,7 +94,11 @@ def write_result(appData, path):
     thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
     center_align = Alignment(horizontal='center', vertical='center')
     center_align_wrap = Alignment(horizontal='center', vertical='center', wrap_text=True)  # 줄바꿈용 서식
-    header_fill = PatternFill(start_color="FCE4D6", end_color="FCE4D6", fill_type="solid")
+    # 배정 결과 화면(tab-result.js)과 같은 색: 머리글·배정 칸 연회색, 수업 칸 살구색, 빈 칸 흐린 글자
+    fill = lambda rgb: PatternFill(start_color=rgb, end_color=rgb, fill_type="solid")
+    header_fill, side_fill, total_fill = fill("F1F5F9"), fill("F8FAFC"), fill("FEEDED")
+    assigned_fill, class_fill = fill("F1F5F9"), fill("F9F4F1")
+    TEXT, SUB_TEXT, EMPTY_TEXT, TOTAL_TEXT = "1E293B", "4A5565", "94A3B8", "F04A4A"
 
     periods_sorted = sorted(appData.get('periods', []), key=lambda x: (x['date'], period_num(x['name'])))
     periods_by_date = {}
@@ -118,15 +122,23 @@ def write_result(appData, path):
             if pl > 1: ws.merge_cells(start_row=1, start_column=cidx, end_row=1, end_column=cidx + pl - 1)
             cidx += pl
 
-    def style(ws, align):
+    def style(ws, align, fixed):
+        """앞 고정 칸(fixed 개)은 굵게, 배정 칸은 연회색(수업만 살구색), '-' 칸은 흐린 글자."""
         for r in ws.iter_rows():
             for c in r:
                 c.border = thin_border
                 c.alignment = align
                 c.number_format = '@'
                 if c.row <= 2:
-                    c.font = Font(bold=True)
+                    c.font = Font(bold=True, color=TEXT)
                     c.fill = header_fill
+                elif c.column <= fixed:
+                    c.font = Font(bold=True, color=TEXT)
+                elif c.value == '-':
+                    c.font = Font(color=EMPTY_TEXT)
+                else:
+                    c.font = Font(bold=True, color=TEXT)
+                    c.fill = class_fill if '(수업)' in str(c.value) or '(수)' in str(c.value) else assigned_fill
 
     teachers, assigns = appData.get('teachers', []), appData.get('assignments', {})
 
@@ -146,11 +158,19 @@ def write_result(appData, path):
     add_header(ws1, fixed, lambda p: p['name'])
     for i, (t, cnt) in enumerate(zip(teachers, counts)):
         trow = [i + 1, t['name']] + [cnt[k] for k, _ in roles] + [sum(cnt.values())]
-        trow += [assigns.get(t['id'], {}).get(p['id'], "-") for p in periods_sorted]
+        # 화면과 같이 특수는 '특'으로 줄인다 (tab-result.js 의 shortSpecial)
+        trow += [assigns.get(t['id'], {}).get(p['id'], "-").replace('(특수', '(특') for p in periods_sorted]
         ws1.append(trow)
     for col in range(1, ws1.max_column + 1):
-        ws1.column_dimensions[get_column_letter(col)].width = 16 if col > len(fixed) else 5 if col == 1 else 12 if col == 2 else 4.5
-    style(ws1, center_align)
+        # 엑셀 화면 너비는 저장 값보다 0.62 작게 보인다 (12.62 → 12)
+        ws1.column_dimensions[get_column_letter(col)].width = 12.62 if col > len(fixed) else 5 if col == 1 else 12 if col == 2 else 4.5
+    style(ws1, center_align, len(fixed))
+    # 화면처럼 순·횟수 칸은 옅은 배경, 합 칸은 코랄
+    for row in ws1.iter_rows(min_row=3, max_col=len(fixed)):
+        row[0].fill = side_fill
+        for c in row[2:-1]:
+            c.fill, c.font = side_fill, Font(bold=True, color=SUB_TEXT)
+        row[-1].fill, row[-1].font = total_fill, Font(bold=True, color=TOTAL_TEXT)
 
     # ── 학년별 시간표: 시험 보는 학년마다 한 시트. 교시 머리글에 그 학년 과목을 괄호로 붙인다 ──
     cAssign = {}
@@ -160,6 +180,7 @@ def write_result(appData, path):
         for p_id, a_label in p_dict.items():
             if not a_label or a_label == '-': continue
             cName, roleStr = parse_label(a_label)
+            roleStr = roleStr or ('특' if role_key(a_label) == '특수' else '')
             cAssign.setdefault(cName, {}).setdefault(p_id, []).append(f"{tObj['name']}({roleStr})" if roleStr else tObj['name'])
 
     def natural_sort_key(s):
@@ -178,16 +199,19 @@ def write_result(appData, path):
         return (pri, name_str)
 
     class_subjects = appData.get('classSubjects', {})
-    for g in sorted(appData.get('config', {}).get('grades', []), key=int):
+    grades = sorted(appData.get('config', {}).get('grades', []), key=int)
+    # 학년이 둘 이상이면 맨 끝에 모든 학년을 한 시트로 보는 '전체학년'을 둔다 (화면의 '전체학년' 탭과 같다)
+    if len(grades) > 1: grades.append('all')
+    for g in grades:
         g_str = str(g)
-        ws = wb.create_sheet(f"{g}학년 시간표")
+        ws = wb.create_sheet("전체학년 시간표" if g == 'all' else f"{g}학년 시간표")
 
         def period_title(p):
-            subj = class_subjects.get(p['id'], {}).get(g_str, '')
+            subj = '' if g == 'all' else class_subjects.get(p['id'], {}).get(g_str, '')
             return f"{p['name']}({SUBJECT_LABEL.get(subj, subj)})" if subj else p['name']
 
         add_header(ws, ["학급"], period_title)
-        for cName in sorted((c for c in cAssign if grade_of(c) == g_str), key=natural_sort_key):
+        for cName in sorted((c for c in cAssign if g == 'all' or grade_of(c) == g_str), key=natural_sort_key):
             row_data = [cName]
             for p in periods_sorted:
                 assigned_list = sorted(cAssign[cName].get(p['id'], []), key=get_sort_key)
@@ -195,7 +219,9 @@ def write_result(appData, path):
                 row_data.append("\n".join(assigned_list) if assigned_list else "-")
             ws.append(row_data)
         for col in range(1, ws.max_column + 1):
-            ws.column_dimensions[get_column_letter(col)].width = 20 if col > 1 else 16
-        style(ws, center_align_wrap)
+            ws.column_dimensions[get_column_letter(col)].width = 13.62 if col > 1 else 16  # 교시 칸은 엑셀에서 13으로 보인다
+        style(ws, center_align_wrap, 1)
+        for row in ws.iter_rows(min_row=3, max_col=1):
+            row[0].fill = side_fill
 
     wb.save(path)

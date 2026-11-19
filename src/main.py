@@ -71,7 +71,7 @@ XLSX_TYPES = ('Excel 파일 (*.xlsx)', '모든 파일 (*.*)')
 JSON_TYPES = ('JSON 파일 (*.json)', '모든 파일 (*.*)')
 
 # 변경 성격에 맞춰 전체 버전을 지정한다. release.yml이 이 값으로 배포한다.
-APP_VERSION = '1.5.2'
+APP_VERSION = '1.6.0'
 # 업데이트를 받을 GitHub 공개 저장소 'owner/repo'. 비어 있으면 업데이트 확인을 건너뛴다 (켤 때 최신 릴리스와 비교).
 UPDATE_REPO = 'cordmin/examproctor'
 # 릴리스에 올리는 설치 파일 이름. installer.iss 의 OutputBaseFilename 과 같아야 한다.
@@ -409,10 +409,23 @@ class Api:
                 tag = r.geturl().rstrip('/').rsplit('/', 1)[-1]
             if version_tuple(tag) <= version_tuple(APP_VERSION):
                 return {"available": False, "status": "latest", "version": tag}
-            return {"available": True, "version": tag, "current": f"v{APP_VERSION}"}
+            return {"available": True, "version": tag, "current": f"v{APP_VERSION}", "notes": self._release_notes(tag)}
         except Exception as e:   # 오프라인이거나 릴리스가 없으면 조용히 넘어간다
             print(f"업데이트 확인 실패: {e}")
             return {"available": False, "status": "error", "error": str(e)}
+
+    def _release_notes(self, tag, limit=4):
+        """그 버전 태그의 RELEASE_NOTES.md 에서 '- ' 항목만 몇 줄 가져온다. 못 읽으면 빈 목록."""
+        if not SAFE_TAG.fullmatch(tag):
+            return []
+        try:
+            url = f'https://raw.githubusercontent.com/{UPDATE_REPO}/{tag}/RELEASE_NOTES.md'
+            with urllib.request.urlopen(url, timeout=5) as r:
+                text = r.read().decode('utf-8-sig')
+            return [line[2:].strip() for line in text.splitlines() if line.startswith('- ')][:limit]
+        except Exception as e:
+            print(f"업데이트 내역 확인 실패: {e}")
+            return []
 
     def install_update(self, tag, data=None):
         """설치 파일을 받아 조용히 설치하도록 띄우고 창을 닫는다. 설치가 끝나면 설치 파일이 프로그램을 다시 켠다."""

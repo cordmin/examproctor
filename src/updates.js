@@ -40,6 +40,10 @@ function askUpdate(res, startImmediately = false) {
     const progress = document.getElementById('update-download-progress');
     document.getElementById('update-from').textContent = res.current;
     document.getElementById('update-to').textContent = res.version;
+    // 바뀐 점을 몇 줄만 보인다. 못 읽었으면 목록을 숨긴다.
+    const notes = document.getElementById('update-notes');
+    notes.replaceChildren(...(res.notes || []).map(text => Object.assign(document.createElement('li'), { textContent: text })));
+    notes.classList.toggle('hidden', !notes.children.length);
     confirm.disabled = later.disabled = close.disabled = false;
     confirm.textContent = '업데이트'; later.textContent = '나중에';
     message.textContent = '새 버전이 나왔습니다. 지금 업데이트하시겠습니까?';
