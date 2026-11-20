@@ -72,8 +72,8 @@ JSON_TYPES = ('JSON 파일 (*.json)', '모든 파일 (*.*)')
 
 # 변경 성격에 맞춰 전체 버전을 지정한다. release.yml이 이 값으로 배포한다.
 APP_VERSION = '1.6.0'
-# 업데이트를 받을 GitHub 공개 저장소 'owner/repo'. 비어 있으면 업데이트 확인을 건너뛴다 (켤 때 최신 릴리스와 비교).
-UPDATE_REPO = 'cordmin/examproctor'
+# 스토어판은 Microsoft Store 가 업데이트하므로 비워 둔다 (스토어 정책상 스스로 업데이트 금지).
+UPDATE_REPO = ''
 # 릴리스에 올리는 설치 파일 이름. installer.iss 의 OutputBaseFilename 과 같아야 한다.
 SETUP_ASSET = 'ExamProctorSetup.exe'
 # 업데이트 주소에 들어가는 버전 이름에는 경로를 바꾸는 글자(/, \, % 등)를 쓸 수 없다.

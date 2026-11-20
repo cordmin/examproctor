@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Microsoft Store 포장 설명서. Identity 값은 파트너 센터 '제품 ID' 화면 값과 똑같아야 한다.
+     Version 은 build_store.ps1 이 main.py 의 APP_VERSION 으로 바꿔 넣는다 (끝자리는 스토어 규칙상 0). -->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+
+  <Identity
+    Name="LEEKYUNGMIN.3349950B60855"
+    Publisher="CN=48242DEB-E6B5-4621-A918-3E598907EF0B"
+    Version="0.0.0.0"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>시험감독배정</DisplayName>
+    <PublisherDisplayName>LEE KYUNG MIN</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="ko-kr" />
+  </Resources>
+
+  <Applications>
+    <Application Id="ExamProctor" Executable="시험감독배정시스템.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="시험감독배정"
+        Description="학교 시험 감독 배정 프로그램"
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png" />
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

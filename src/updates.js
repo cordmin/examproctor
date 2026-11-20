@@ -130,7 +130,7 @@ window.checkAboutUpdate = async function() {
             status.textContent = {
                 latest: '현재 최신 버전을 사용하고 있습니다.',
                 development: '',
-                unconfigured: '업데이트 저장소 미설정',
+                unconfigured: 'Microsoft Store에서 자동으로 업데이트됩니다.',
                 error: '확인 실패 · 인터넷 연결을 확인하세요.',
             }[res.status] ?? '확인 실패 · 다시 시도해 주세요.';
         }
