@@ -35,6 +35,8 @@ jobs:
           $m = Select-String -Path src/main.py -Pattern "^APP_VERSION = '(\d+\.\d+\.\d+)'$"
           if (-not $m) { throw "main.py 에서 APP_VERSION 을 찾지 못했습니다." }
           $ver = $m.Matches[0].Groups[1].Value
+          # 스토어판(store 분기)은 자동 업데이트를 끈 코드라 main 에 섞이면 설치판 사용자가 업데이트를 못 받는다. AGENTS.md 참고.
+          if (Select-String -Path src/main.py -Pattern "^UPDATE_REPO = ''" -Quiet) { throw "스토어판 코드(UPDATE_REPO 비어 있음)가 main 에 들어왔습니다. store 분기를 main 에 합치면 안 됩니다." }
           $existingTag = git ls-remote --tags origin "refs/tags/v$ver"
           if ($LASTEXITCODE -ne 0) { throw "기존 릴리스 버전을 확인하지 못했습니다." }
           if ($existingTag -and $env:REPLACE_EXISTING -ne 'true') { throw "v$ver 은 이미 배포됐습니다. 변경 성격에 맞게 APP_VERSION 을 올려 주세요." }
