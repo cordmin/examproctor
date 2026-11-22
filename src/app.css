@@ -662,6 +662,8 @@ svg[class~="h-6"]   { height: 31.2px !important; }
 .x-btn:hover { color: #DC2626 !important; }
 /* 공통 버튼 눌림(사각 그림자·어둡게)은 칸 전체가 눌려 보이므로, X 버튼은 X 모양만 눌리게 한다 */
 button.x-btn:active:not(:disabled):not([aria-disabled="true"]) { translate: none; scale: none; filter: none; box-shadow: none !important; }
+/* 시간표 불러오기 메뉴 항목은 얕게만 눌린다 */
+#timetable-menu button:active:not(:disabled) { translate: 0 1px; scale: none; filter: brightness(.97); box-shadow: none !important; }
 .x-btn svg { transition: translate .12s ease-out, scale .12s ease-out; }
 .x-btn:active svg { translate: 0 1px; scale: .82; transition-duration: 55ms; }
 @media (prefers-reduced-motion: reduce) { .x-btn svg { transition: none; } }

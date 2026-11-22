@@ -33,6 +33,9 @@ $source = $source.Replace('LicenseFile=license.txt', ('LicenseFile=' + $src + '\
 $source = $source.Replace('Source: "license.txt"', ('Source: "' + $src + '\license.txt"'))
 $source = $source.Replace('Source: "motto-serif-LICENSE.txt"', ('Source: "' + $src + '\motto-serif-LICENSE.txt"'))
 $source = $source.Replace('Source: "THIRD-PARTY-NOTICES.txt"', ('Source: "' + $src + '\THIRD-PARTY-NOTICES.txt"'))
+foreach ($example in @('시험감독_배정결과(예시).json', '압핀_주간시간표(예시).xlsx', '컴시간_주간시간표(예시).xlsx')) {
+    $source = $source.Replace("Source: `"$example`"", ('Source: "' + $src + '\' + $example + '"'))
+}
 $source = $source.Replace("ExpandConstant('{userappdata}\시험감독배정')", "'$folder'")
 $source = $source.Replace("ExpandConstant('{userappdata}\시험감독배정\update-progress.ps1')", "'$folder\update-progress.ps1'")
 $iss = Join-Path $folder 'smoke.iss'
@@ -59,8 +62,10 @@ try {
     if (-not $seenApp -or $notices.Count) { throw 'Notice did not remain until restart and close automatically' }
     $process.WaitForExit(5000) | Out-Null
     if ($process.ExitCode -ne 0) { throw "Installer exit code: $($process.ExitCode)" }
-    if (Test-Path -LiteralPath (Join-Path $installDir '시험감독_배정결과(예시).json')) { throw 'Installer unexpectedly bundled example data' }
-    Write-Output 'PASS: no bundled example data; actual silent installer starts notice, retains it during delayed restart, closes it after app window appears'
+    foreach ($example in @('시험감독_배정결과(예시).json', '압핀_주간시간표(예시).xlsx', '컴시간_주간시간표(예시).xlsx')) {
+        if (-not (Test-Path -LiteralPath (Join-Path $installDir $example))) { throw "Installer missing example: $example" }
+    }
+    Write-Output 'PASS: examples installed; actual silent installer starts notice, retains it during delayed restart, closes it after app window appears'
 } finally {
     Get-Process -ErrorAction SilentlyContinue | Where-Object { try { $_.Path -eq (Join-Path $installDir '시험감독배정시스템.exe') } catch { $false } } | Stop-Process
 }

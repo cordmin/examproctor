@@ -19,6 +19,8 @@ $layout = 'build\msix'
 Remove-Item $layout -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory $layout | Out-Null
 Copy-Item 'dist\시험감독배정시스템.exe', license.txt, motto-serif-LICENSE.txt, THIRD-PARTY-NOTICES.txt $layout
+# 설치판과 같은 예시 파일(이름은 모두 가짜). 열기·시간표 불러오기 창이 프로그램 폴더에서 열린다.
+Copy-Item '시험감독_배정결과(예시).json', '압핀_주간시간표(예시).xlsx', '컴시간_주간시간표(예시).xlsx' $layout
 Copy-Item msix\Assets $layout -Recurse
 (Get-Content msix\AppxManifest.xml -Raw -Encoding UTF8) -replace 'Version="0\.0\.0\.0"', "Version=`"$ver.0`"" |
     Set-Content "$layout\AppxManifest.xml" -Encoding UTF8

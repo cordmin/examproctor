@@ -71,7 +71,7 @@ XLSX_TYPES = ('Excel 파일 (*.xlsx)', '모든 파일 (*.*)')
 JSON_TYPES = ('JSON 파일 (*.json)', '모든 파일 (*.*)')
 
 # 변경 성격에 맞춰 전체 버전을 지정한다. release.yml이 이 값으로 배포한다.
-APP_VERSION = '1.6.0'
+APP_VERSION = '1.7.1'
 # 스토어판은 Microsoft Store 가 업데이트하므로 비워 둔다 (스토어 정책상 스스로 업데이트 금지).
 UPDATE_REPO = ''
 # 릴리스에 올리는 설치 파일 이름. installer.iss 의 OutputBaseFilename 과 같아야 한다.
@@ -289,9 +289,12 @@ class Api:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    def _example_dir(self):
+        # 예시 파일이 있는 곳: 설치판은 프로그램 폴더, 작업 중에는 src 폴더
+        return os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+
     def load_data_dialog(self):
-        directory = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        result = self._ask_open(JSON_TYPES, directory)
+        result = self._ask_open(JSON_TYPES, self._example_dir())
         if not result:
             return {"success": False, "canceled": True}
         try:
@@ -322,6 +325,20 @@ class Api:
             return {"success": True, "teachers": clean_text(excel.read_teachers(result[0]))}
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+    def import_timetable(self, kind):
+        """kind: 'apin' 또는 'comsi'. 고른 메뉴와 파일 종류가 다르면 알려 준다."""
+        result = self._ask_open(XLSX_TYPES, self._example_dir())
+        if not result:
+            return {"success": False, "canceled": True}
+        try:
+            found, lessons = excel.read_timetable(result[0])
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+        if found != kind:
+            names = {'apin': '압핀', 'comsi': '컴시간'}
+            return {"success": False, "error": f"고른 파일은 {names[found]} 주간 시간표예요. [{names[found]} 주간 시간표] 메뉴로 불러와 주세요."}
+        return {"success": True, "lessons": clean_text(lessons)}
 
     def export_excel(self, appData, default_filename='시험감독배정_최종결과.xlsx'):
         result = self._ask_save(default_filename, XLSX_TYPES)

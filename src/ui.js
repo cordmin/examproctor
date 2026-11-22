@@ -6,8 +6,11 @@ window.icon = (name, cls = 'w-4 h-4') => `<svg class="${cls}"><use href="#i-${na
 window.showToast = function(message, type = 'success') {
     const toast = document.getElementById('toast-notification');
     const mark = type === 'success'
-        ? `<span class="flex-shrink-0 flex items-center justify-center" style="color:#22C55E">${icon('check-circle', 'w-5 h-5')}</span>`
-        : `<span class="text-coral flex-shrink-0 flex items-center justify-center">${icon('alert', 'w-5 h-5')}</span>`;
+        // 진한 남색 바탕 위라서 밝은 초록·빨강을 쓴다.
+        ? `<span class="flex-shrink-0 flex items-center justify-center" style="color:#4ADE80">${icon('check-circle', 'w-5 h-5')}</span>`
+        : `<span class="flex-shrink-0 flex items-center justify-center" style="color:#F87171">${icon('alert', 'w-5 h-5')}</span>`;
+    // 얇은 연두 테두리는 아이콘보다 연해 보여서 한 단계 진한 초록을 쓴다.
+    toast.style.borderColor = type === 'success' ? '#22C55E' : '#F87171';
     toast.innerHTML = `${mark}<span class="whitespace-pre-line leading-relaxed">${message}</span>`;
     toast.classList.remove('-translate-y-10', 'opacity-0', 'pointer-events-none');
     clearTimeout(toastTimeout);
@@ -22,7 +25,9 @@ window.openConfirmModal = function(title, msg, confirmText, callback, cancelText
     document.getElementById('confirm-modal-msg').innerHTML = msg;
     const btn = document.getElementById('confirm-modal-btn');
     btn.innerText = confirmText;
-    document.getElementById('confirm-modal-cancel').innerText = cancelText;
+    const cancel = document.getElementById('confirm-modal-cancel');
+    cancel.innerText = cancelText || '';
+    cancel.hidden = cancelText === null; // null 이면 확인 버튼만 있는 안내 창
     confirmCallback = callback;
     const m = document.getElementById('confirm-modal');
     m.classList.remove('hidden');
