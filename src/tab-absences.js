@@ -259,7 +259,8 @@ window.importTimetable = function(kind) {
         showToast(`주간시간표로 ${teacherCount}명, ${cellCount}칸을 배정 제외했습니다.`, 'success');
         const missing = Object.keys(res.lessons).filter(name => !byName.has(name));
         if (missing.length) openConfirmModal('명단에 없는 선생님',
-            `아래 ${missing.length}명은 시간표에는 있지만 감독 명단에 없어<br>배정 제외를 넣지 못했습니다.<br><br><b>${missing.join(', ')}</b>`, '확인', null, null);
+            // 이름 위 글자 간격을 본문 아래 여백(24px)과 눈으로 같게: 위아래 글줄의 줄간격만큼 뺀 값(17.5px)
+            `아래 ${missing.length}명은 주간 시간표에는 있지만<br>감독 명단에 없어 배정 제외하지 못했습니다.<div class="mt-[17.5px] font-bold">${missing.join(', ')}</div>`, '확인', null, null);
     });
 };
 

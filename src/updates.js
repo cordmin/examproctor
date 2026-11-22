@@ -40,12 +40,23 @@ function askUpdate(res, startImmediately = false) {
     const progress = document.getElementById('update-download-progress');
     document.getElementById('update-from').textContent = res.current;
     document.getElementById('update-to').textContent = res.version;
-    // 바뀐 점을 몇 줄만 보인다. 못 읽었으면 목록을 숨긴다.
+    // 바뀐 점 한 줄 = 상자 하나. '[꼬리표] 제목 | 설명' 에서 꼬리표·설명은 없어도 된다. 못 읽었으면 숨긴다.
     const notes = document.getElementById('update-notes');
-    notes.replaceChildren(...(res.notes || []).map(text => Object.assign(document.createElement('li'), { textContent: text })));
+    const el = (tag, cls, text) => Object.assign(document.createElement(tag), { className: cls, textContent: text || '' });
+    notes.replaceChildren(...(res.notes || []).map(line => {
+        const [, label, rest] = line.match(/^(?:\[([^\]]+)\]\s*)?(.*)$/);
+        const [title, detail] = rest.split(/\s*\|\s*/);
+        const card = el('div', 'bg-surface-50 border border-surface-200 rounded-[10px] px-3 py-2.5');
+        const head = el('div', 'text-[13px] font-bold text-text-main');
+        if (label) head.append(el('span', 'inline-block mr-1.5 px-[7px] py-px rounded-full bg-[#DBEAFE] text-[#1D4ED8] text-[11px] font-bold align-[1px]', label));
+        head.append(title);
+        card.append(head);
+        if (detail) card.append(el('p', 'mt-[3px] text-[12.5px] leading-normal text-[#64748B]', detail));
+        return card;
+    }));
     notes.classList.toggle('hidden', !notes.children.length);
     confirm.disabled = later.disabled = close.disabled = false;
-    confirm.textContent = '업데이트'; later.textContent = '나중에';
+    confirm.textContent = '지금 업데이트'; later.textContent = '나중에';
     message.textContent = '새 버전이 나왔습니다. 지금 업데이트하시겠습니까?';
     progress.classList.add('invisible');
     confirm.onclick = async () => {
