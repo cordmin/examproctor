@@ -82,6 +82,51 @@ def read_teachers(path):
     return teachers
 
 
+# ── 주간시간표(컴시간·압핀) ────────────────────────────────────────────
+TIMETABLE_DAYS = '월화수목금'
+
+
+def _lesson_grade(text):
+    """칸 글자에서 학년을 찾는다. 압핀 '2-9', 컴시간 '209'. 반이 없는 창체 등은 0."""
+    m = re.search(r'(\d)\s*-\s*\d+', text) or re.match(r'(\d)\d{2}(?!\d)', text)
+    return int(m[1]) if m else 0
+
+
+def read_timetable(path):
+    """주간시간표를 읽어 (종류, {교사: [[요일(월=0), 교시, 학년(0=반 없음)], ...]}) 를 돌려준다.
+
+    컴시간: 교사 한 줄, 칸은 '108\\n공수' 또는 '창체'.
+    압핀: 교사 두 줄(위 과목, 아래 '1-1'), 맨 앞에 '번호' 칸이 있다.
+    머리줄은 요일(병합 칸), 바로 아랫줄은 교시 번호다.
+    """
+    wb = load_workbook(path, data_only=True)
+    rows = [['' if v is None else str(v).strip() for v in row] for row in wb.active.iter_rows(values_only=True)]
+    wb.close()
+    head = next((i for i, row in enumerate(rows[:-1]) if '월' in row and ('교사명' in row or '교사' in row)), None)
+    if head is None:
+        raise ValueError('주간시간표 머리줄(교사·요일)을 찾지 못했어요. 컴시간·압핀 주간시간표 파일인지 확인해 주세요.')
+    kind = 'apin' if '번호' in rows[head] else 'comsi'
+    name_col = rows[head].index('교사명' if '교사명' in rows[head] else '교사')
+    cols, day = {}, ''
+    for c in range(name_col + 1, len(rows[head])):
+        day = rows[head][c] or day  # 병합된 요일 칸은 첫 칸에만 글자가 있다
+        period = rows[head + 1][c] if c < len(rows[head + 1]) else ''
+        if day in TIMETABLE_DAYS and re.fullmatch(r'\d+', period):
+            cols[c] = (TIMETABLE_DAYS.index(day), int(period))
+    lessons = {}
+    for r in range(head + 2, len(rows)):
+        name = rows[r][name_col] if name_col < len(rows[r]) else ''
+        if not name:
+            continue
+        below = rows[r + 1] if kind == 'apin' and r + 1 < len(rows) else []
+        found = lessons.setdefault(name, [])
+        for c, (d, p) in cols.items():
+            text = rows[r][c] if c < len(rows[r]) else ''
+            if text:
+                found.append([d, p, _lesson_grade(text + ' ' + (below[c] if c < len(below) else ''))])
+    return kind, lessons
+
+
 # 교사별 시트의 감독 유형 칸 순서: (role_key 값, 머리글). 모든 교사가 0회인 칸은 내보내지 않는다.
 RESULT_ROLES = [('정', '정'), ('부', '부'), ('복도', '복'), ('분리', '분'), ('특수', '특'), ('수업', '수')]
 

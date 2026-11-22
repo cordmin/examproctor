@@ -50,6 +50,10 @@ Source: "dist\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "motto-serif-LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "THIRD-PARTY-NOTICES.txt"; DestDir: "{app}"; Flags: ignoreversion
+; 예시(이름은 모두 가짜). 열기·시간표 불러오기 창이 이 폴더에서 열려 바로 보인다.
+Source: "시험감독_배정결과(예시).json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "압핀_주간시간표(예시).xlsx"; DestDir: "{app}"; Flags: ignoreversion
+Source: "컴시간_주간시간표(예시).xlsx"; DestDir: "{app}"; Flags: ignoreversion
 
 
 [Icons]

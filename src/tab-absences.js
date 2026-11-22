@@ -211,6 +211,58 @@ window.clearAllAbsences = function() {
     });
 };
 
+// ── 주간시간표로 배정 제외 채우기 ─────────────────────────────────────────
+const timetableMenu = document.getElementById('timetable-menu');
+const timetableButton = document.getElementById('btn-timetable');
+
+window.toggleTimetableMenu = function(open = timetableMenu.hidden) {
+    timetableMenu.hidden = !open;
+    timetableButton.setAttribute('aria-expanded', String(open));
+    if (open) timetableMenu.querySelector('button').focus();
+};
+document.addEventListener('click', event => {
+    if (!timetableMenu.hidden && !event.target.closest('#timetable-menu, #btn-timetable')) toggleTimetableMenu(false);
+});
+timetableMenu.addEventListener('keydown', event => {
+    const items = [...timetableMenu.querySelectorAll('button')];
+    const i = items.indexOf(document.activeElement);
+    if (event.key === 'Escape') { event.preventDefault(); toggleTimetableMenu(false); timetableButton.focus(); }
+    else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        items[(i + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length].focus();
+    }
+});
+
+// 시험 n교시 = 수업 n교시. 시험을 안 보는 학년 수업이나 창체(학년 0)가 있으면 '전체 제외'로 칠한다.
+window.importTimetable = function(kind) {
+    toggleTimetableMenu(false);
+    if (!appData.periods.length) return showToast('기본 설정에서 시험 날짜와 교시를 먼저 정해 주세요.', 'error');
+    window.pywebview.api.import_timetable(kind).then(res => {
+        if (!res.success) { if (!res.canceled) showToast('시간표 불러오기 실패: ' + res.error, 'error'); return; }
+        const examGrades = new Set(appData.config.grades.map(Number));
+        const byName = new Map(appData.teachers.map(t => [t.name, t]));
+        let teacherCount = 0, cellCount = 0;
+        Object.entries(res.lessons).forEach(([name, lessons]) => {
+            const teacher = byName.get(name);
+            if (!teacher) return;
+            const busy = new Set(lessons.filter(([, , grade]) => !examGrades.has(grade)).map(([day, period]) => `${day}_${period}`));
+            let marked = false;
+            appData.periods.forEach(p => {
+                const day = new Date(`${p.date}T00:00`).getDay() - 1; // 월=0
+                if (!busy.has(`${day}_${parseInt(p.name)}`)) return;
+                (teacher.absences ||= {})[p.id] = {type: 'ALL', target: ''};
+                cellCount++; marked = true;
+            });
+            if (marked) teacherCount++;
+        });
+        renderAbsencesTab();
+        showToast(`주간시간표로 ${teacherCount}명, ${cellCount}칸을 배정 제외했습니다.`, 'success');
+        const missing = Object.keys(res.lessons).filter(name => !byName.has(name));
+        if (missing.length) openConfirmModal('명단에 없는 선생님',
+            `아래 ${missing.length}명은 시간표에는 있지만 감독 명단에 없어<br>배정 제외를 넣지 못했습니다.<br><br><b>${missing.join(', ')}</b>`, '확인', null, null);
+    });
+};
+
 window.updateLimitDisplay = function(input) {
     input.style.width = `${input.value.length || 1}ch`;
     input.nextElementSibling.hidden = !(Number(input.value) > 0);

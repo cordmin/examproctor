@@ -8,6 +8,8 @@ __pycache__/
 Output/
 /*.json
 *.xlsx
+# 설치 파일에 넣는 주간시간표 예시(이름은 모두 가짜)
+!src/*_주간시간표(예시).xlsx
 
 # Generated design previews and UI verification captures
 /artifacts/

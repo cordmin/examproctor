@@ -15,5 +15,8 @@ for filename in references:
 for filename in manifest:
     assert (src / filename).is_file(), f'Missing asset: {filename}'
 assert 'Source: "THIRD-PARTY-NOTICES.txt"' in (src / 'installer.iss').read_text(encoding='utf-8'), 'Notices missing from installer'
-assert '시험감독_배정결과(예시).json' not in (src / 'installer.iss').read_text(encoding='utf-8')
-print('PASS: frontend modules/assets bundled; no sample data in installer')
+installer = (src / 'installer.iss').read_text(encoding='utf-8')
+for example in ['시험감독_배정결과(예시).json', '압핀_주간시간표(예시).xlsx', '컴시간_주간시간표(예시).xlsx']:
+    assert f'Source: "{example}"' in installer, f'Example missing from installer: {example}'
+    assert (src / example).is_file(), f'Missing example: {example}'
+print('PASS: frontend modules/assets bundled; examples installed next to the program')

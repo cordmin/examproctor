@@ -43,7 +43,8 @@ def check():
         api.close_window.assert_not_called()
         api._ask_open = Mock(return_value=None)
         api.load_data_dialog()
-        assert api._ask_open.call_args.args[1] == str(Path(main.__file__).resolve().parent.parent)
+        # 작업 중에는 예시 파일이 있는 src 폴더에서 열린다.
+        assert api._ask_open.call_args.args[1] == str(Path(main.__file__).resolve().parent)
     print('PASS: empty install, revalidation preserves all 291 assignments/counts, stale shortage cleared, close save/discard/cancel, installation folder')
 
 if __name__ == '__main__':

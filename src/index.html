@@ -87,6 +87,7 @@
         <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
         <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
         <symbol id="i-file-spreadsheet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h2m4 0h2M8 17h2m4 0h2"/></symbol>
+        <symbol id="i-calendar-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18"/><path d="M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01" stroke-width="2.6"/></symbol>
         <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
         <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
         <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M12 3v18"/></symbol>
@@ -428,7 +429,17 @@
                             </div>
                         </div>
                     </div>
-                    <div class="toolbar-action-end">
+                    <div class="toolbar-action-end gap-2">
+                        <!-- 주간시간표로 배정 제외 채우기 -->
+                        <div class="relative flex-shrink-0">
+                            <button id="btn-timetable" type="button" onclick="toggleTimetableMenu()" aria-haspopup="menu" aria-expanded="false" aria-controls="timetable-menu" class="inline-flex items-center justify-center gap-1.5 px-[15px] h-9 border border-white/25 bg-white/10 text-white hover:bg-white/20 font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors">
+                                <svg class="w-3.5 h-3.5"><use href="#i-calendar-grid"/></svg> 불러오기
+                            </button>
+                            <div id="timetable-menu" role="menu" aria-label="주간시간표 불러오기" hidden class="absolute left-0 top-[calc(100%+4px)] z-50 w-max p-1 bg-white border border-line rounded-md shadow-[0_4px_12px_#0F172A26]">
+                                <button type="button" role="menuitem" onclick="importTimetable('apin')" class="flex w-full items-center gap-2 px-2.5 py-2 rounded-[3px] text-[13px] font-bold text-text-main whitespace-nowrap hover:bg-surface-100 focus-visible:bg-surface-100 outline-none cursor-pointer"><img src="apin-icon.png" alt="" class="w-4 h-4 rounded-[3px]"> 압핀 주간 시간표</button>
+                                <button type="button" role="menuitem" onclick="importTimetable('comsi')" class="flex w-full items-center gap-2 px-2.5 py-2 rounded-[3px] text-[13px] font-bold text-text-main whitespace-nowrap hover:bg-surface-100 focus-visible:bg-surface-100 outline-none cursor-pointer"><img src="comsi-icon.png" alt="" class="w-4 h-4"> 컴시간 주간 시간표</button>
+                            </div>
+                        </div>
                         <button onclick="clearAllAbsences()" class="inline-flex items-center justify-center gap-1.5 px-[15px] h-9 bg-[#F04A4A] hover:bg-[#D93838] text-white font-bold rounded-lg text-[13px] shadow-sm cursor-pointer transition-colors border border-transparent flex-shrink-0">
                             <svg class="w-3.5 h-3.5 text-white"><use href="#i-trash"/></svg> 초기화
                         </button>
@@ -512,7 +523,7 @@
     <div class="fixed top-14 inset-x-0 z-[9999] flex justify-center pointer-events-none">
         <div id="toast-notification"
              role="status" aria-live="polite" aria-atomic="true"
-             class="max-w-[calc(var(--vw)*92)] px-6 py-3 bg-surface-0 text-text-main border border-line rounded-full shadow-xl text-[13.5px] font-bold flex items-center justify-center text-center space-x-2 transition-[transform,opacity] duration-300 -translate-y-10 opacity-0 pointer-events-none">
+             class="max-w-[calc(var(--vw)*92)] px-6 py-3 bg-chrome text-chrome-text border-[1.5px] rounded-full shadow-xl text-[13.5px] font-bold flex items-center justify-center text-center space-x-2 transition-[transform,opacity] duration-300 -translate-y-10 opacity-0 pointer-events-none">
         </div>
     </div>
 
