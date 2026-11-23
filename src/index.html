@@ -520,7 +520,8 @@
 
     <!-- ── 토스트 ─────────────────────────────────────────────────────── -->
     <!-- 가로 정렬은 바깥 요소가 맡고 토스트는 세로 이동·투명도만 전환한다. -->
-    <div class="fixed top-14 inset-x-0 z-[9999] flex justify-center pointer-events-none">
+    <!-- 모달(최대 z 40000)과 그 흐림 배경 위에 떠야 하므로 가장 높은 층에 둔다. -->
+    <div class="fixed top-14 inset-x-0 z-[50000] flex justify-center pointer-events-none">
         <div id="toast-notification"
              role="status" aria-live="polite" aria-atomic="true"
              class="max-w-[calc(var(--vw)*92)] px-6 py-3 bg-chrome text-chrome-text border-[1.5px] rounded-full shadow-xl text-[13.5px] font-bold flex items-center justify-center text-center space-x-2 transition-[transform,opacity] duration-300 -translate-y-10 opacity-0 pointer-events-none">
