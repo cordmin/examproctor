@@ -66,7 +66,7 @@ ISCC /DMyAppVersion={version} installer.iss
 
 Inno Setup 6이 필요합니다. 결과물은 `src/dist/시험감독배정시스템.exe`와 `src/Output/ExamProctorSetup.exe`입니다.
 
-`src/`에는 실행·빌드에 필요한 소스, 라이브러리, 아이콘·글꼴만 포함했습니다. 개인 자료·자동 저장·예시 데이터·테스트·Git 기록은 포함하지 않았습니다. MIT 및 동봉된 구성 요소의 라이선스를 유지하세요.
+`src/`에는 실행·빌드에 필요한 소스, 라이브러리, 아이콘·글꼴과 설치판에 함께 들어가는 예시 파일(이름은 모두 가짜)만 포함했습니다. 개인 자료·자동 저장·테스트·Git 기록은 포함하지 않았습니다. MIT 및 동봉된 구성 요소의 라이선스를 유지하세요.
 '''
     (destination / 'README.md').write_text(readme, encoding='utf-8')
     if archive:

@@ -71,7 +71,7 @@ XLSX_TYPES = ('Excel 파일 (*.xlsx)', '모든 파일 (*.*)')
 JSON_TYPES = ('JSON 파일 (*.json)', '모든 파일 (*.*)')
 
 # 변경 성격에 맞춰 전체 버전을 지정한다. release.yml이 이 값으로 배포한다.
-APP_VERSION = '1.7.1'
+APP_VERSION = '1.7.2'
 # 스토어판은 Microsoft Store 가 업데이트하므로 비워 둔다 (스토어 정책상 스스로 업데이트 금지).
 UPDATE_REPO = ''
 # 릴리스에 올리는 설치 파일 이름. installer.iss 의 OutputBaseFilename 과 같아야 한다.
